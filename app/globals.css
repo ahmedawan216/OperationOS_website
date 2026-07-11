@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Surfaces */
+  --color-bg: #08090c;
+  --color-surface: #0e1015;
+  --color-surface-2: #14161c;
+
+  /* Borders */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.18);
+
+  /* Text */
+  --color-ink: #f2f3f5;
+  --color-ink-dim: #8b8f98;
+  --color-ink-faint: #4c515a;
+
+  /* Brand accent */
+  --color-accent: #6e7bf7;
+  --color-accent-dim: rgba(110, 123, 247, 0.35);
+  --color-accent-soft: rgba(110, 123, 247, 0.09);
+
+  /* Status */
+  --color-success: #34d399;
+  --color-danger: #f0776c;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg text-ink antialiased;
+    font-feature-settings: "cv11", "ss01";
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-dim);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/*
+ * Progressive-enhancement safety net: `<Reveal>` (below-the-fold section
+ * content) is Framer-Motion-driven and server-renders its "hidden" state
+ * inline (opacity: 0) ahead of hydration. If JavaScript never runs — a
+ * blocked/broken script, a very slow connection, a crawler that doesn't
+ * execute JS — that content would otherwise stay invisible forever.
+ * `<noscript>` blocks are only honored by the browser when JS is off, so
+ * this rule can never fight with the real animation during normal use.
+ */
