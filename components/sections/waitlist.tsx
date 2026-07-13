@@ -1,5 +1,6 @@
 "use client";
 
+import { supabase } from "@/lib/supabase";
 import { useId, useState, type FormEvent } from "react";
 import { Check } from "lucide-react";
 
@@ -13,24 +14,67 @@ export function Waitlist() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const inputId = useId();
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
 
-    const trimmed = email.trim();
-    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  const trimmed = email.trim();
+  const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
 
-    if (!isValid) {
-      setError("Enter a valid work email to continue.");
-      return;
+  if (!isValid) {
+    setError("Enter a valid work email to continue.");
+    return;
+  }
+
+  setError(null);
+  setLoading(true);
+
+  try {
+    const { error } = await supabase
+      .from("waitlist")
+      .insert([{ email: trimmed }]);
+
+    if (error) {
+      if (error.code === "23505") {
+        throw new Error(
+          "You're already on the waitlist. We'll be in touch when a spot opens up."
+        );
+      }
+
+      throw new Error("Something went wrong. Please try again.");
     }
 
-    setError(null);
-    // NOTE: wire this up to your waitlist provider (e.g. a route handler
-    // under app/api/waitlist or a third-party form endpoint) before launch.
+    const response = await fetch("/api/waitlist", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    email: trimmed,
+  }),
+});
+
+if (!response.ok) {
+  throw new Error("Failed to send confirmation email.");
+}
+
     setSubmitted(true);
-  };
+    setEmail("");
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Something went wrong. Please try again."
+    );
+  } finally {
+    setLoading(false);
+  }
+
+  setEmail("");
+  setSubmitted(true);
+};
 
   return (
     <Section id="waitlist" className="text-center">
@@ -83,13 +127,14 @@ export function Waitlist() {
                     autoComplete="email"
                     placeholder="you@company.com"
                     value={email}
+                    disabled={loading}
                     onChange={(event) => setEmail(event.target.value)}
                     aria-invalid={Boolean(error)}
                     aria-describedby={error ? `${inputId}-error` : undefined}
                     required
                   />
-                  <Button type="submit" variant="terminal" size="sm" className="sm:shrink-0">
-                    run →
+                  <Button type="submit" variant="terminal" size="sm" className="sm:shrink-0" disabled={loading}>
+                    {loading ? "Joining..." : "run →"}
                   </Button>
                 </div>
                 {error && (
