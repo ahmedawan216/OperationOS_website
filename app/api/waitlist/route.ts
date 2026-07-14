@@ -5,18 +5,45 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    const { name, email } = await req.json();
 
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
+    // 👇 Paste it here
+    const greeting = name?.trim()
+      ? `Welcome to OperationOS, ${name.trim()}!`
+      : "Welcome to OperationOS!";
+
+    const { error } = await resend.emails.send({
+      from: "OperationOS <hello@operationos.org>",
       to: email,
-      subject: "Welcome to the RecruitOS Waitlist",
+      subject: "Welcome to OperationOS",
       html: `
-        <h2>You're on the list 🎉</h2>
-        <p>Thanks for joining the RecruitOS waitlist.</p>
-        <p>We'll email you as soon as early access is available.</p>
+        <h2>${greeting}</h2>
+
+        <p>Thanks for joining our early access waitlist.</p>
+
+        <p>
+          We're building the operating system for AI employees, beginning with RecruitOS.
+        </p>
+
+        <p>
+          As one of our earliest supporters, you'll receive product updates,
+          early access opportunities, and launch announcements before the public.
+        </p>
+
+        <p>
+          We're excited to have you with us.
+        </p>
+
+        <p>
+          — Ahmed<br>
+          Founder, OperationOS
+        </p>
       `,
     });
+
+    if (error) {
+      throw error;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

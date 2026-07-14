@@ -12,6 +12,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 
 export function Waitlist() {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,21 +21,33 @@ export function Waitlist() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
   event.preventDefault();
 
-  const trimmed = email.trim();
-  const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  const trimmedName = name.trim();
+const trimmedEmail = email.trim();
 
-  if (!isValid) {
-    setError("Enter a valid work email to continue.");
-    return;
-  }
+const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
+
+if (!trimmedName) {
+  setError("Enter your name to continue.");
+  return;
+}
+
+if (!isValid) {
+  setError("Enter a valid work email to continue.");
+  return;
+}
 
   setError(null);
   setLoading(true);
 
   try {
     const { error } = await supabase
-      .from("waitlist")
-      .insert([{ email: trimmed }]);
+  .from("waitlist")
+  .insert([
+    {
+      name: trimmedName,
+      email: trimmedEmail,
+    },
+  ]);
 
     if (error) {
       if (error.code === "23505") {
@@ -52,7 +65,8 @@ export function Waitlist() {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    email: trimmed,
+    name: trimmedName,
+    email: trimmedEmail,
   }),
 });
 
