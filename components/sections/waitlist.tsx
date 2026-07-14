@@ -11,8 +11,8 @@ import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 
 export function Waitlist() {
-  const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -75,6 +75,7 @@ if (!response.ok) {
 }
 
     setSubmitted(true);
+    setName("");
     setEmail("");
   } catch (err) {
     setError(
@@ -87,6 +88,7 @@ if (!response.ok) {
   }
 
   setEmail("");
+  setName("");
   setSubmitted(true);
 };
 
