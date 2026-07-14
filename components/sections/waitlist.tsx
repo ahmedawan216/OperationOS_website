@@ -87,8 +87,8 @@ if (!response.ok) {
     setLoading(false);
   }
 
-  setEmail("");
   setName("");
+  setEmail("");
   setSubmitted(true);
 };
 
@@ -135,24 +135,43 @@ if (!response.ok) {
                   </span>
                   join --email
                 </label>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Input
-                    id={inputId}
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    placeholder="you@company.com"
-                    value={email}
-                    disabled={loading}
-                    onChange={(event) => setEmail(event.target.value)}
-                    aria-invalid={Boolean(error)}
-                    aria-describedby={error ? `${inputId}-error` : undefined}
-                    required
-                  />
-                  <Button type="submit" variant="terminal" size="sm" className="sm:shrink-0" disabled={loading}>
-                    {loading ? "Joining..." : "run →"}
-                  </Button>
-                </div>
+                <div className="flex flex-col gap-3">
+  <Input
+    type="text"
+    autoComplete="name"
+    placeholder="Your name"
+    value={name}
+    disabled={loading}
+    onChange={(event) => setName(event.target.value)}
+    required
+  />
+
+  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <Input
+      id={inputId}
+      type="email"
+      inputMode="email"
+      autoComplete="email"
+      placeholder="you@company.com"
+      value={email}
+      disabled={loading}
+      onChange={(event) => setEmail(event.target.value)}
+      aria-invalid={Boolean(error)}
+      aria-describedby={error ? `${inputId}-error` : undefined}
+      required
+    />
+
+    <Button
+      type="submit"
+      variant="terminal"
+      size="sm"
+      className="sm:shrink-0"
+      disabled={loading}
+    >
+      {loading ? "Joining..." : "run →"}
+    </Button>
+  </div>
+</div>
                 {error && (
                   <p
                     id={`${inputId}-error`}
