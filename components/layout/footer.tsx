@@ -22,6 +22,14 @@ export function Footer() {
           ))}
         </nav>
 
+        <div className="text-right">
+    <a
+      href="mailto:hello@operationos.org"
+      className="block text-sm text-ink hover:text-ink-dim transition-colors"
+    >
+      operationos.org@gmail.com
+    </a>
+
         {/* text-ink-dim (not ink-faint): ink-faint fails WCAG AA contrast
             against bg for real body text — see components/ui/eyebrow.tsx */}
         <p className="text-xs text-ink-dim">
