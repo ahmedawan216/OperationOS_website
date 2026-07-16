@@ -31,7 +31,7 @@ export function Logo({ className }: LogoProps) {
       <span className="block h-[32px] w-[32px] shrink-0 overflow-hidden rounded-[6px]">
         <Image
           src="/operationos-logo-final.svg"
-          alt=""
+          alt="OperationOS"
           width={32}
           height={32}
           priority
