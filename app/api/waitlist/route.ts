@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       from: "OperationOS <hello@operationos.org>",
       to: email,
       subject: "Welcome to OperationOS",
-      html: html: `
+      html: `
 <!DOCTYPE html>
 <html>
   <body style="margin:0;padding:0;background:#f5f5f5;font-family:Inter,Arial,sans-serif;color:#111827;">
