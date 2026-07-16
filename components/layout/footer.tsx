@@ -10,7 +10,10 @@ export function Footer() {
       <div className="mx-auto flex max-w-wrap flex-col items-center gap-6 px-5 text-center sm:flex-row sm:flex-wrap sm:justify-between sm:text-left sm:px-8">
         <Logo />
 
-        <nav aria-label="Footer" className="flex flex-wrap justify-center gap-[26px]">
+        <nav
+          aria-label="Footer"
+          className="flex flex-wrap justify-center gap-[26px]"
+        >
           {footerLinks.map((link) => (
             <a
               key={link.label}
@@ -23,18 +26,17 @@ export function Footer() {
         </nav>
 
         <div className="text-right">
-    <a
-      href="mailto:hello@operationos.org"
-      className="block text-sm text-ink hover:text-ink-dim transition-colors"
-    >
-      operationos.org@gmail.com
-    </a>
+          <a
+            href="mailto:hello@operationos.org"
+            className="mb-3 block text-sm text-ink hover:text-ink-dim transition-colors"
+          >
+            operationos.org@gmail.com
+          </a>
 
-        {/* text-ink-dim (not ink-faint): ink-faint fails WCAG AA contrast
-            against bg for real body text — see components/ui/eyebrow.tsx */}
-        <p className="text-xs text-ink-dim">
-          © {year} {siteConfig.name}
-        </p>
+          <p className="text-xs text-ink-dim">
+            © {year} {siteConfig.name}
+          </p>
+        </div>
       </div>
     </footer>
   );
