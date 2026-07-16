@@ -2,7 +2,7 @@
   "name": "operationos-web",
   "version": "1.0.0",
   "private": true,
-  "description": "Official marketing website for OperationOS.ai — the operating system for AI employees.",
+  "description": "Official marketing website for OperationOS.ai - the operating system for AI employees.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
