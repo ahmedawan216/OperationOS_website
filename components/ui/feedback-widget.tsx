@@ -1,5 +1,6 @@
 "use client";
 
+import posthog from "posthog-js";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
@@ -27,7 +28,10 @@ export function FeedbackWidget() {
     <>
       <motion.button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+  posthog.capture("feedback_widget_opened");
+  setOpen(true);
+}}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label="Share feedback"

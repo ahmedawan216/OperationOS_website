@@ -1,3 +1,7 @@
+"use client";
+
+import posthog from "posthog-js";
+
 import { Check } from "lucide-react";
 
 import { recruitOsHighlights } from "@/lib/data";
@@ -38,8 +42,13 @@ export function RecruitOsSection() {
             </ul>
 
             <Button asChild size="default">
-              <a href="#waitlist">Get early access</a>
-            </Button>
+  <a
+    href="#waitlist"
+    onClick={() => posthog.capture("recruitos_cta_clicked")}
+  >
+    Get early access
+  </a>
+</Button>
           </div>
         </Reveal>
 

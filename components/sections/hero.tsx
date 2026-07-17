@@ -1,3 +1,6 @@
+"use client";
+
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
@@ -44,8 +47,13 @@ export function Hero() {
 
         <div className="flex animate-fade-up flex-col items-center gap-[18px] [animation-delay:310ms]">
           <Button asChild size="default">
-            <a href="#waitlist">Join the waitlist</a>
-          </Button>
+  <a
+    href="#waitlist"
+    onClick={() => posthog.capture("hero_cta_clicked")}
+  >
+    Join the waitlist
+  </a>
+</Button>
           <a
             href="#ecosystem"
             className="text-[13.5px] text-ink-dim transition-colors duration-200 ease-out-expo hover:text-ink"
