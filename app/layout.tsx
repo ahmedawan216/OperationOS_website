@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
 
+import { Analytics } from "@vercel/analytics/next";
 import { siteConfig } from "@/lib/site-config";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
@@ -117,6 +118,7 @@ export default function RootLayout({
         <main id="main-content">{children}</main>
         <Footer />
         <FeedbackWidget />
+        <Analytics />
       </body>
     </html>
   );
