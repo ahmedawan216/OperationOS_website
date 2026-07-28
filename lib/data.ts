@@ -12,6 +12,7 @@ export const navLinks: NavLink[] = [
   { label: "How it works", href: "#how" },
   { label: "Agents", href: "#ecosystem" },
   { label: "RecruitOS", href: "#recruitos" },
+  { label: "Dashboard", href: "/dashboard" },
 ];
 
 /** Footer links — mirrors <div class="footer-links"> */
