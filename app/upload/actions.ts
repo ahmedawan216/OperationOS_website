@@ -42,7 +42,6 @@ export async function uploadResume(
     }
 
     const storagePath = `${crypto.randomUUID()}.pdf`;
-
     const fileBuffer = await file.arrayBuffer();
 
     // --------------------------------------------------
@@ -95,7 +94,6 @@ export async function uploadResume(
 
       if (!extractedText) {
         extractionStatus = "failed";
-
         extractionError =
           "No text could be extracted from this PDF.";
       }
@@ -114,25 +112,25 @@ export async function uploadResume(
     }
 
     // --------------------------------------------------
-    // 3. Save resume to database
-    // IMPORTANT:
-    // Your database column is "status"
+    // 3. Save resume record
     // --------------------------------------------------
 
-    const { data: resume, error: dbError } =
-      await supabaseAdmin
-        .from("resumes")
-        .insert({
-          original_filename: file.name,
-          storage_path: storagePath,
-          extracted_text:
-            extractedText || null,
-          extraction_error:
-            extractionError,
-          status: extractionStatus,
-        })
-        .select("id")
-        .single();
+    const {
+      data: resume,
+      error: dbError,
+    } = await supabaseAdmin
+      .from("resumes")
+      .insert({
+        original_filename: file.name,
+        storage_path: storagePath,
+        extracted_text:
+          extractedText || null,
+        extraction_error:
+          extractionError,
+        status: extractionStatus,
+      })
+      .select("id")
+      .single();
 
     if (dbError || !resume) {
       console.error(
@@ -140,7 +138,6 @@ export async function uploadResume(
         dbError
       );
 
-      // Remove uploaded file if database insert fails.
       await supabaseAdmin.storage
         .from("resumes")
         .remove([storagePath]);
@@ -153,7 +150,7 @@ export async function uploadResume(
     }
 
     // --------------------------------------------------
-    // 4. Return successful result
+    // 4. Return result
     // --------------------------------------------------
 
     return {
