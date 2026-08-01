@@ -35,9 +35,9 @@ export function Hero() {
         </Eyebrow>
 
         <h1 className="mb-[26px] animate-fade-up font-display text-[clamp(40px,7vw,80px)] font-semibold leading-[1.02] tracking-[-0.025em] text-ink [animation-delay:90ms]">
-          Your company,
+          Build your,
           <br />
-          running on <span className="text-ink-dim">AI employees.</span>
+          running on <span className="text-ink-dim">AI workforce.</span>
         </h1>
 
         <p className="mx-auto mb-9 max-w-[480px] animate-fade-up text-[17.5px] text-ink-dim [animation-delay:200ms]">
