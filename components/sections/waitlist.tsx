@@ -98,8 +98,9 @@ if (!response.ok) {
         <Reveal>
           <SectionHeading
             eyebrow="Early access"
-            title="Get RecruitOS before your competitors do."
-            description="We’re onboarding a limited number of teams each month. Join the waitlist and we’ll reach out when a seat opens up."
+            title="Start building your AI workforce today."
+            description="Join the waitlist to get early access to RecruitOS.
+            We're onboarding a limited number of companies while we build the future of AI employees."
           />
         </Reveal>
 
@@ -168,7 +169,7 @@ if (!response.ok) {
       className="sm:shrink-0"
       disabled={loading}
     >
-      {loading ? "Joining..." : "run →"}
+      {loading ? "Joining..." : "Join →"}
     </Button>
   </div>
 </div>

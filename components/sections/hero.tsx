@@ -31,18 +31,18 @@ export function Hero() {
 
       <div className="relative z-10 mx-auto max-w-[760px]">
         <Eyebrow className="mb-7 animate-fade-up [animation-delay:0ms]">
-          Operating system for AI employees
+          THE OPERATING SYSTEM FOR AI EMPLOYEES
         </Eyebrow>
 
         <h1 className="mb-[26px] animate-fade-up font-display text-[clamp(40px,7vw,80px)] font-semibold leading-[1.02] tracking-[-0.025em] text-ink [animation-delay:90ms]">
-          Build your,
-          <br />
-          running on <span className="text-ink-dim">AI workforce.</span>
-        </h1>
+  Build your
+  <br />
+  <span className="text-ink-dim">AI workforce.</span>
+</h1>
 
         <p className="mx-auto mb-9 max-w-[480px] animate-fade-up text-[17.5px] text-ink-dim [animation-delay:200ms]">
-          RecruitOS is the first employee online. Sales, support, and
-          finance are already being trained to join.
+          Start with RecruitOS, your first AI recruiting employee.
+          Sales, support, finance, and more AI employees are coming soon.
         </p>
 
         <div className="flex animate-fade-up flex-col items-center gap-[18px] [animation-delay:310ms]">
@@ -51,14 +51,14 @@ export function Hero() {
     href="#waitlist"
     onClick={() => posthog.capture("hero_cta_clicked")}
   >
-    Join the waitlist
+    Get early access
   </a>
 </Button>
           <a
             href="#ecosystem"
             className="text-[13.5px] text-ink-dim transition-colors duration-200 ease-out-expo hover:text-ink"
           >
-            Meet the agents ↓
+            See RecruitOS ↓
           </a>
         </div>
       </div>

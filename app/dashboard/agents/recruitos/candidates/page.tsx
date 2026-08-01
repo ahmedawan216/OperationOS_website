@@ -125,12 +125,12 @@ export default async function RecruitOSCandidatesPage() {
                       </p>
 
                       <h2 className="mt-3 font-display text-xl font-semibold text-ink">
-                        Resume candidate
+                        Resume Candidate
                       </h2>
 
                       <p className="mt-2 text-sm text-ink-dim">
-                        Analyzed for{" "}
-                        {job?.title ?? "Unknown job"}
+                        Applied for{" "}
+                        {job?.title ?? "Unknown Job"}
                       </p>
                     </div>
 

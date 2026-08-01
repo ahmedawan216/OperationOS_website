@@ -37,7 +37,7 @@ export function Header() {
 
         <div className="flex items-center gap-4">
           <Button asChild variant="ghost" className="hidden sm:inline-flex">
-            <a href="#waitlist">Join waitlist</a>
+            <a href="#waitlist">Get early access</a>
           </Button>
           <MobileNav />
         </div>

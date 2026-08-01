@@ -4,6 +4,7 @@ import { HowItWorks } from "@/components/sections/how-it-works";
 import { RecruitOsSection } from "@/components/sections/recruit-os-section";
 import { Waitlist } from "@/components/sections/waitlist";
 import { Rail } from "@/components/ui/rail";
+import { RecruitOSPreview } from "@/components/home/recruitos-preview";
 
 // NOTE: no per-page `metadata` export here on purpose. The homepage's
 // title/description are exactly the root layout's `default` — re-stating
@@ -22,6 +23,8 @@ export default function HomePage() {
       <Rail />
       <AgentRack />
       <Rail />
+      <RecruitOSPreview />
+      <Rail/>
       <RecruitOsSection />
       <Rail />
       <Waitlist />
