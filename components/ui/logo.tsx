@@ -26,7 +26,7 @@ export function Logo({ className }: LogoProps) {
         "flex items-center gap-3 font-display text-base font-semibold text-ink",
         className
       )}
-      aria-label="OperationOS.ai — home"
+      aria-label="OperationOS.org — home"
     >
       <span className="block h-[32px] w-[32px] shrink-0 overflow-hidden rounded-[6px]">
         <Image
@@ -40,7 +40,7 @@ export function Logo({ className }: LogoProps) {
       </span>
       <span>
         OperationOS
-        <span className="text-ink-faint">.ai</span>
+        <span className="text-ink-faint">.org</span>
       </span>
     </Link>
   );

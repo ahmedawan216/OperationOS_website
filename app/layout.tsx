@@ -35,55 +35,70 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
+
   title: {
     default: siteConfig.title,
-    template: "%s — OperationOS.ai",
+    template: "%s | OperationOS.ai",
   },
+
   description: siteConfig.description,
-  applicationName: siteConfig.name,
+
   keywords: [
-    "OperationOS",
     "AI employees",
+    "AI workforce",
+    "AI recruiting",
+    "AI hiring",
     "RecruitOS",
-    "AI recruiting software",
-    "AI agents for business",
-    "multi-agent operating system",
-    "AI hiring platform",
+    "resume screening",
+    "candidate matching",
+    "AI recruitment software",
+    "AI HR software",
+    "LLM recruiting",
+    "AI automation",
   ],
-  authors: [{ name: siteConfig.name }],
-  creator: siteConfig.name,
-  publisher: siteConfig.name,
+
   alternates: {
     canonical: "/",
   },
+
   openGraph: {
-    type: "website",
-    url: siteConfig.url,
-    siteName: siteConfig.name,
     title: siteConfig.title,
     description: siteConfig.description,
+    url: siteConfig.url,
+    siteName: siteConfig.name,
     locale: "en_US",
-    // NOTE: no `images` array here on purpose — `app/opengraph-image.tsx`
-    // is a Next.js file-convention route that already injects the right
-    // og:image (and twitter:image, below) automatically. Also declaring
-    // it here would emit duplicate <meta> tags for the same image.
+    type: "website",
+
+    images: [
+      {
+        url: "/images/recruitos-preview-2.png",
+        width: 1600,
+        height: 900,
+        alt: "RecruitOS Dashboard",
+      },
+    ],
   },
+
   twitter: {
     card: "summary_large_image",
     title: siteConfig.title,
     description: siteConfig.description,
+    images: ["/images/recruitos-preview-2.png"],
   },
+
   robots: {
     index: true,
     follow: true,
+
     googleBot: {
       index: true,
       follow: true,
       "max-image-preview": "large",
+      "max-video-preview": -1,
       "max-snippet": -1,
     },
   },
-  icons: {
+   icons: {
     icon: "/favicon.svg",
   },
 };

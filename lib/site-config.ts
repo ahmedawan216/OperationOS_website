@@ -8,11 +8,11 @@
  * without editing source — falls back to the production domain.
  */
 export const siteConfig = {
-  name: "OperationOS.ai",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://operationos.ai",
-  title: "OperationOS.ai — The Operating System for AI Employees",
+  name: "OperationOS.org",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://operationos.org",
+  title: "OperationOS.org — The Operating System for AI Employees",
   /** Kept under ~160 characters so it doesn't get truncated on the SERP. */
   description:
-    "OperationOS is the operating system for AI employees. RecruitOS, the first agent live today, screens and ranks candidates with full reasoning — under your control.",
+  "OperationOS is the operating system for AI employees. RecruitOS helps hiring teams screen resumes, match candidates, and make faster hiring decisions using AI.",
   ogImagePath: "/opengraph-image",
 } as const;
