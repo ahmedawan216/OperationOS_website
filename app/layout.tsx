@@ -62,42 +62,29 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: siteConfig.title,
-    description: siteConfig.description,
-    url: siteConfig.url,
-    siteName: siteConfig.name,
-    locale: "en_US",
-    type: "website",
-
-    images: [
-      {
-        url: "/images/recruitos-preview-2.png",
-        width: 1600,
-        height: 900,
-        alt: "RecruitOS Dashboard",
-      },
-    ],
-  },
-
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.title,
-    description: siteConfig.description,
-    images: ["/images/recruitos-preview-2.png"],
-  },
-
-  robots: {
-    index: true,
-    follow: true,
-
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-video-preview": -1,
-      "max-snippet": -1,
+  title: "OperationOS.org — The Operating System for AI Employees",
+  description:
+    "OperationOS helps businesses automate work with AI employees. RecruitOS is our first AI hiring employee that screens resumes, matches candidates, and accelerates recruitment.",
+  url: "https://operationos.org",
+  siteName: "OperationOS.org",
+  images: [
+    {
+      url: "/images/og-image.png",
+      width: 1200,
+      height: 630,
+      alt: "OperationOS.org — The Operating System for AI Employees",
     },
-  },
+  ],
+  type: "website",
+},
+
+twitter: {
+  card: "summary_large_image",
+  title: "OperationOS.org — The Operating System for AI Employees",
+  description:
+    "OperationOS helps businesses automate work with AI employees.",
+  images: ["/images/og-image.png"],
+},
    icons: {
     icon: "/favicon.svg",
   },
