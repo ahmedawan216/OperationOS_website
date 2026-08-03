@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 
   title: {
     default: siteConfig.title,
-    template: "%s | OperationOS.ai",
+    template: "%s | OperationOS.org",
   },
 
   description: siteConfig.description,
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
   siteName: "OperationOS.org",
   images: [
     {
-      url: "/images/og-image.png",
+      url: "https://operationos.org/images/og-image-v2.png",
       width: 1200,
       height: 630,
       alt: "OperationOS.org — The Operating System for AI Employees",
@@ -83,11 +83,12 @@ twitter: {
   title: "OperationOS.org — The Operating System for AI Employees",
   description:
     "OperationOS helps businesses automate work with AI employees.",
-  images: ["/images/og-image.png"],
+  images: ["https://operationos.org/images/og-image-v2.png"],
 },
-   icons: {
-    icon: "/favicon.svg",
-  },
+
+icons: {
+  icon: "https://operationos.org/favicon.svg",
+},
 };
 
 export const viewport: Viewport = {
