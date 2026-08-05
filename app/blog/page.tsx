@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "OperationOS Blog | AI Employees, Product Updates & Automation",
+  title: "AI Resume Screening: How It Works (Complete Guide for Recruiters in 2026)",
   description:
-    "Insights on AI employees, automation, RecruitOS, future OperationOS products, and the future of AI-powered work.",
+    "Learn how AI resume screening works, how it compares with traditional ATS software, and how RecruitOS helps recruiters screen resumes faster while keeping humans in control.",
 };
 
 export default function BlogPage() {
