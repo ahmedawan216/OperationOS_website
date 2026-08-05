@@ -19,8 +19,8 @@ export const navLinks: NavLink[] = [
 export const footerLinks: NavLink[] = [
   { label: "RecruitOS", href: "#recruitos" },
   { label: "Agents", href: "#ecosystem" },
-  { label: "Careers", href: "#" },
-  { label: "Privacy", href: "#" },
+  { label: "Blog", href: "/blog" },
+  { label: "Privacy", href: "/privacy" },
 ];
 
 /** "How the OS works" — the three operating constraints every agent runs under */
