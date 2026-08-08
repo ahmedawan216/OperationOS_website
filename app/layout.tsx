@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
-
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider } from "@/components/providers/posthog-provider";
@@ -10,6 +9,7 @@ import { Header } from "@/components/layout/header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 
+// @ts-ignore - CSS side-effect imports are declared by Next.js/typed env in this project.
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -62,33 +62,33 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-  title: "OperationOS.org — The Operating System for AI Employees",
-  description:
-    "OperationOS helps businesses automate work with AI employees. RecruitOS is our first AI hiring employee that screens resumes, matches candidates, and accelerates recruitment.",
-  url: "https://operationos.org",
-  siteName: "OperationOS.org",
-  images: [
-    {
-      url: "https://operationos.org/images/og-image-v2.png",
-      width: 1200,
-      height: 630,
-      alt: "OperationOS.org — The Operating System for AI Employees",
-    },
-  ],
-  type: "website",
-},
+    title: "OperationOS.org — The Operating System for AI Employees",
+    description:
+      "OperationOS helps businesses automate work with AI employees. RecruitOS is our first AI hiring employee that screens resumes, matches candidates, and accelerates recruitment.",
+    url: "https://operationos.org/",
+    siteName: "OperationOS.org",
+    images: [
+      {
+        url: "https://operationos.org/images/og-image-v2.png",
+        width: 1200,
+        height: 630,
+        alt: "OperationOS.org — The Operating System for AI Employees",
+      },
+    ],
+    type: "website",
+  },
 
-twitter: {
-  card: "summary_large_image",
-  title: "OperationOS.org — The Operating System for AI Employees",
-  description:
-    "OperationOS helps businesses automate work with AI employees.",
-  images: ["https://operationos.org/images/og-image-v2.png"],
-},
+  twitter: {
+    card: "summary_large_image",
+    title: "OperationOS.org — The Operating System for AI Employees",
+    description:
+      "OperationOS helps businesses automate work with AI employees.",
+    images: ["https://operationos.org/images/og-image-v2.png"],
+  },
 
-icons: {
-  icon: "https://operationos.org/favicon.svg",
-},
+  icons: {
+    icon: "https://operationos.org/favicon.svg",
+  },
 };
 
 export const viewport: Viewport = {
@@ -109,25 +109,33 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${spaceGrotesk.variable} ${inter.variable} ${ibmPlexMono.variable}`}
     >
-      <body className="font-sans">
-        <PostHogProvider>
-        <noscript>
-          <style>{`.js-reveal { opacity: 1 !important; transform: none !important; }`}</style>
-        </noscript>
-        <JsonLd />
+      <body>
+        <style>{`
+          .js-reveal {
+            opacity: 1 !important;
+            transform: none !important;
+          }
+        `}</style>
+
         <a
           href="#main-content"
-          className="fixed left-3 top-3 z-[200] -translate-y-16 rounded-md bg-ink px-4 py-2 text-sm font-medium text-bg transition-transform duration-200 focus:translate-y-0"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-black"
         >
           Skip to content
         </a>
+
         <Header />
-        <main id="main-content">{children}</main>
+
+        <PostHogProvider>
+          <main id="main-content">{children}</main>
+        </PostHogProvider>
+
         <Footer />
+
+        <JsonLd />
         <FeedbackWidget />
         <Analytics />
         <SpeedInsights />
-        </PostHogProvider>
       </body>
     </html>
   );
