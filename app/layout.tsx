@@ -9,7 +9,6 @@ import { Header } from "@/components/layout/header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 
-// @ts-ignore - CSS side-effect imports are declared by Next.js/typed env in this project.
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
