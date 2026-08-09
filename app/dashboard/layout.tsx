@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
-
 import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 
 export default function DashboardLayout({
   children,
@@ -12,7 +10,6 @@ export default function DashboardLayout({
     <>
       <Header />
       {children}
-      <Footer />
     </>
   );
 }
