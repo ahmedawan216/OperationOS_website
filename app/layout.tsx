@@ -4,8 +4,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider } from "@/components/providers/posthog-provider";
 import { siteConfig } from "@/lib/site-config";
-import { Footer } from "@/components/layout/footer";
-import { Header } from "@/components/layout/header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
 
@@ -109,13 +107,6 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${inter.variable} ${ibmPlexMono.variable}`}
     >
       <body>
-        <style>{`
-          .js-reveal {
-            opacity: 1 !important;
-            transform: none !important;
-          }
-        `}</style>
-
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-black"
@@ -123,13 +114,9 @@ export default function RootLayout({
           Skip to content
         </a>
 
-        <Header />
-
         <PostHogProvider>
           <main id="main-content">{children}</main>
         </PostHogProvider>
-
-        <Footer />
 
         <JsonLd />
         <FeedbackWidget />
