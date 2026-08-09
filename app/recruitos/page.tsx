@@ -14,11 +14,11 @@ export const metadata: Metadata = {
     description:
       "Analyze resumes, understand candidate fit, and spend less time on manual screening.",
     url: "/recruitos",
-    siteName: "OperationOS",
+    siteName: "OperationOS.org",
     type: "website",
     images: [
       {
-        url: "/blog/ai-resume-screening/RecruitOS_dashboard.png",
+        url: "/images/recruitos/RecruitOS_workspace_preview.png",
         width: 1200,
         height: 700,
         alt: "RecruitOS dashboard",
@@ -29,18 +29,21 @@ export const metadata: Metadata = {
 
 export default function RecruitOSLandingPage() {
   return (
-    <main className="min-h-screen bg-[#08090b] text-white">
+    <main className="min-h-screen bg-[#08090c] text-white">
       {/* Navigation */}
       <header className="border-b border-white/[0.06]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link
             href="/"
-            className="font-display text-lg font-semibold tracking-tight"
+            className="font-display text-sm font-semibold tracking-[-0.02em] text-white"
           >
-            OperationOS<span className="text-white/30">.org</span>
+            OperationOS.org
           </Link>
 
-          <nav className="hidden items-center gap-8 text-sm text-white/50 md:flex">
+          <nav
+            aria-label="RecruitOS navigation"
+            className="hidden items-center gap-8 text-sm text-white/50 md:flex"
+          >
             <Link
               href="/"
               className="transition-colors hover:text-white"
@@ -56,7 +59,7 @@ export default function RecruitOSLandingPage() {
             </Link>
 
             <Link
-              href="/dashboard/agents/recruitos"
+              href="/recruitos"
               className="text-white"
             >
               RecruitOS
@@ -126,8 +129,8 @@ export default function RecruitOSLandingPage() {
           </div>
 
           <p className="mt-4 text-center text-xs text-white/30">
-            The RecruitOS workspace for analyzing resumes, managing candidates,
-            and organizing hiring roles.
+            The RecruitOS workspace for analyzing resumes, managing
+            candidates, and organizing hiring roles.
           </p>
         </div>
       </section>
@@ -149,9 +152,9 @@ export default function RecruitOSLandingPage() {
             <div className="space-y-5 text-[15px] leading-7 text-white/55">
               <p>
                 A single role can attract dozens or hundreds of applications.
-                Reading every resume manually takes time that recruiters could
-                spend interviewing candidates, sourcing talent, and improving
-                the hiring process.
+                Reading every resume manually takes time that recruiters
+                could spend interviewing candidates, sourcing talent, and
+                improving the hiring process.
               </p>
 
               <p>
@@ -164,7 +167,10 @@ export default function RecruitOSLandingPage() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="px-6 py-24 md:py-32">
+      <section
+        id="how-it-works"
+        className="px-6 py-24 md:py-32"
+      >
         <div className="mx-auto max-w-6xl">
           <div className="max-w-2xl">
             <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[#667cff]">
@@ -300,8 +306,8 @@ export default function RecruitOSLandingPage() {
               </h3>
 
               <p className="mt-3 text-sm leading-6 text-white/45">
-                Start with structured candidate assessments instead of manually
-                reading every resume from beginning to end.
+                Start with structured candidate assessments instead of
+                manually reading every resume from beginning to end.
               </p>
             </div>
 
@@ -311,8 +317,8 @@ export default function RecruitOSLandingPage() {
               </h3>
 
               <p className="mt-3 text-sm leading-6 text-white/45">
-                Quickly see which experience and skills match the requirements
-                and where the candidate may fall short.
+                Quickly see which experience and skills match the
+                requirements and where the candidate may fall short.
               </p>
             </div>
 
@@ -345,14 +351,17 @@ export default function RecruitOSLandingPage() {
 
           <p className="mx-auto mt-6 max-w-2xl text-[15px] leading-7 text-white/50">
             RecruitOS is designed to make the repetitive part of recruiting
-            faster while keeping recruiters responsible for the decisions that
-            matter.
+            faster while keeping recruiters responsible for the decisions
+            that matter.
           </p>
         </div>
       </section>
 
       {/* CTA */}
-      <section id="get-started" className="px-6 py-28">
+      <section
+        id="get-started"
+        className="px-6 py-28"
+      >
         <div className="mx-auto max-w-4xl rounded-2xl border border-white/10 bg-white/[0.025] px-6 py-16 text-center md:px-12">
           <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-[#667cff]">
             RECRUITOS

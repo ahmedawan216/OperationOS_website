@@ -6,6 +6,8 @@ import { PostHogProvider } from "@/components/providers/posthog-provider";
 import { siteConfig } from "@/lib/site-config";
 import { JsonLd } from "@/components/seo/json-ld";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 
 import "./globals.css";
 
@@ -107,22 +109,26 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${inter.variable} ${ibmPlexMono.variable}`}
     >
       <body>
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-black"
-        >
-          Skip to content
-        </a>
+  <a
+    href="#main-content"
+    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-black"
+  >
+    Skip to content
+  </a>
 
-        <PostHogProvider>
-          <main id="main-content">{children}</main>
-        </PostHogProvider>
+  <Header />
 
-        <JsonLd />
-        <FeedbackWidget />
-        <Analytics />
-        <SpeedInsights />
-      </body>
+  <PostHogProvider>
+    <main id="main-content">{children}</main>
+  </PostHogProvider>
+
+  <Footer />
+
+  <JsonLd />
+  <FeedbackWidget />
+  <Analytics />
+  <SpeedInsights />
+     </body>
     </html>
   );
 }
