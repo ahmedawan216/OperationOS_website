@@ -1,4 +1,4 @@
-# OperationOS.ai — Marketing Website
+# OperationOS.org — Marketing Website
 
 Production Next.js implementation of the approved OperationOS.ai marketing
 site design (`operationos-prototype_v2.html`). Layout, hierarchy, spacing,
