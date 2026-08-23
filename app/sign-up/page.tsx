@@ -14,7 +14,7 @@ export default function SignUpPage() {
             Create your account.
           </h1>
           <p className="mt-3 mb-8 text-sm leading-[1.7] text-ink-dim">
-            Start using RecruitOS with a private workspace for your hiring data.
+            Your private workspace for AI-powered business operations.
           </p>
           <AuthForm mode="sign-up" />
         </section>
