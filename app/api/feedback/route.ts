@@ -1,45 +1,38 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { posthog } from "@/lib/posthog";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!
-);
+import { posthog } from "@/lib/posthog";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST(req: Request) {
   try {
     const { name, email, feedback } = await req.json();
 
-    const { error } = await supabase.from("feedback").insert([
-      {
-        name,
-        email,
-        feedback,
-        page: "landing",
-      },
-    ]);
+    if (typeof feedback !== "string" || !feedback.trim()) {
+      return NextResponse.json({ success: false, error: "Feedback is required." }, { status: 400 });
+    }
+
+    const safeName = typeof name === "string" ? name.trim() : null;
+    const safeEmail = typeof email === "string" ? email.trim().toLowerCase() : null;
+
+    const { error } = await supabaseAdmin.from("feedback").insert([{
+      name: safeName,
+      email: safeEmail,
+      feedback: feedback.trim(),
+      page: "landing",
+    }]);
 
     if (error) throw error;
 
-    posthog.capture({
-      distinctId: email || "anonymous",
+    await posthog.capture({
+      distinctId: safeEmail || "anonymous",
       event: "feedback_submitted",
-      properties: {
-        has_email: !!email,
-        has_name: !!name,
-      },
+      properties: { has_email: !!safeEmail, has_name: !!safeName },
     });
-
     await posthog.shutdown();
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error(err);
-
-    return NextResponse.json(
-      { success: false },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error("Feedback submission error:", error);
+    return NextResponse.json({ success: false, error: "Unable to submit feedback right now." }, { status: 500 });
   }
 }
