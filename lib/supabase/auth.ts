@@ -6,8 +6,6 @@ import { cookies } from "next/headers";
 import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
-  clearSessionCookies,
-  setSessionCookies,
 } from "@/lib/supabase/auth-cookies";
 
 function getSupabaseConfig() {
@@ -47,37 +45,14 @@ export function createSupabaseAuthClient(accessToken?: string) {
 export async function getAuthenticatedUser() {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
-  const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKIE)?.value;
 
   if (!accessToken) return null;
 
   const supabase = createSupabaseAuthClient(accessToken);
   const { data, error } = await supabase.auth.getUser(accessToken);
 
-  if (!error && data.user) {
-    return data.user;
-  }
-
-  if (!refreshToken) return null;
-
-  const refreshClient = createSupabaseAuthClient();
-  const { data: refreshed, error: refreshError } =
-    await refreshClient.auth.refreshSession({
-      refresh_token: refreshToken,
-    });
-
-  if (refreshError || !refreshed.session || !refreshed.user) {
-    clearSessionCookies(cookieStore);
-    return null;
-  }
-
-  setSessionCookies(
-    cookieStore,
-    refreshed.session.access_token,
-    refreshed.session.refresh_token
-  );
-
-  return refreshed.user;
+  if (error || !data.user) return null;
+  return data.user;
 }
 
 export async function requireAuthenticatedUser() {
@@ -88,6 +63,14 @@ export async function requireAuthenticatedUser() {
   }
 
   return user;
+}
+
+export async function getAuthTokens() {
+  const cookieStore = await cookies();
+  return {
+    accessToken: cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null,
+    refreshToken: cookieStore.get(REFRESH_TOKEN_COOKIE)?.value ?? null,
+  };
 }
 
 export function getSafeRedirectPath(value: FormDataEntryValue | null) {
