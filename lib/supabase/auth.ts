@@ -5,7 +5,18 @@ import { cookies } from "next/headers";
 
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/lib/supabase/auth-cookies";
 
-export const PKCE_VERIFIER_COOKIE = "operationos-pkce-code-verifier";
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: 60 * 10,
+};
+
+type MutableCookieStore = {
+  get: (name: string) => { value: string } | undefined;
+  set: (name: string, value: string, options: typeof cookieOptions) => void;
+};
 
 function getSupabaseConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
@@ -14,23 +25,11 @@ function getSupabaseConfig() {
   return { url, key };
 }
 
-export function createCookieStorage(cookieStore: Awaited<ReturnType<typeof cookies>>): SupportedStorage {
+export function createCookieStorage(cookieStore: MutableCookieStore): SupportedStorage {
   return {
     getItem: (key) => cookieStore.get(key)?.value ?? null,
-    setItem: (key, value) => cookieStore.set(key, value, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 10,
-    }),
-    removeItem: (key) => cookieStore.set(key, "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 0,
-    }),
+    setItem: (key, value) => cookieStore.set(key, value, cookieOptions),
+    removeItem: (key) => cookieStore.set(key, "", { ...cookieOptions, maxAge: 0 }),
   };
 }
 
