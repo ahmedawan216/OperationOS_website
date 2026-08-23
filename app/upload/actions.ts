@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAuthenticatedUser } from "@/lib/supabase/auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import {
   extractText,
@@ -14,144 +15,85 @@ export type UploadState = {
 };
 
 export async function uploadResume(
-  prevState: UploadState,
+  _prevState: UploadState,
   formData: FormData
 ): Promise<UploadState> {
   try {
+    const user = await requireAuthenticatedUser();
     const file = formData.get("resume");
 
     if (!(file instanceof File)) {
-      return {
-        success: false,
-        error: "Please select a PDF file.",
-      };
+      return { success: false, error: "Please select a PDF file." };
     }
 
     if (file.type !== "application/pdf") {
-      return {
-        success: false,
-        error: "Please upload a PDF file.",
-      };
+      return { success: false, error: "Please upload a PDF file." };
     }
 
     if (file.size === 0) {
-      return {
-        success: false,
-        error: "The uploaded file is empty.",
-      };
+      return { success: false, error: "The uploaded file is empty." };
     }
 
-    const storagePath = `${crypto.randomUUID()}.pdf`;
+    if (file.size > 10 * 1024 * 1024) {
+      return { success: false, error: "Please upload a PDF smaller than 10 MB." };
+    }
+
+    const storagePath = `${user.id}/${crypto.randomUUID()}.pdf`;
     const fileBuffer = await file.arrayBuffer();
 
-    // --------------------------------------------------
-    // 1. Upload PDF to Supabase Storage
-    // --------------------------------------------------
-
-    const { error: uploadError } =
-      await supabaseAdmin.storage
-        .from("resumes")
-        .upload(storagePath, fileBuffer, {
-          contentType: "application/pdf",
-          upsert: false,
-        });
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("resumes")
+      .upload(storagePath, fileBuffer, {
+        contentType: "application/pdf",
+        upsert: false,
+      });
 
     if (uploadError) {
-      console.error(
-        "Supabase Storage upload error:",
-        uploadError
-      );
-
+      console.error("Supabase Storage upload error:", uploadError);
       return {
         success: false,
-        error:
-          "Upload failed. Please check your Supabase Storage bucket.",
+        error: "Upload failed. Please try again.",
       };
     }
 
-    // --------------------------------------------------
-    // 2. Extract text from PDF
-    // --------------------------------------------------
-
     let extractedText = "";
-
-    let extractionStatus:
-      | "success"
-      | "failed" = "success";
-
+    let extractionStatus: "success" | "failed" = "success";
     let extractionError: string | null = null;
 
     try {
-      const pdf = await getDocumentProxy(
-        new Uint8Array(fileBuffer)
-      );
-
-      const { text } = await extractText(pdf, {
-        mergePages: true,
-      });
-
+      const pdf = await getDocumentProxy(new Uint8Array(fileBuffer));
+      const { text } = await extractText(pdf, { mergePages: true });
       extractedText = text.trim();
 
       if (!extractedText) {
         extractionStatus = "failed";
-        extractionError =
-          "No text could be extracted from this PDF.";
+        extractionError = "No text could be extracted from this PDF.";
       }
     } catch (error) {
       extractionStatus = "failed";
-
       extractionError =
-        error instanceof Error
-          ? error.message
-          : "Unknown PDF extraction error.";
-
-      console.error(
-        "PDF extraction error:",
-        error
-      );
+        error instanceof Error ? error.message : "Unknown PDF extraction error.";
+      console.error("PDF extraction error:", error);
     }
 
-    // --------------------------------------------------
-    // 3. Save resume record
-    // --------------------------------------------------
-
-    const {
-      data: resume,
-      error: dbError,
-    } = await supabaseAdmin
+    const { data: resume, error: dbError } = await supabaseAdmin
       .from("resumes")
       .insert({
+        user_id: user.id,
         original_filename: file.name,
         storage_path: storagePath,
-        extracted_text:
-          extractedText || null,
-        extraction_error:
-          extractionError,
+        extracted_text: extractedText || null,
+        extraction_error: extractionError,
         status: extractionStatus,
       })
       .select("id")
       .single();
 
     if (dbError || !resume) {
-      console.error(
-        "Supabase resume insert error:",
-        dbError
-      );
-
-      await supabaseAdmin.storage
-        .from("resumes")
-        .remove([storagePath]);
-
-      return {
-        success: false,
-        error:
-          "Failed to save the resume record.",
-      };
+      console.error("Supabase resume insert error:", dbError);
+      await supabaseAdmin.storage.from("resumes").remove([storagePath]);
+      return { success: false, error: "Failed to save the resume record." };
     }
-
-    // --------------------------------------------------
-    // 4. Return result
-    // --------------------------------------------------
 
     return {
       success: true,
@@ -159,17 +101,14 @@ export async function uploadResume(
       resumeId: resume.id,
     };
   } catch (error) {
-    console.error(
-      "Unexpected resume upload error:",
-      error
-    );
+    if (error instanceof Error && error.message === "AUTH_REQUIRED") {
+      return { success: false, error: "Please sign in to upload a resume." };
+    }
 
+    console.error("Unexpected resume upload error:", error);
     return {
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Something went wrong while uploading the resume.",
+      error: "Something went wrong while uploading the resume.",
     };
   }
 }
