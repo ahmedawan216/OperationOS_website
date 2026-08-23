@@ -17,28 +17,13 @@ export function Header() {
         scrolled && "border-border bg-bg/[0.82] backdrop-blur-md backdrop-saturate-[140%]"
       )}
     >
-      <nav
-        aria-label="Primary"
-        className="mx-auto flex h-16 max-w-wrap items-center justify-between px-5 sm:px-8"
-      >
+      <nav aria-label="Primary" className="mx-auto flex h-16 max-w-wrap items-center justify-between px-5 sm:px-8">
         <Logo />
-
         <div className="hidden items-center gap-[30px] sm:flex">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-[13.5px] text-ink-dim transition-colors duration-200 ease-out-expo hover:text-ink"
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) => <a key={link.href} href={link.href} className="text-[13.5px] text-ink-dim transition-colors duration-200 ease-out-expo hover:text-ink">{link.label}</a>)}
         </div>
-
         <div className="flex items-center gap-4">
-          <Button asChild variant="ghost" className="hidden sm:inline-flex">
-            <a href="#waitlist">Get early access</a>
-          </Button>
+          <Button asChild variant="ghost" className="hidden sm:inline-flex"><a href="/sign-in">Sign in</a></Button>
           <MobileNav />
         </div>
       </nav>
