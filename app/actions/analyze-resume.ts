@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAuthenticatedUser } from "@/lib/supabase/auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import OpenAI from "openai";
 import { z } from "zod";
@@ -22,156 +23,60 @@ const analysisSchema = z.object({
   reasoning: z.string(),
 });
 
-export async function analyzeResume(
-  resumeId: string,
-  jobId: string
-) {
+export async function analyzeResume(resumeId: string, jobId: string) {
   try {
-    if (!resumeId) {
-      return {
-        success: false,
-        error: "No resume ID was provided.",
-      };
-    }
+    const user = await requireAuthenticatedUser();
 
-    if (!jobId) {
-      return {
-        success: false,
-        error: "No job ID was provided.",
-      };
-    }
-
+    if (!resumeId) return { success: false, error: "No resume ID was provided." };
+    if (!jobId) return { success: false, error: "No job ID was provided." };
     if (!process.env.GROQ_API_KEY) {
-      return {
-        success: false,
-        error:
-          "GROQ_API_KEY is missing from environment variables.",
-      };
+      return { success: false, error: "RecruitOS is not configured correctly." };
     }
 
-    // --------------------------------------------------
-    // 1. Fetch resume
-    // --------------------------------------------------
-
-    const {
-      data: resume,
-      error: resumeError,
-    } = await supabaseAdmin
+    const { data: resume, error: resumeError } = await supabaseAdmin
       .from("resumes")
-      .select(
-        "id, extracted_text, extraction_error, status"
-      )
+      .select("id, extracted_text, extraction_error, status")
       .eq("id", resumeId)
+      .eq("user_id", user.id)
       .single();
 
     if (resumeError || !resume) {
-      console.error(
-        "Resume fetch error:",
-        resumeError
-      );
+      console.error("Resume fetch error:", resumeError);
+      return { success: false, error: "Resume not found." };
+    }
 
+    if (resume.status !== "success" || !resume.extracted_text?.trim()) {
       return {
         success: false,
-        error: "Failed to load the resume.",
+        error: resume.extraction_error || "This resume has no extracted text to analyze.",
       };
     }
 
-    if (
-      resume.status !== "success" ||
-      !resume.extracted_text?.trim()
-    ) {
-      return {
-        success: false,
-        error:
-          resume.extraction_error ||
-          "This resume has no extracted text to analyze.",
-      };
-    }
-
-    // --------------------------------------------------
-    // 2. Fetch selected job
-    // --------------------------------------------------
-
-    const {
-      data: job,
-      error: jobError,
-    } = await supabaseAdmin
+    const { data: job, error: jobError } = await supabaseAdmin
       .from("jobs")
       .select("id, title, description, status")
       .eq("id", jobId)
+      .eq("user_id", user.id)
       .single();
 
     if (jobError || !job) {
-      console.error(
-        "Job fetch error:",
-        jobError
-      );
-
-      return {
-        success: false,
-        error: "Failed to load the selected job.",
-      };
+      console.error("Job fetch error:", jobError);
+      return { success: false, error: "Job not found." };
     }
 
-    // --------------------------------------------------
-    // 3. Analyze resume against selected job
-    // --------------------------------------------------
-
-    const completion =
-      await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
-
-        response_format: {
-          type: "json_object",
-        },
-
-        temperature: 0.2,
-
-        messages: [
-          {
-            role: "system",
-            content: `
-You are RecruitOS, an experienced technical recruiting and hiring assistant.
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      response_format: { type: "json_object" },
+      temperature: 0.2,
+      messages: [
+        {
+          role: "system",
+          content: `You are RecruitOS, an experienced technical recruiting and hiring assistant.
 
 Evaluate a candidate's resume against the provided job description.
-
-Use ONLY information actually present in the resume.
-Do not invent experience, skills, education, certifications, or achievements.
-
-matchingSkills:
-- Skills explicitly mentioned in the resume.
-- Must be relevant to the job.
-
-missingSkills:
-- Important requirements from the job description.
-- Not clearly demonstrated in the resume.
-
-yearsRelevantExperience:
-- Estimate directly relevant professional experience.
-- Use employment dates and descriptions when available.
-- Count genuinely transferable experience.
-- Do not count unrelated experience.
-- Be conservative when dates are unclear.
-
-matchScore:
-90-100 = Exceptional match
-75-89 = Strong match
-60-74 = Moderate match
-40-59 = Weak match
-0-39 = Poor match
-
-recommendation:
-"interview" = strong match
-"maybe" = meaningful potential with important gaps
-"reject" = lacks most core requirements
-
-confidence:
-"high" = clear evidence
-"medium" = some information unclear
-"low" = limited information
+Use ONLY information actually present in the resume. Do not invent experience, skills, education, certifications, or achievements.
 
 Return ONLY valid JSON with exactly these fields:
-
 {
   "recommendation": "interview" | "maybe" | "reject",
   "matchScore": number,
@@ -183,240 +88,96 @@ Return ONLY valid JSON with exactly these fields:
   "potentialConcerns": string[],
   "confidence": "low" | "medium" | "high",
   "reasoning": string
-}
-            `.trim(),
-          },
-          {
-            role: "user",
-            content: `
-JOB TITLE:
+}`,
+        },
+        {
+          role: "user",
+          content: `JOB TITLE:\n${job.title}\n\nJOB DESCRIPTION:\n${job.description}\n\nCANDIDATE RESUME:\n${resume.extracted_text}\n\nAnalyze the candidate against THIS job.`,
+        },
+      ],
+    });
 
-${job.title}
-
---------------------------------
-
-JOB DESCRIPTION:
-
-${job.description}
-
---------------------------------
-
-CANDIDATE RESUME:
-
-${resume.extracted_text}
-
---------------------------------
-
-Analyze the candidate against THIS job.
-            `.trim(),
-          },
-        ],
-      });
-
-    const content =
-      completion.choices[0]?.message?.content;
-
-    if (!content) {
-      return {
-        success: false,
-        error: "Groq returned an empty response.",
-      };
-    }
-
-    // --------------------------------------------------
-    // 4. Parse AI response
-    // --------------------------------------------------
+    const content = completion.choices[0]?.message?.content;
+    if (!content) return { success: false, error: "RecruitOS returned an empty response." };
 
     let parsedResponse: unknown;
-
     try {
       parsedResponse = JSON.parse(content);
     } catch (error) {
-      console.error(
-        "Groq JSON parse error:",
-        error
-      );
-
-      console.error(
-        "Groq raw response:",
-        content
-      );
-
-      return {
-        success: false,
-        error:
-          "RecruitOS returned an invalid analysis response.",
-      };
+      console.error("Groq JSON parse error:", error);
+      return { success: false, error: "RecruitOS returned an invalid analysis response." };
     }
 
-    // --------------------------------------------------
-    // 5. Validate AI response
-    // --------------------------------------------------
-
-    const validation =
-      analysisSchema.safeParse(
-        parsedResponse
-      );
-
+    const validation = analysisSchema.safeParse(parsedResponse);
     if (!validation.success) {
-      console.error(
-        "Groq response validation error:",
-        validation.error.flatten()
-      );
-
-      return {
-        success: false,
-        error:
-          "RecruitOS returned an analysis in an unexpected format.",
-      };
+      console.error("Groq response validation error:", validation.error.flatten());
+      return { success: false, error: "RecruitOS returned an unexpected analysis format." };
     }
 
     const analysis = validation.data;
+    const analysisData = {
+      user_id: user.id,
+      resume_id: resumeId,
+      job_id: jobId,
+      job_description_text: job.description,
+      status: "success",
+      error_message: null,
+      recommendation: analysis.recommendation,
+      match_score: Math.round(analysis.matchScore),
+      confidence_level: analysis.confidence,
+      summary: analysis.summary,
+      why_strong_match: analysis.whyStrongMatch,
+      matching_skills: analysis.matchingSkills,
+      missing_skills: analysis.missingSkills,
+      potential_concerns: analysis.potentialConcerns,
+      years_relevant_experience: analysis.yearsRelevantExperience,
+      reasoning: analysis.reasoning,
+      model: "llama-3.3-70b-versatile",
+      raw_response: analysis,
+    };
 
-    // --------------------------------------------------
-    // 6. Check existing analysis for THIS resume + job
-    // --------------------------------------------------
-
-    const {
-      data: existingAnalysis,
-      error: existingAnalysisError,
-    } = await supabaseAdmin
+    const { data: existingAnalysis, error: existingAnalysisError } = await supabaseAdmin
       .from("resume_analyses")
       .select("id")
       .eq("resume_id", resumeId)
       .eq("job_id", jobId)
-      .order("created_at", {
-        ascending: false,
-      })
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (existingAnalysisError) {
-      console.error(
-        "Existing analysis lookup error:",
-        existingAnalysisError
-      );
-
-      return {
-        success: false,
-        error:
-          "Failed to check for an existing analysis.",
-      };
+      console.error("Existing analysis lookup error:", existingAnalysisError);
+      return { success: false, error: "Failed to check for an existing analysis." };
     }
-
-    const analysisData = {
-      resume_id: resumeId,
-      job_id: jobId,
-      job_description_text:
-        job.description,
-
-      status: "success",
-
-      error_message: null,
-
-      recommendation:
-        analysis.recommendation,
-
-      match_score: Math.round(
-        analysis.matchScore
-      ),
-
-      confidence_level:
-        analysis.confidence,
-
-      summary:
-        analysis.summary,
-
-      why_strong_match:
-        analysis.whyStrongMatch,
-
-      matching_skills:
-        analysis.matchingSkills,
-
-      missing_skills:
-        analysis.missingSkills,
-
-      potential_concerns:
-        analysis.potentialConcerns,
-
-      years_relevant_experience:
-        analysis.yearsRelevantExperience,
-
-      reasoning:
-        analysis.reasoning,
-
-      model:
-        "llama-3.3-70b-versatile",
-
-      raw_response:
-        analysis,
-    };
-
-    // --------------------------------------------------
-    // 7. Update or create analysis
-    // --------------------------------------------------
 
     if (existingAnalysis) {
-      const {
-        error: updateError,
-      } = await supabaseAdmin
+      const { error } = await supabaseAdmin
         .from("resume_analyses")
         .update(analysisData)
-        .eq(
-          "id",
-          existingAnalysis.id
-        );
-
-      if (updateError) {
-        console.error(
-          "Resume analysis update error:",
-          updateError
-        );
-
-        return {
-          success: false,
-          error:
-            "Failed to update AI analysis.",
-        };
+        .eq("id", existingAnalysis.id)
+        .eq("user_id", user.id);
+      if (error) {
+        console.error("Resume analysis update error:", error);
+        return { success: false, error: "Failed to update AI analysis." };
       }
     } else {
-      const {
-        error: insertError,
-      } = await supabaseAdmin
+      const { error } = await supabaseAdmin
         .from("resume_analyses")
         .insert(analysisData);
-
-      if (insertError) {
-        console.error(
-          "Resume analysis insert error:",
-          insertError
-        );
-
-        return {
-          success: false,
-          error:
-            "Failed to save AI analysis.",
-        };
+      if (error) {
+        console.error("Resume analysis insert error:", error);
+        return { success: false, error: "Failed to save AI analysis." };
       }
     }
 
-    return {
-      success: true,
-      resumeId,
-      jobId,
-    };
+    return { success: true, resumeId, jobId };
   } catch (error) {
-    console.error(
-      "Unexpected RecruitOS analysis error:",
-      error
-    );
+    if (error instanceof Error && error.message === "AUTH_REQUIRED") {
+      return { success: false, error: "Please sign in to analyze a resume." };
+    }
 
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Something went wrong while analyzing the resume.",
-    };
+    console.error("Unexpected RecruitOS analysis error:", error);
+    return { success: false, error: "Something went wrong while analyzing the resume." };
   }
 }
