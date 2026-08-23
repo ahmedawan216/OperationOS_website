@@ -5,9 +5,10 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { navLinks } from "@/lib/data";
 import { DURATIONS, EASE_OUT_EXPO } from "@/lib/motion";
+import { signOut } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 
-export function MobileNav() {
+export function MobileNav({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -39,8 +40,16 @@ export function MobileNav() {
     </Button>
     <AnimatePresence>{open && <motion.nav id={menuId} aria-label="Mobile" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: DURATIONS.menuPanel, ease: EASE_OUT_EXPO }} className="fixed inset-x-0 top-16 z-40 flex flex-col gap-1 border-b border-border bg-bg/[0.98] px-5 py-[22px]">
       {navLinks.map((link) => <a key={link.href} href={link.href} onClick={() => close(false)} className="py-2 text-[13.5px] text-ink-dim transition-colors duration-200 ease-out-expo hover:text-ink">{link.label}</a>)}
-      <a href="/sign-in" onClick={() => close(false)} className="mt-2 border-t border-border pt-4 text-[13.5px] text-ink">Sign in</a>
-      <a href="/sign-up" onClick={() => close(false)} className="py-2 text-[13.5px] text-accent">Create an account</a>
+      {isAuthenticated ? (
+        <form action={signOut} className="mt-2 border-t border-border pt-4">
+          <button type="submit" onClick={() => close(false)} className="text-[13.5px] text-ink">Sign out</button>
+        </form>
+      ) : (
+        <>
+          <a href="/sign-in" onClick={() => close(false)} className="mt-2 border-t border-border pt-4 text-[13.5px] text-ink">Sign in</a>
+          <a href="/sign-up" onClick={() => close(false)} className="py-2 text-[13.5px] text-accent">Create an account</a>
+        </>
+      )}
     </motion.nav>}</AnimatePresence>
   </div>;
 }
