@@ -1,9 +1,11 @@
 import "server-only";
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupportedStorage } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/lib/supabase/auth-cookies";
+
+export const PKCE_VERIFIER_COOKIE = "operationos-pkce-code-verifier";
 
 function getSupabaseConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
@@ -12,7 +14,27 @@ function getSupabaseConfig() {
   return { url, key };
 }
 
-export function createSupabaseAuthClient(accessToken?: string) {
+export function createCookieStorage(cookieStore: Awaited<ReturnType<typeof cookies>>): SupportedStorage {
+  return {
+    getItem: (key) => cookieStore.get(key)?.value ?? null,
+    setItem: (key, value) => cookieStore.set(key, value, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 10,
+    }),
+    removeItem: (key) => cookieStore.set(key, "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    }),
+  };
+}
+
+export function createSupabaseAuthClient(accessToken?: string, storage?: SupportedStorage) {
   const { url, key } = getSupabaseConfig();
   return createClient(url, key, {
     auth: {
@@ -20,6 +42,7 @@ export function createSupabaseAuthClient(accessToken?: string) {
       persistSession: false,
       detectSessionInUrl: false,
       flowType: "pkce",
+      ...(storage ? { storage } : {}),
     },
     ...(accessToken ? { global: { headers: { Authorization: `Bearer ${accessToken}` } } } : {}),
   });
