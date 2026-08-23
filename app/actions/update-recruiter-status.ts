@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAuthenticatedUser } from "@/lib/supabase/auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type RecruiterStatus =
@@ -24,79 +25,41 @@ export async function updateRecruiterStatus(
   status: RecruiterStatus
 ) {
   try {
-    if (!analysisId) {
-      return {
-        success: false,
-        error: "No analysis ID was provided.",
-      };
-    }
+    const user = await requireAuthenticatedUser();
 
-    if (!validStatuses.includes(status)) {
-      return {
-        success: false,
-        error: "Invalid recruiter status.",
-      };
-    }
+    if (!analysisId) return { success: false, error: "No analysis ID was provided." };
+    if (!validStatuses.includes(status)) return { success: false, error: "Invalid recruiter status." };
 
-    const {
-      data: analysis,
-      error: fetchError,
-    } = await supabaseAdmin
+    const { data: analysis, error: fetchError } = await supabaseAdmin
       .from("resume_analyses")
       .select("id")
       .eq("id", analysisId)
+      .eq("user_id", user.id)
       .single();
 
     if (fetchError || !analysis) {
-      console.error(
-        "Resume analysis lookup error:",
-        fetchError
-      );
-
-      return {
-        success: false,
-        error: "Analysis not found.",
-      };
+      console.error("Resume analysis lookup error:", fetchError);
+      return { success: false, error: "Analysis not found." };
     }
 
-    const {
-      error: updateError,
-    } = await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from("resume_analyses")
-      .update({
-        recruiter_status: status,
-      })
-      .eq("id", analysisId);
+      .update({ recruiter_status: status })
+      .eq("id", analysisId)
+      .eq("user_id", user.id);
 
     if (updateError) {
-      console.error(
-        "Recruiter status update error:",
-        updateError
-      );
-
-      return {
-        success: false,
-        error:
-          "Failed to update recruiter status.",
-      };
+      console.error("Recruiter status update error:", updateError);
+      return { success: false, error: "Failed to update recruiter status." };
     }
 
-    return {
-      success: true,
-      status,
-    };
+    return { success: true, status };
   } catch (error) {
-    console.error(
-      "Unexpected recruiter status error:",
-      error
-    );
+    if (error instanceof Error && error.message === "AUTH_REQUIRED") {
+      return { success: false, error: "Please sign in to update candidate status." };
+    }
 
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Something went wrong while updating the recruiter status.",
-    };
+    console.error("Unexpected recruiter status error:", error);
+    return { success: false, error: "Something went wrong while updating recruiter status." };
   }
 }
