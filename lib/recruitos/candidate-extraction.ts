@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import { normalizeEmail, normalizeSkills } from "@/lib/recruitos/skills";
 
+const GROQ_MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-120b";
+
 let extractorClient: OpenAI | null = null;
 
 function getExtractorClient(): OpenAI {
@@ -53,7 +55,7 @@ export async function extractCandidateProfile(resumeText: string): Promise<Candi
   const extractor = getExtractorClient();
 
   const completion = await extractor.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: GROQ_MODEL,
     response_format: { type: "json_object" },
     temperature: 0,
     messages: [
