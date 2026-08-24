@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAuthenticatedUser } from "@/lib/supabase/auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import CandidateNoteForm from "../note-form";
+import EditCandidateProfile from "../edit-profile";
 
 type Props = { params: Promise<{ candidateId: string }>; searchParams: Promise<{ jobId?: string }> };
 
@@ -11,7 +12,6 @@ export default async function CandidateProfilePage({ params, searchParams }: Pro
   const { jobId } = await searchParams;
   const { data: candidate, error } = await supabaseAdmin.from("candidates").select("*").eq("id", candidateId).eq("user_id", user.id).single();
   if (error || !candidate) return <main className="min-h-screen bg-bg px-5 pb-20 pt-28 sm:px-8"><div className="mx-auto max-w-wrap"><Link href="/dashboard/agents/recruitos/candidates" className="mb-10 inline-flex text-[13px] text-ink-dim">← Back to Candidates</Link><div className="rounded-xl border border-border p-8"><h1 className="font-display text-xl font-semibold text-ink">Candidate not found</h1><p className="mt-3 text-sm text-ink-dim">This candidate is not available in your workspace.</p></div></div></main>;
-
   const [{ data: resumes }, { data: matches }, { data: notes }, { data: activity }] = await Promise.all([
     supabaseAdmin.from("resumes").select("id, original_filename, storage_path, status, processing_status, created_at").eq("candidate_id", candidateId).eq("user_id", user.id).order("created_at", { ascending: false }),
     supabaseAdmin.from("candidate_job_matches").select("id, job_id, resume_id, latest_analysis_id, match_score, recommendation, recruiter_status, updated_at, jobs ( id, title )").eq("candidate_id", candidateId).eq("user_id", user.id).order("updated_at", { ascending: false }),
@@ -20,17 +20,13 @@ export default async function CandidateProfilePage({ params, searchParams }: Pro
   ]);
   const selectedMatch = matches?.find((match) => match.job_id === jobId) ?? matches?.[0];
   let analysis: Record<string, unknown> | null = null;
-  if (selectedMatch?.latest_analysis_id) {
-    const { data } = await supabaseAdmin.from("resume_analyses").select("summary, match_score, recommendation, confidence_level, why_strong_match, matching_skills, missing_skills, potential_concerns, years_relevant_experience, reasoning").eq("id", selectedMatch.latest_analysis_id).eq("user_id", user.id).single();
-    analysis = data;
-  }
+  if (selectedMatch?.latest_analysis_id) { const { data } = await supabaseAdmin.from("resume_analyses").select("summary, match_score, recommendation, confidence_level, why_strong_match, matching_skills, missing_skills, potential_concerns, years_relevant_experience, reasoning").eq("id", selectedMatch.latest_analysis_id).eq("user_id", user.id).single(); analysis = data; }
   const experience = Array.isArray(candidate.experience) ? candidate.experience as Record<string, string | null>[] : [];
   const education = Array.isArray(candidate.education) ? candidate.education as Record<string, string | null>[] : [];
   const skills = Array.isArray(candidate.skills) ? candidate.skills as string[] : [];
-
   return <main className="min-h-screen bg-bg px-5 pb-20 pt-28 sm:px-8"><div className="mx-auto max-w-wrap">
     <Link href="/dashboard/agents/recruitos/candidates" className="mb-10 inline-flex items-center gap-2 text-[13px] text-ink-dim">← Back to Candidates</Link>
-    <header className="mb-10 border-b border-border pb-10"><p className="mb-4 font-mono text-[11px] tracking-[0.08em] text-accent">RECRUITOS / CANDIDATE</p><div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="font-display text-[clamp(36px,5vw,64px)] font-semibold leading-[1.05] tracking-[-0.025em] text-ink">{candidate.full_name || "Unnamed candidate"}</h1><p className="mt-4 text-[15px] text-ink-dim">{candidate.headline || "Candidate profile"}{candidate.location ? ` · ${candidate.location}` : ""}</p></div>{candidate.email && <a href={`mailto:${candidate.email}`} className="text-sm text-accent">{candidate.email}</a>}</div></header>
+    <header className="mb-10 border-b border-border pb-10"><p className="mb-4 font-mono text-[11px] tracking-[0.08em] text-accent">RECRUITOS / CANDIDATE</p><div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="font-display text-[clamp(36px,5vw,64px)] font-semibold leading-[1.05] tracking-[-0.025em] text-ink">{candidate.full_name || "Unnamed candidate"}</h1><p className="mt-4 text-[15px] text-ink-dim">{candidate.headline || "Candidate profile"}{candidate.location ? ` · ${candidate.location}` : ""}</p></div><div className="flex flex-wrap items-center gap-3">{candidate.email && <a href={`mailto:${candidate.email}`} className="text-sm text-accent">{candidate.email}</a>}<EditCandidateProfile candidate={{ id: candidate.id, full_name: candidate.full_name, email: candidate.email, phone: candidate.phone, location: candidate.location, headline: candidate.headline }} /></div></div></header>
     <section className="grid gap-5 lg:grid-cols-[1.2fr_.8fr]"><div className="space-y-5">
       <section className="rounded-xl border border-border p-6 sm:p-8"><p className="font-mono text-[11px] tracking-[0.08em] text-accent">PROFILE</p><div className="mt-6 grid gap-6 sm:grid-cols-2"><div><p className="text-xs text-ink-dim">Phone</p><p className="mt-2 text-sm text-ink">{candidate.phone || "Not provided"}</p></div><div><p className="text-xs text-ink-dim">Years of experience</p><p className="mt-2 text-sm text-ink">{candidate.years_experience ?? "Not available"}</p></div><div className="sm:col-span-2"><p className="text-xs text-ink-dim">Skills</p><div className="mt-3 flex flex-wrap gap-2">{skills.length ? skills.map((skill) => <span key={skill} className="rounded-md border border-border px-3 py-2 text-xs text-ink">{skill}</span>) : <span className="text-sm text-ink-dim">No structured skills extracted.</span>}</div></div></div></section>
       <section className="rounded-xl border border-border p-6 sm:p-8"><p className="font-mono text-[11px] tracking-[0.08em] text-accent">EXPERIENCE</p><div className="mt-6 space-y-6">{experience.length ? experience.map((item, index) => <div key={`${item.company}-${index}`} className="border-l border-border pl-5"><h2 className="font-display text-lg font-semibold text-ink">{item.title || "Role"}</h2><p className="mt-1 text-sm text-ink-dim">{item.company || "Company"}{item.startDate || item.endDate ? ` · ${item.startDate ?? ""} – ${item.endDate ?? "Present"}` : ""}</p>{item.description && <p className="mt-3 text-sm leading-[1.7] text-ink-dim">{item.description}</p>}</div>) : <p className="text-sm text-ink-dim">No structured experience extracted.</p>}</div></section>
