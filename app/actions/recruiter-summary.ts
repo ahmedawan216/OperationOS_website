@@ -4,7 +4,21 @@ import OpenAI from "openai";
 import { requireAuthenticatedUser } from "@/lib/supabase/auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-const groq = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: "https://api.groq.com/openai/v1" });
+let groqClient: OpenAI | null = null;
+
+function getGroqClient(): OpenAI | null {
+  if (groqClient) return groqClient;
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return null;
+
+  groqClient = new OpenAI({
+    apiKey,
+    baseURL: "https://api.groq.com/openai/v1",
+  });
+
+  return groqClient;
+}
 
 export async function generateRecruiterSummary() {
   try {
@@ -26,7 +40,8 @@ export async function generateRecruiterSummary() {
       interviews: rows.filter((row) => row.recruiter_status === "interview").length,
     };
 
-    if (!process.env.GROQ_API_KEY) return { success: true, summary: `${counts.candidates} candidates analyzed across ${activeJobs ?? 0} active jobs. ${counts.strong} strong matches and ${counts.review} candidates need review.` };
+    const groq = getGroqClient();
+    if (!groq) return { success: true, summary: `${counts.candidates} candidates analyzed across ${activeJobs ?? 0} active jobs. ${counts.strong} strong matches and ${counts.review} candidates need review.` };
 
     const context = rows.slice(0, 20).map((row) => {
       const candidate = Array.isArray(row.candidates) ? row.candidates[0] : row.candidates;
