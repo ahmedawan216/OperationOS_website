@@ -5,6 +5,8 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import OpenAI from "openai";
 import { z } from "zod";
 
+const GROQ_MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-120b";
+
 let groqClient: OpenAI | null = null;
 
 function getGroqClient(): OpenAI {
@@ -67,7 +69,7 @@ export async function analyzeResume(resumeId: string, jobId: string) {
 
     const groq = getGroqClient();
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: GROQ_MODEL,
       response_format: { type: "json_object" },
       temperature: 0.2,
       messages: [
@@ -118,7 +120,7 @@ export async function analyzeResume(resumeId: string, jobId: string) {
       potential_concerns: analysis.potentialConcerns,
       years_relevant_experience: analysis.yearsRelevantExperience,
       reasoning: analysis.reasoning,
-      model: "llama-3.3-70b-versatile",
+      model: GROQ_MODEL,
       raw_response: analysis,
     };
 
