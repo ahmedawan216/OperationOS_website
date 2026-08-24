@@ -26,39 +26,30 @@ const analysisSchema = z.object({
 export async function analyzeResume(resumeId: string, jobId: string) {
   try {
     const user = await requireAuthenticatedUser();
-
     if (!resumeId) return { success: false, error: "No resume ID was provided." };
     if (!jobId) return { success: false, error: "No job ID was provided." };
-    if (!process.env.GROQ_API_KEY) {
-      return { success: false, error: "RecruitOS is not configured correctly." };
-    }
+    if (!process.env.GROQ_API_KEY) return { success: false, error: "RecruitOS is not configured correctly." };
 
     const { data: resume, error: resumeError } = await supabaseAdmin
       .from("resumes")
-      .select("id, extracted_text, extraction_error, status")
+      .select("id, candidate_id, extracted_text, extraction_error, status")
       .eq("id", resumeId)
       .eq("user_id", user.id)
       .single();
-
     if (resumeError || !resume) {
       console.error("Resume fetch error:", resumeError);
       return { success: false, error: "Resume not found." };
     }
-
     if (resume.status !== "success" || !resume.extracted_text?.trim()) {
-      return {
-        success: false,
-        error: resume.extraction_error || "This resume has no extracted text to analyze.",
-      };
+      return { success: false, error: resume.extraction_error || "This resume has no extracted text to analyze." };
     }
 
     const { data: job, error: jobError } = await supabaseAdmin
       .from("jobs")
-      .select("id, title, description, status")
+      .select("id, title, description, status, lifecycle_status")
       .eq("id", jobId)
       .eq("user_id", user.id)
       .single();
-
     if (jobError || !job) {
       console.error("Job fetch error:", jobError);
       return { success: false, error: "Job not found." };
@@ -71,24 +62,7 @@ export async function analyzeResume(resumeId: string, jobId: string) {
       messages: [
         {
           role: "system",
-          content: `You are RecruitOS, an experienced technical recruiting and hiring assistant.
-
-Evaluate a candidate's resume against the provided job description.
-Use ONLY information actually present in the resume. Do not invent experience, skills, education, certifications, or achievements.
-
-Return ONLY valid JSON with exactly these fields:
-{
-  "recommendation": "interview" | "maybe" | "reject",
-  "matchScore": number,
-  "summary": string,
-  "whyStrongMatch": string,
-  "matchingSkills": string[],
-  "missingSkills": string[],
-  "yearsRelevantExperience": number,
-  "potentialConcerns": string[],
-  "confidence": "low" | "medium" | "high",
-  "reasoning": string
-}`,
+          content: `You are RecruitOS, an experienced technical recruiting and hiring assistant. Evaluate a candidate resume against the provided job description. Use ONLY information actually present in the resume. Do not invent experience, skills, education, certifications, or achievements. Return ONLY valid JSON with exactly these fields: {"recommendation":"interview"|"maybe"|"reject","matchScore":number,"summary":string,"whyStrongMatch":string,"matchingSkills":string[],"missingSkills":string[],"yearsRelevantExperience":number,"potentialConcerns":string[],"confidence":"low"|"medium"|"high","reasoning":string}. The recruiter remains the decision maker; do not claim the AI makes a hiring decision.`,
         },
         {
           role: "user",
@@ -117,6 +91,7 @@ Return ONLY valid JSON with exactly these fields:
     const analysis = validation.data;
     const analysisData = {
       user_id: user.id,
+      candidate_id: resume.candidate_id,
       resume_id: resumeId,
       job_id: jobId,
       job_description_text: job.description,
@@ -145,38 +120,79 @@ Return ONLY valid JSON with exactly these fields:
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-
     if (existingAnalysisError) {
       console.error("Existing analysis lookup error:", existingAnalysisError);
       return { success: false, error: "Failed to check for an existing analysis." };
     }
 
+    let analysisId: string;
     if (existingAnalysis) {
-      const { error } = await supabaseAdmin
+      const { data, error } = await supabaseAdmin
         .from("resume_analyses")
         .update(analysisData)
         .eq("id", existingAnalysis.id)
-        .eq("user_id", user.id);
-      if (error) {
+        .eq("user_id", user.id)
+        .select("id")
+        .single();
+      if (error || !data) {
         console.error("Resume analysis update error:", error);
         return { success: false, error: "Failed to update AI analysis." };
       }
+      analysisId = data.id;
     } else {
-      const { error } = await supabaseAdmin
+      const { data, error } = await supabaseAdmin
         .from("resume_analyses")
-        .insert(analysisData);
-      if (error) {
+        .insert(analysisData)
+        .select("id")
+        .single();
+      if (error || !data) {
         console.error("Resume analysis insert error:", error);
         return { success: false, error: "Failed to save AI analysis." };
       }
+      analysisId = data.id;
     }
 
-    return { success: true, resumeId, jobId };
+    if (resume.candidate_id) {
+      const { data: existingMatch } = await supabaseAdmin
+        .from("candidate_job_matches")
+        .select("id, recruiter_status")
+        .eq("candidate_id", resume.candidate_id)
+        .eq("job_id", jobId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const matchData = {
+        user_id: user.id,
+        candidate_id: resume.candidate_id,
+        job_id: jobId,
+        resume_id: resumeId,
+        latest_analysis_id: analysisId,
+        match_score: Math.round(analysis.matchScore),
+        recommendation: analysis.recommendation,
+        recruiter_status: existingMatch?.recruiter_status ?? "new",
+        updated_at: new Date().toISOString(),
+      };
+
+      if (existingMatch) {
+        await supabaseAdmin.from("candidate_job_matches").update(matchData).eq("id", existingMatch.id).eq("user_id", user.id);
+      } else {
+        await supabaseAdmin.from("candidate_job_matches").insert(matchData);
+      }
+
+      await supabaseAdmin.from("candidate_activity").insert({
+        user_id: user.id,
+        candidate_id: resume.candidate_id,
+        job_id: jobId,
+        type: "analysis_completed",
+        metadata: { analysisId, matchScore: Math.round(analysis.matchScore), recommendation: analysis.recommendation },
+      });
+    }
+
+    return { success: true, resumeId, jobId, analysisId, candidateId: resume.candidate_id };
   } catch (error) {
     if (error instanceof Error && error.message === "AUTH_REQUIRED") {
       return { success: false, error: "Please sign in to analyze a resume." };
     }
-
     console.error("Unexpected RecruitOS analysis error:", error);
     return { success: false, error: "Something went wrong while analyzing the resume." };
   }
