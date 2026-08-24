@@ -3,10 +3,21 @@ import { z } from "zod";
 
 import { normalizeEmail, normalizeSkills } from "@/lib/recruitos/skills";
 
-const extractor = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: "https://api.groq.com/openai/v1",
-});
+let extractorClient: OpenAI | null = null;
+
+function getExtractorClient(): OpenAI {
+  if (extractorClient) return extractorClient;
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("AI provider is not configured.");
+
+  extractorClient = new OpenAI({
+    apiKey,
+    baseURL: "https://api.groq.com/openai/v1",
+  });
+
+  return extractorClient;
+}
 
 const candidateProfileSchema = z.object({
   fullName: z.string().nullable(),
@@ -39,7 +50,7 @@ const candidateProfileSchema = z.object({
 export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
 
 export async function extractCandidateProfile(resumeText: string): Promise<CandidateProfile> {
-  if (!process.env.GROQ_API_KEY) throw new Error("AI provider is not configured.");
+  const extractor = getExtractorClient();
 
   const completion = await extractor.chat.completions.create({
     model: "llama-3.3-70b-versatile",
