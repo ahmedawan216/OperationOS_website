@@ -4,6 +4,8 @@ import OpenAI from "openai";
 import { requireAuthenticatedUser } from "@/lib/supabase/auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
+const GROQ_MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-120b";
+
 let groqClient: OpenAI | null = null;
 
 function getGroqClient(): OpenAI | null {
@@ -50,7 +52,7 @@ export async function generateRecruiterSummary() {
     }).join("\n");
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: GROQ_MODEL,
       temperature: 0.2,
       messages: [
         { role: "system", content: "You are a recruiting operations assistant. Summarize only the supplied recruiting data. Do not invent facts or make hiring decisions. Produce 2-4 concise sentences focused on what needs recruiter attention." },
