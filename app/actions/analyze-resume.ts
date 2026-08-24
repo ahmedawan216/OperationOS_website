@@ -5,10 +5,21 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import OpenAI from "openai";
 import { z } from "zod";
 
-const groq = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: "https://api.groq.com/openai/v1",
-});
+let groqClient: OpenAI | null = null;
+
+function getGroqClient(): OpenAI {
+  if (groqClient) return groqClient;
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("RecruitOS is not configured correctly.");
+
+  groqClient = new OpenAI({
+    apiKey,
+    baseURL: "https://api.groq.com/openai/v1",
+  });
+
+  return groqClient;
+}
 
 const analysisSchema = z.object({
   recommendation: z.enum(["interview", "maybe", "reject"]),
@@ -28,7 +39,6 @@ export async function analyzeResume(resumeId: string, jobId: string) {
     const user = await requireAuthenticatedUser();
     if (!resumeId) return { success: false, error: "No resume ID was provided." };
     if (!jobId) return { success: false, error: "No job ID was provided." };
-    if (!process.env.GROQ_API_KEY) return { success: false, error: "RecruitOS is not configured correctly." };
 
     const { data: resume, error: resumeError } = await supabaseAdmin
       .from("resumes")
@@ -55,6 +65,7 @@ export async function analyzeResume(resumeId: string, jobId: string) {
       return { success: false, error: "Job not found." };
     }
 
+    const groq = getGroqClient();
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       response_format: { type: "json_object" },
