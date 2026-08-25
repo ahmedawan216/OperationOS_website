@@ -5,7 +5,10 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import OpenAI from "openai";
 import { z } from "zod";
 
-const GROQ_MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-120b";
+// Keep the production RecruitOS model explicit. Vercel environments can retain
+// stale GROQ_MODEL values from V1; allowing that value to override this would
+// reintroduce model-not-found failures at runtime.
+const GROQ_MODEL = "openai/gpt-oss-120b";
 
 let groqClient: OpenAI | null = null;
 
