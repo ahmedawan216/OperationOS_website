@@ -3,11 +3,20 @@
 -- This migration intentionally evolves the V1 tables instead of replacing them.
 
 create table if not exists public.candidates (
-  id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade,
-  full_name text, email text, normalized_email text, phone text, location text, headline text,
-  skills jsonb not null default '[]'::jsonb, experience jsonb not null default '[]'::jsonb,
-  education jsonb not null default '[]'::jsonb, years_experience numeric,
-  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  full_name text,
+  email text,
+  normalized_email text,
+  phone text,
+  location text,
+  headline text,
+  skills jsonb not null default '[]'::jsonb,
+  experience jsonb not null default '[]'::jsonb,
+  education jsonb not null default '[]'::jsonb,
+  years_experience numeric,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 alter table public.resumes add column if not exists candidate_id uuid references public.candidates(id) on delete set null;
@@ -16,44 +25,78 @@ alter table public.resumes add column if not exists processing_error text;
 alter table public.resume_analyses add column if not exists candidate_id uuid references public.candidates(id) on delete set null;
 alter table public.jobs add column if not exists lifecycle_status text not null default 'open';
 
-update public.resumes set processing_status = case when status = 'success' then 'completed' when status = 'failed' then 'failed' else 'pending' end where processing_status = 'pending';
-update public.jobs set lifecycle_status = case when lower(coalesce(status, '')) in ('draft', 'open', 'closed', 'archived') then lower(status) else 'open' end where lifecycle_status = 'open';
+update public.resumes
+set processing_status = case
+  when status = 'success' then 'completed'
+  when status = 'failed' then 'failed'
+  else 'pending'
+end
+where processing_status = 'pending';
+
+update public.jobs
+set lifecycle_status = case
+  when lower(coalesce(status, '')) in ('draft', 'open', 'closed', 'archived') then lower(status)
+  else 'open'
+end
+where lifecycle_status = 'open';
 
 -- Preserve V1 data when a reliable email address can be extracted. No synthetic
 -- names are invented; rows without a usable email remain available through V1.
+-- regexp_match() returns a text[]; [1] extracts the actual email string.
 insert into public.candidates (user_id, email, normalized_email)
-select r.user_id, lower(match.email), lower(match.email)
+select r.user_id, m.email, lower(m.email)
 from public.resumes r
-cross join lateral regexp_matches(r.extracted_text, '([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})') as match(email)
+cross join lateral (
+  select (regexp_match(
+    r.extracted_text,
+    '([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,})'
+  ))[1] as email
+) m
 where r.user_id is not null
   and r.extracted_text is not null
+  and m.email is not null
   and not exists (
-    select 1 from public.candidates c
-    where c.user_id = r.user_id and c.normalized_email = lower(match.email)
+    select 1
+    from public.candidates c
+    where c.user_id = r.user_id
+      and c.normalized_email = lower(m.email)
   )
-group by r.user_id, lower(match.email);
+group by r.user_id, m.email;
 
 update public.resumes r
 set candidate_id = c.id
 from public.candidates c
+cross join lateral (
+  select (regexp_match(
+    r.extracted_text,
+    '([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,})'
+  ))[1] as email
+) m
 where r.candidate_id is null
   and r.user_id = c.user_id
   and r.extracted_text is not null
-  and c.normalized_email = lower((regexp_match(r.extracted_text, '([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})'))[1]);
+  and m.email is not null
+  and c.normalized_email = lower(m.email);
 
 update public.resume_analyses a
 set candidate_id = r.candidate_id
 from public.resumes r
-where a.candidate_id is null and a.resume_id = r.id and r.candidate_id is not null;
+where a.candidate_id is null
+  and a.resume_id = r.id
+  and r.candidate_id is not null;
 
 create table if not exists public.candidate_job_matches (
-  id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade,
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
   candidate_id uuid not null references public.candidates(id) on delete cascade,
   job_id uuid not null references public.jobs(id) on delete cascade,
   resume_id uuid references public.resumes(id) on delete set null,
   latest_analysis_id uuid references public.resume_analyses(id) on delete set null,
-  match_score integer, recommendation text, recruiter_status text not null default 'new',
-  created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
+  match_score integer,
+  recommendation text,
+  recruiter_status text not null default 'new',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   constraint candidate_job_matches_unique_candidate_job unique (candidate_id, job_id),
   constraint candidate_job_matches_score_check check (match_score is null or match_score between 0 and 100),
   constraint candidate_job_matches_recommendation_check check (recommendation is null or recommendation in ('interview', 'maybe', 'reject')),
@@ -61,16 +104,22 @@ create table if not exists public.candidate_job_matches (
 );
 
 create table if not exists public.candidate_notes (
-  id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade,
-  candidate_id uuid not null references public.candidates(id) on delete cascade, content text not null,
-  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  candidate_id uuid not null references public.candidates(id) on delete cascade,
+  content text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 create table if not exists public.candidate_activity (
-  id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade,
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
   candidate_id uuid not null references public.candidates(id) on delete cascade,
-  job_id uuid references public.jobs(id) on delete set null, type text not null,
-  metadata jsonb not null default '{}'::jsonb, created_at timestamptz not null default now()
+  job_id uuid references public.jobs(id) on delete set null,
+  type text not null,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
 );
 
 create unique index if not exists candidates_id_user_id_unique on public.candidates(id, user_id);
