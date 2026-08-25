@@ -3,7 +3,9 @@ import { z } from "zod";
 
 import { normalizeEmail, normalizeSkills } from "@/lib/recruitos/skills";
 
-const GROQ_MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-120b";
+// Keep V2 candidate extraction on the supported production model rather than
+// inheriting a stale GROQ_MODEL deployment variable from V1.
+const GROQ_MODEL = "openai/gpt-oss-120b";
 
 let extractorClient: OpenAI | null = null;
 
