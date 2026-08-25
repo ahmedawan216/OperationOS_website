@@ -18,7 +18,7 @@ export default function BatchUpload({ jobId }: Props) {
   const [analyzing, setAnalyzing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const limitReached = results.length >= MAX_RESUMES;
-  const selectable = results.filter((result) => result.success && result.resumeId);
+  const selectable = results.filter((result) => result.success && result.resumeId && !result.analyzed);
 
   async function handleProcess() {
     if (!file || pending || limitReached) return;
@@ -54,7 +54,12 @@ export default function BatchUpload({ jobId }: Props) {
       setResults((current) => current.map((result) => {
         if (!result.resumeId || !byId.has(result.resumeId)) return result;
         const analysis = byId.get(result.resumeId)!;
-        return { ...result, analyzed: analysis.success, error: analysis.success ? result.error : analysis.error };
+        return {
+          ...result,
+          analyzed: analysis.success,
+          candidateId: analysis.candidateId ?? result.candidateId,
+          error: analysis.success ? result.error : analysis.error,
+        };
       }));
       setSelectedResumeIds([]);
     } catch (error) {
@@ -90,17 +95,17 @@ export default function BatchUpload({ jobId }: Props) {
 
           <div className="space-y-2">
             {results.map((result, index) => {
-              const canSelect = Boolean(result.success && result.resumeId);
+              const canSelect = Boolean(result.success && result.resumeId && !result.analyzed);
               const checked = Boolean(result.resumeId && selectedResumeIds.includes(result.resumeId));
-              const candidateHref = result.candidateId ? `/dashboard/agents/recruitos/candidates/${result.candidateId}?jobId=${encodeURIComponent(jobId)}` : null;
+              const analysisHref = result.resumeId ? `/dashboard/agents/recruitos/analyze/${result.resumeId}?jobId=${encodeURIComponent(jobId)}` : null;
               return (
                 <label key={`${index}-${result.name}-${result.resumeId ?? "failed"}`} className={`flex items-center gap-3 rounded-lg border border-border px-4 py-3 ${canSelect ? "cursor-pointer" : "cursor-default"}`}>
-                  <input type="checkbox" checked={checked} disabled={!canSelect || analyzing || result.analyzed} onChange={() => result.resumeId && toggleSelected(result.resumeId)} className="h-4 w-4 accent-accent disabled:cursor-not-allowed" />
+                  <input type="checkbox" checked={checked} disabled={!canSelect || analyzing} onChange={() => result.resumeId && toggleSelected(result.resumeId)} className="h-4 w-4 accent-accent disabled:cursor-not-allowed" />
                   <span className="min-w-0 flex-1 truncate text-sm text-ink">{result.name}</span>
                   {!result.success ? (
                     <span className="text-xs text-red-400">{result.error ?? "Failed"}</span>
-                  ) : result.analyzed && candidateHref ? (
-                    <Link href={candidateHref} onClick={(event) => event.stopPropagation()} className="shrink-0 text-xs font-medium text-green-400 transition-colors hover:text-green-300 hover:underline">Analyzed · View candidate</Link>
+                  ) : result.analyzed && analysisHref ? (
+                    <Link href={analysisHref} onClick={(event) => event.stopPropagation()} className="shrink-0 text-xs font-medium text-green-400 transition-colors hover:text-green-300 hover:underline">Analyzed · View analysis</Link>
                   ) : result.analyzed ? (
                     <span className="shrink-0 text-xs font-medium text-green-400">Analyzed</span>
                   ) : (
