@@ -69,6 +69,19 @@
   }
 }
 
+@layer components {
+  /* Consistent interaction feedback for native buttons across RecruitOS. */
+  button:not(:disabled) {
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease, transform 160ms ease;
+  }
+
+  button:not(:disabled):hover {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-bg);
+  }
+}
+
 /*
  * Progressive-enhancement safety net: `<Reveal>` (below-the-fold section
  * content) is Framer-Motion-driven and server-renders its "hidden" state
