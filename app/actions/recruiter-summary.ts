@@ -4,7 +4,9 @@ import OpenAI from "openai";
 import { requireAuthenticatedUser } from "@/lib/supabase/auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-const GROQ_MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-120b";
+// Keep V2 recruiter intelligence on the supported production model rather than
+// inheriting a stale GROQ_MODEL deployment variable from V1.
+const GROQ_MODEL = "openai/gpt-oss-120b";
 
 let groqClient: OpenAI | null = null;
 
