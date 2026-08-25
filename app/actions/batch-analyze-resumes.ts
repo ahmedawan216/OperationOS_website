@@ -2,7 +2,6 @@
 
 import { requireAuthenticatedUser } from "@/lib/supabase/auth";
 import { analyzeResume } from "@/app/actions/analyze-resume";
-import { uploadResume, type UploadState } from "@/app/upload/actions";
 
 export type BatchItemResult = {
   name: string;
@@ -12,34 +11,29 @@ export type BatchItemResult = {
   candidateId?: string;
 };
 
-export async function batchAnalyzeResumes(jobId: string, files: File[]): Promise<BatchItemResult[]> {
+/** Analyze already-uploaded resumes for a job. Upload/extraction is kept separate. */
+export async function batchAnalyzeResumes(jobId: string, resumeIds: string[]): Promise<BatchItemResult[]> {
   await requireAuthenticatedUser();
-  if (!jobId) return files.map((file) => ({ name: file.name, success: false, error: "No job was selected." }));
 
-  const limitedFiles = files.slice(0, 25);
+  if (!jobId) {
+    return resumeIds.map((resumeId) => ({ name: resumeId, success: false, error: "No job was selected." }));
+  }
+
   const results: BatchItemResult[] = [];
 
-  for (const file of limitedFiles) {
+  for (const resumeId of resumeIds.slice(0, 25)) {
     try {
-      const uploadForm = new FormData();
-      uploadForm.set("resume", file);
-      const uploadResult: UploadState = await uploadResume({ success: false }, uploadForm);
-      if (!uploadResult.success || !uploadResult.resumeId) {
-        results.push({ name: file.name, success: false, error: uploadResult.error ?? "Upload failed." });
-        continue;
-      }
-
-      const analysisResult = await analyzeResume(uploadResult.resumeId, jobId);
+      const analysisResult = await analyzeResume(resumeId, jobId);
       results.push({
-        name: file.name,
+        name: resumeId,
         success: analysisResult.success,
         error: analysisResult.success ? undefined : analysisResult.error,
-        resumeId: uploadResult.resumeId,
-        candidateId: uploadResult.candidateId,
+        resumeId,
+        candidateId: analysisResult.candidateId,
       });
     } catch (error) {
-      console.error("Batch resume processing error:", error);
-      results.push({ name: file.name, success: false, error: "This resume could not be processed." });
+      console.error("Batch analysis error:", error);
+      results.push({ name: resumeId, success: false, error: "This resume could not be analyzed.", resumeId });
     }
   }
 
