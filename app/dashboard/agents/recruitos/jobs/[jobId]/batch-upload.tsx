@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { batchUploadResumes, type BatchUploadResult } from "@/app/actions/batch-upload-resumes";
 import { batchAnalyzeResumes } from "@/app/actions/batch-analyze-resumes";
 
@@ -148,9 +149,19 @@ export default function BatchUpload({ jobId }: Props) {
                     className="h-4 w-4 accent-accent disabled:cursor-not-allowed"
                   />
                   <span className="min-w-0 flex-1 truncate text-sm text-ink">{result.name}</span>
-                  <span className={`text-xs ${result.success ? "text-green-400" : "text-red-400"}`}>
-                    {!result.success ? result.error ?? "Failed" : result.analyzed ? "Analyzed" : "Ready"}
-                  </span>
+                  {!result.success ? (
+                    <span className="text-xs text-red-400">{result.error ?? "Failed"}</span>
+                  ) : result.analyzed && result.resumeId ? (
+                    <Link
+                      href={`/dashboard/agents/recruitos/candidates/${result.resumeId}?jobId=${encodeURIComponent(jobId)}`}
+                      onClick={(event) => event.stopPropagation()}
+                      className="shrink-0 text-xs font-medium text-green-400 transition-colors hover:text-green-300 hover:underline"
+                    >
+                      Analyzed · View candidate
+                    </Link>
+                  ) : (
+                    <span className="shrink-0 text-xs text-green-400">Ready</span>
+                  )}
                 </label>
               );
             })}
