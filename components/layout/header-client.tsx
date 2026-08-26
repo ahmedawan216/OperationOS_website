@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { signOut } from "@/app/auth/actions";
 import { navLinks } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -24,11 +25,20 @@ export function HeaderClient({
   email?: string;
   dashboard?: boolean;
 }) {
+  const pathname = usePathname();
   const scrolled = useScrolled(20);
+
+  // The root layout renders the public header on every route, while the
+  // dashboard layout renders its authenticated header. Do not render the
+  // root copy on dashboard routes or the two fixed headers will overlap.
+  if (!dashboard && pathname.startsWith("/dashboard")) {
+    return null;
+  }
+
   const links = dashboard ? dashboardLinks : navLinks;
 
   return (
-    <header className={cn("fixed inset-x-0 top-0 z-[100] border-b border-transparent transition-[background-color,border-color] duration-400 ease-out-expo", scrolled && "border-border bg-bg/[0.88] backdrop-blur-md backdrop-saturate-[140%]")}>
+    <header className={cn("fixed inset-x-0 top-0 z-[100] border-b border-transparent transition-[background-color,border-color] duration-400 ease-out", scrolled && "border-border bg-bg/[0.88] backdrop-blur-md backdrop-saturate-[140%]")}>
       <nav aria-label={dashboard ? "Dashboard" : "Primary"} className="mx-auto flex h-16 max-w-wrap items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-5">
           <Logo />
@@ -38,7 +48,7 @@ export function HeaderClient({
 
         <div className="hidden items-center gap-1 sm:flex">
           {links.map((link) => (
-            <a key={link.href} href={link.href} className="rounded-md px-3 py-2 text-[13px] text-ink-dim transition-colors duration-200 ease-out-expo hover:bg-ink/[0.04] hover:text-ink focus-visible:text-ink">
+            <a key={link.href} href={link.href} className="rounded-md px-3 py-2 text-[13px] text-ink-dim transition-colors duration-200 ease-out hover:bg-ink/[0.04] hover:text-ink focus-visible:text-ink">
               {link.label}
             </a>
           ))}
