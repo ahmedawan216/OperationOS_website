@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { deleteResumeAnalysis } from "@/app/actions/delete-resume-analysis";
 
-export default function DeleteAnalysisButton({ analysisId, candidateName }: { analysisId: string; candidateName: string }) {
+export default function DeleteAnalysisButton({ analysisId, resumeId, candidateName }: { analysisId: string; resumeId: string | null; candidateName: string }) {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -15,6 +15,9 @@ export default function DeleteAnalysisButton({ analysisId, candidateName }: { an
       if (!result.success) {
         setError(result.error ?? "Could not delete the analysis.");
         return;
+      }
+      if (resumeId) {
+        window.dispatchEvent(new CustomEvent("recruitos:analysis-deleted", { detail: { resumeId } }));
       }
       setConfirming(false);
       window.location.reload();
