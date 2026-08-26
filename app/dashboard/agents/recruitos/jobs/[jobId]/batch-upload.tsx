@@ -1,22 +1,49 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { batchUploadResumes, type BatchUploadResult } from "@/app/actions/batch-upload-resumes";
 import { batchAnalyzeResumes } from "@/app/actions/batch-analyze-resumes";
 
 type Props = { jobId: string };
 const MAX_RESUMES = 25;
-
 type BatchResult = BatchUploadResult & { analyzed?: boolean };
+type PersistedState = { results: BatchResult[]; selectedResumeIds: string[] };
 
 export default function BatchUpload({ jobId }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [results, setResults] = useState<BatchResult[]>([]);
   const [selectedResumeIds, setSelectedResumeIds] = useState<string[]>([]);
+  const [hydrated, setHydrated] = useState(false);
   const [pending, setPending] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const storageKey = `operationos:recruitos:batch:${jobId}`;
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as PersistedState;
+        if (Array.isArray(parsed.results)) setResults(parsed.results);
+        if (Array.isArray(parsed.selectedResumeIds)) setSelectedResumeIds(parsed.selectedResumeIds);
+      }
+    } catch (error) {
+      console.warn("Could not restore RecruitOS batch state:", error);
+    } finally {
+      setHydrated(true);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify({ results, selectedResumeIds } satisfies PersistedState));
+    } catch (error) {
+      console.warn("Could not persist RecruitOS batch state:", error);
+    }
+  }, [hydrated, results, selectedResumeIds, storageKey]);
+
   const limitReached = results.length >= MAX_RESUMES;
   const selectable = results.filter((result) => result.success && result.resumeId && !result.analyzed);
 
@@ -89,7 +116,7 @@ export default function BatchUpload({ jobId }: Props) {
       {results.length > 0 && (
         <div className="mt-6 border-t border-border pt-6">
           <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div><p className="text-sm font-medium text-ink">Ready candidates</p><p className="mt-1 text-xs text-ink-dim">Select processed resumes to run RecruitOS analysis.</p></div>
+            <div><p className="text-sm font-medium text-ink">Ready candidates</p><p className="mt-1 text-xs text-ink-dim">Your processed batch is saved in this browser for this job, so a page reload will not clear it.</p></div>
             {selectable.length > 0 && <button type="button" onClick={toggleAll} className="text-xs font-medium text-ink-dim transition-colors hover:text-accent">{selectedResumeIds.length === selectable.length ? "Clear selection" : "Select all"}</button>}
           </div>
 
@@ -99,7 +126,7 @@ export default function BatchUpload({ jobId }: Props) {
               const checked = Boolean(result.resumeId && selectedResumeIds.includes(result.resumeId));
               const analysisHref = result.resumeId ? `/dashboard/agents/recruitos/analyze/${result.resumeId}?jobId=${encodeURIComponent(jobId)}` : null;
               return (
-                <label key={`${index}-${result.name}-${result.resumeId ?? "failed"}`} className={`flex items-center gap-3 rounded-lg border border-border px-4 py-3 ${canSelect ? "cursor-pointer" : "cursor-default"}`}>
+                <label key={`${index}-${result.name}-${result.resumeId ?? "failed"}`} className={`flex flex-wrap items-center gap-3 rounded-lg border border-border px-4 py-3 ${canSelect ? "cursor-pointer" : "cursor-default"}`}>
                   <input type="checkbox" checked={checked} disabled={!canSelect || analyzing} onChange={() => result.resumeId && toggleSelected(result.resumeId)} className="h-4 w-4 accent-accent disabled:cursor-not-allowed" />
                   <span className="min-w-0 flex-1 truncate text-sm text-ink">{result.name}</span>
                   {!result.success ? (
