@@ -44,6 +44,17 @@ export default function BatchUpload({ jobId }: Props) {
     }
   }, [hydrated, results, selectedResumeIds, storageKey]);
 
+  useEffect(() => {
+    function handleAnalysisDeleted(event: Event) {
+      const detail = (event as CustomEvent<{ resumeId?: string }>).detail;
+      if (!detail?.resumeId) return;
+      setResults((current) => current.map((result) => result.resumeId === detail.resumeId ? { ...result, analyzed: false } : result));
+    }
+
+    window.addEventListener("recruitos:analysis-deleted", handleAnalysisDeleted);
+    return () => window.removeEventListener("recruitos:analysis-deleted", handleAnalysisDeleted);
+  }, []);
+
   const limitReached = results.length >= MAX_RESUMES;
   const selectable = results.filter((result) => result.success && result.resumeId && !result.analyzed);
 
