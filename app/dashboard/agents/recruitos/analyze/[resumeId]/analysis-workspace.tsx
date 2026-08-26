@@ -93,7 +93,7 @@ export default function AnalysisWorkspace({ analysis }: Props) {
 
   if (editing) {
     return (
-      <section className="rounded-xl border border-accent/30 bg-accent/5 p-6 sm:p-8">
+      <section className="rounded-xl border border-accent/30 bg-accent/5 p-5 sm:p-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="font-mono text-[11px] tracking-[0.08em] text-accent">RECRUITER EDIT</p>
@@ -120,8 +120,8 @@ export default function AnalysisWorkspace({ analysis }: Props) {
         </div>
 
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button type="button" onClick={save} disabled={pending} className="rounded-lg bg-accent px-5 py-3 text-sm font-medium text-bg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">{pending ? "Saving changes..." : "Save changes"}</button>
-          <button type="button" onClick={cancelEdit} disabled={pending} className="rounded-lg border border-border px-5 py-3 text-sm font-medium text-ink transition-colors hover:border-accent hover:text-accent disabled:opacity-50">Cancel</button>
+          <button type="button" onClick={save} disabled={pending} className="w-full rounded-lg bg-accent px-5 py-3 text-sm font-medium text-bg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">{pending ? "Saving changes..." : "Save changes"}</button>
+          <button type="button" onClick={cancelEdit} disabled={pending} className="w-full rounded-lg border border-border px-5 py-3 text-sm font-medium text-ink transition-colors hover:border-accent hover:text-accent disabled:opacity-50 sm:w-auto">Cancel</button>
           {error && <p role="alert" className="text-sm text-red-400 sm:ml-2">{error}</p>}
         </div>
       </section>
@@ -132,8 +132,8 @@ export default function AnalysisWorkspace({ analysis }: Props) {
     <div>
       <section className={card}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div><p className="font-mono text-[11px] tracking-[0.08em] text-accent">RECRUITOS ASSESSMENT</p><h2 className="mt-3 font-display text-2xl font-semibold text-ink">Candidate analysis</h2><p className="mt-2 text-sm text-ink-dim">Review RecruitOS&apos; assessment, then make your final edits if needed.</p></div>
-          <button type="button" onClick={beginEdit} className="shrink-0 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:border-accent hover:text-accent">Edit analysis</button>
+          <div className="min-w-0"><p className="font-mono text-[11px] tracking-[0.08em] text-accent">RECRUITOS ASSESSMENT</p><h2 className="mt-3 font-display text-2xl font-semibold text-ink">Candidate analysis</h2><p className="mt-2 text-sm text-ink-dim">Review RecruitOS&apos; assessment, then make your final edits if needed.</p></div>
+          <button type="button" onClick={beginEdit} className="w-full shrink-0 rounded-lg border border-accent/50 bg-accent/[0.06] px-4 py-3 text-sm font-medium text-accent transition-colors hover:border-accent hover:bg-accent hover:text-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:w-auto">Edit analysis</button>
         </div>
       </section>
 
