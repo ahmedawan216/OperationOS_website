@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 import { signIn, signUp, type AuthState } from "@/app/auth/actions";
 
@@ -17,6 +18,51 @@ function SubmitButton({ label }: { label: string }) {
     >
       {pending ? "Please wait…" : label}
     </button>
+  );
+}
+
+function PasswordField({
+  id,
+  name,
+  label,
+  placeholder,
+  autoComplete,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  placeholder: string;
+  autoComplete: string;
+}) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <div>
+      <label htmlFor={id} className="mb-2 block text-sm font-medium text-ink">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          id={id}
+          name={name}
+          type={visible ? "text" : "password"}
+          autoComplete={autoComplete}
+          minLength={8}
+          required
+          className="w-full rounded-lg border border-border bg-bg px-4 py-3 pr-12 text-sm text-ink outline-none transition-colors placeholder:text-ink-dim/60 focus:border-accent"
+          placeholder={placeholder}
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((current) => !current)}
+          aria-label={visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+          aria-pressed={visible}
+          className="absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center rounded-r-lg text-ink-dim transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+        >
+          {visible ? <EyeOff aria-hidden="true" size={18} /> : <Eye aria-hidden="true" size={18} />}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -45,38 +91,22 @@ export function AuthForm({ mode, next = "/dashboard" }: { mode: "sign-in" | "sig
         />
       </div>
 
-      <div>
-        <label htmlFor="password" className="mb-2 block text-sm font-medium text-ink">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
-          minLength={8}
-          required
-          className="w-full rounded-lg border border-border bg-bg px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink-dim/60 focus:border-accent"
-          placeholder="At least 8 characters"
-        />
-      </div>
+      <PasswordField
+        id="password"
+        name="password"
+        label="Password"
+        autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+        placeholder="At least 8 characters"
+      />
 
       {mode === "sign-up" && (
-        <div>
-          <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium text-ink">
-            Confirm password
-          </label>
-          <input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-            className="w-full rounded-lg border border-border bg-bg px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink-dim/60 focus:border-accent"
-            placeholder="Repeat your password"
-          />
-        </div>
+        <PasswordField
+          id="confirmPassword"
+          name="confirmPassword"
+          label="Confirm password"
+          autoComplete="new-password"
+          placeholder="Repeat your password"
+        />
       )}
 
       {state.error && (
