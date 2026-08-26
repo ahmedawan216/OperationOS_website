@@ -11,7 +11,7 @@ export async function deleteResumeAnalysis(analysisId: string) {
 
     const { data: analysis, error: lookupError } = await supabaseAdmin
       .from("resume_analyses")
-      .select("id, candidate_id, job_id")
+      .select("id, resume_id, candidate_id, job_id")
       .eq("id", analysisId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -60,7 +60,7 @@ export async function deleteResumeAnalysis(analysisId: string) {
     if (analysis.job_id) revalidatePath(`/dashboard/agents/recruitos/jobs/${analysis.job_id}`);
     if (analysis.candidate_id) revalidatePath(`/dashboard/agents/recruitos/candidates/${analysis.candidate_id}`);
 
-    return { success: true, jobId: analysis.job_id, candidateId: analysis.candidate_id };
+    return { success: true, resumeId: analysis.resume_id, jobId: analysis.job_id, candidateId: analysis.candidate_id };
   } catch (error) {
     if (error instanceof Error && error.message === "AUTH_REQUIRED") {
       return { success: false, error: "Please sign in to delete this analysis." };
