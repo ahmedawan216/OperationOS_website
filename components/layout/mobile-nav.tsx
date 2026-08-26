@@ -44,13 +44,13 @@ export function MobileNav({ isAuthenticated = false, dashboard = false }: { isAu
   }
 
   return (
-    <div className="sm:hidden">
+    <div className="lg:hidden">
       <Button
         ref={toggleRef}
         type="button"
         variant="ghost"
         size="sm"
-        className="relative z-[120] h-10 w-10 border-0 p-0"
+        className="relative z-[140] h-10 w-10 border-0 p-0"
         aria-expanded={open}
         aria-controls={menuId}
         aria-label={open ? "Close menu" : "Open menu"}
@@ -68,13 +68,13 @@ export function MobileNav({ isAuthenticated = false, dashboard = false }: { isAu
           <button
             type="button"
             aria-label="Close navigation"
-            className="fixed inset-0 z-[105] bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 z-[120] cursor-default bg-black/80 backdrop-blur-md"
             onClick={closeMenu}
           />
           <nav
             id={menuId}
             aria-label={dashboard ? "Dashboard mobile navigation" : "Mobile navigation"}
-            className="fixed inset-x-0 top-16 z-[110] max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-[#08090c]/[0.98] px-5 py-5 shadow-2xl backdrop-blur-xl"
+            className="fixed inset-x-0 top-16 z-[130] max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-[#08090c] px-4 py-5 shadow-2xl sm:px-6"
           >
             {dashboard && (
               <div className="mb-4 border-b border-border pb-4">
