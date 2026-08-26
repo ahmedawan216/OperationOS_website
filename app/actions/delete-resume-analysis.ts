@@ -21,6 +21,31 @@ export async function deleteResumeAnalysis(analysisId: string) {
       return { success: false, error: "Analysis not found." };
     }
 
+    // Capture the relationship before deleting the analysis. The foreign key
+    // uses ON DELETE SET NULL, so checking it after deletion would lose the
+    // information needed to remove the corresponding pipeline entry.
+    let latestMatchId: string | null = null;
+    let analysisIsLatestMatch = false;
+    if (analysis.candidate_id && analysis.job_id) {
+      const { data: match, error: matchLookupError } = await supabaseAdmin
+        .from("candidate_job_matches")
+        .select("id, latest_analysis_id")
+        .eq("candidate_id", analysis.candidate_id)
+        .eq("job_id", analysis.job_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (matchLookupError) {
+        console.error("Delete analysis match lookup error:", matchLookupError);
+        return { success: false, error: "Could not verify the candidate pipeline entry." };
+      }
+
+      if (match?.latest_analysis_id === analysisId) {
+        latestMatchId = match.id;
+        analysisIsLatestMatch = true;
+      }
+    }
+
     const { error: deleteError } = await supabaseAdmin
       .from("resume_analyses")
       .delete()
@@ -32,26 +57,16 @@ export async function deleteResumeAnalysis(analysisId: string) {
       return { success: false, error: "Could not delete this analysis." };
     }
 
-    if (analysis.candidate_id && analysis.job_id) {
-      const { data: match } = await supabaseAdmin
+    if (analysisIsLatestMatch && latestMatchId) {
+      const { error: matchError } = await supabaseAdmin
         .from("candidate_job_matches")
-        .select("id, latest_analysis_id")
-        .eq("candidate_id", analysis.candidate_id)
-        .eq("job_id", analysis.job_id)
-        .eq("user_id", user.id)
-        .maybeSingle();
+        .delete()
+        .eq("id", latestMatchId)
+        .eq("user_id", user.id);
 
-      if (match?.latest_analysis_id === analysisId) {
-        const { error: matchError } = await supabaseAdmin
-          .from("candidate_job_matches")
-          .delete()
-          .eq("id", match.id)
-          .eq("user_id", user.id);
-
-        if (matchError) {
-          console.error("Delete analysis candidate match error:", matchError);
-          return { success: false, error: "Analysis was deleted, but its pipeline entry could not be removed." };
-        }
+      if (matchError) {
+        console.error("Delete analysis candidate match error:", matchError);
+        return { success: false, error: "Analysis was deleted, but its pipeline entry could not be removed." };
       }
     }
 
