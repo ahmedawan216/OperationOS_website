@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { deleteResumeAnalysis } from "@/app/actions/delete-resume-analysis";
 
-export default function DeleteAnalysisButton({ analysisId, resumeId, candidateName }: { analysisId: string; resumeId: string | null; candidateName: string }) {
+export default function DeleteAnalysisButton({ analysisId, resumeId, candidateName, jobId }: { analysisId: string; resumeId: string | null; candidateName: string; jobId: string }) {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -16,9 +16,23 @@ export default function DeleteAnalysisButton({ analysisId, resumeId, candidateNa
         setError(result.error ?? "Could not delete the analysis.");
         return;
       }
+
       if (resumeId) {
-        window.dispatchEvent(new CustomEvent("recruitos:analysis-deleted", { detail: { resumeId } }));
+        try {
+          const key = `operationos:recruitos:batch:${jobId}`;
+          const saved = window.localStorage.getItem(key);
+          if (saved) {
+            const state = JSON.parse(saved) as { results?: Array<{ resumeId?: string; analyzed?: boolean }>; selectedResumeIds?: string[] };
+            if (Array.isArray(state.results)) {
+              state.results = state.results.map((item) => item.resumeId === resumeId ? { ...item, analyzed: false } : item);
+              window.localStorage.setItem(key, JSON.stringify(state));
+            }
+          }
+        } catch (storageError) {
+          console.warn("Could not reconcile deleted analysis with saved batch state:", storageError);
+        }
       }
+
       setConfirming(false);
       window.location.reload();
     });
