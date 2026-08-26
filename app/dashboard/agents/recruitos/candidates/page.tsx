@@ -85,6 +85,13 @@ export default async function RecruitOSCandidatesPage({ searchParams }: Props) {
   const matches = (matchData ?? []) as MatchRow[];
   const matchByCandidate = new Map<string, MatchRow>();
   for (const match of matches) {
+    const isInSelectedContext = Boolean(
+      (!params.jobId || match.job_id === params.jobId) &&
+      (!params.status || match.recruiter_status === params.status) &&
+      (!params.recommendation || match.recommendation === params.recommendation)
+    );
+    if (!isInSelectedContext) continue;
+
     const existing = matchByCandidate.get(match.candidate_id);
     if (!existing || new Date(match.updated_at).getTime() > new Date(existing.updated_at).getTime()) {
       matchByCandidate.set(match.candidate_id, match);
