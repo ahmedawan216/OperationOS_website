@@ -36,6 +36,7 @@ export async function batchUploadResumes(jobId: string, files: File[]): Promise<
     try {
       const uploadForm = new FormData();
       uploadForm.set("resume", file);
+      uploadForm.set("jobId", jobId);
 
       const uploadResult: UploadState = await uploadResume({ success: false }, uploadForm);
 
