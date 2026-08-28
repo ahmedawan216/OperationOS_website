@@ -8,6 +8,8 @@ import {
   setSessionCookies,
 } from "@/lib/supabase/auth-cookies";
 
+const AUTH_REQUEST_TIMEOUT_MS = 5000;
+
 function getSupabaseConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
   const key =
@@ -16,6 +18,40 @@ function getSupabaseConfig() {
 
   if (!url || !key) return null;
   return { url, key };
+}
+
+async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), AUTH_REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function createAuthClient(url: string, key: string, accessToken?: string) {
+  return createClient(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+    global: {
+      fetch: fetchWithTimeout,
+      ...(accessToken
+        ? {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        : {}),
+    },
+  });
 }
 
 export async function middleware(request: NextRequest) {
@@ -32,37 +68,15 @@ export async function middleware(request: NextRequest) {
 
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
-  const supabase = createClient(config.url, config.key, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-    ...(accessToken
-      ? {
-          global: {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          },
-        }
-      : {}),
-  });
 
   if (accessToken) {
-    const { data } = await supabase.auth.getUser(accessToken);
-    if (data.user) return response;
+    const supabase = createAuthClient(config.url, config.key, accessToken);
+    const { data } = await supabase.auth.getClaims(accessToken);
+    if (data?.claims) return response;
   }
 
   if (refreshToken) {
-    const refreshClient = createClient(config.url, config.key, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false,
-      },
-    });
-
+    const refreshClient = createAuthClient(config.url, config.key);
     const { data, error } = await refreshClient.auth.refreshSession({
       refresh_token: refreshToken,
     });
