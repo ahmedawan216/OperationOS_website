@@ -19,11 +19,23 @@ export async function uploadResume(_prevState: UploadState, formData: FormData):
   try {
     const user = await requireAuthenticatedUser();
     const file = formData.get("resume");
+    const jobIdValue = formData.get("jobId");
+    const jobId = typeof jobIdValue === "string" && jobIdValue ? jobIdValue : null;
 
     if (!(file instanceof File)) return { success: false, error: "Please select a PDF file." };
     if (file.type !== "application/pdf") return { success: false, error: "Please upload a PDF file." };
     if (file.size === 0) return { success: false, error: "The uploaded file is empty." };
-    if (file.size > 10 * 1024 * 1024) return { success: false, error: "Please upload a PDF smaller than 10 MB." };
+    if (file.size > 10 * 1024 * 1024) return { success: false, error: "Please upload a PDF file smaller than 10 MB." };
+
+    if (jobId) {
+      const { data: job, error: jobError } = await supabaseAdmin
+        .from("jobs")
+        .select("id")
+        .eq("id", jobId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (jobError || !job) return { success: false, error: "The selected job could not be found." };
+    }
 
     const storagePath = `${user.id}/${crypto.randomUUID()}.pdf`;
     const fileBuffer = await file.arrayBuffer();
@@ -40,9 +52,6 @@ export async function uploadResume(_prevState: UploadState, formData: FormData):
       return { success: false, error: "Upload failed. Please try again." };
     }
 
-    // `status` is the existing V1 extraction state and intentionally remains
-    // pending/success/failed. V2 uses `processing_status` for the richer
-    // pending/processing/completed/failed workflow.
     const { data: resume, error: createError } = await supabaseAdmin
       .from("resumes")
       .insert({
@@ -145,6 +154,7 @@ export async function uploadResume(_prevState: UploadState, formData: FormData):
       const { error: activityError } = await supabaseAdmin.from("candidate_activity").insert({
         user_id: user.id,
         candidate_id: candidateId,
+        job_id: jobId,
         type: "resume_uploaded",
         metadata: { resumeId: resume.id, filename: file.name },
       });
