@@ -1,22 +1,14 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
 import { navLinks } from "@/lib/data";
-import { signOut } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 
-const dashboardLinks = [
-  { label: "Overview", href: "/dashboard" },
-  { label: "RecruitOS", href: "/dashboard/agents/recruitos" },
-  { label: "Jobs", href: "/dashboard/agents/recruitos/jobs" },
-  { label: "Candidates", href: "/dashboard/agents/recruitos/candidates" },
-];
-
-export function MobileNav({ isAuthenticated = false, dashboard = false }: { isAuthenticated?: boolean; dashboard?: boolean }) {
+export function MobileNav() {
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
-  const links = dashboard ? dashboardLinks : navLinks;
 
   useEffect(() => {
     if (!open) return;
@@ -73,45 +65,25 @@ export function MobileNav({ isAuthenticated = false, dashboard = false }: { isAu
           />
           <nav
             id={menuId}
-            aria-label={dashboard ? "Dashboard mobile navigation" : "Mobile navigation"}
+            aria-label="Mobile navigation"
             className="fixed inset-x-0 top-16 z-[130] max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-[#08090c] px-4 py-5 shadow-2xl sm:px-6"
           >
-            {dashboard && (
-              <div className="mb-4 border-b border-border pb-4">
-                <p className="font-mono text-[10px] tracking-[0.08em] text-accent">RECRUITOS WORKSPACE</p>
-                <p className="mt-1 text-xs text-ink-dim">Recruiting command center</p>
-              </div>
-            )}
-
             <div className="space-y-1">
-              {links.map((link) => (
-                <a
+              {navLinks.map((link) => (
+                <Link
                   key={link.href}
                   href={link.href}
                   onClick={closeMenu}
                   className="block rounded-lg px-3 py-3.5 text-sm font-medium text-ink transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:bg-white/[0.06] focus-visible:text-white focus-visible:outline-none"
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
 
-            {isAuthenticated ? (
-              <form action={signOut} className="mt-4 border-t border-border pt-4">
-                <button
-                  type="submit"
-                  onClick={closeMenu}
-                  className="block w-full rounded-lg px-3 py-3.5 text-left text-sm font-medium text-ink transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:bg-white/[0.06] focus-visible:outline-none"
-                >
-                  Sign out
-                </button>
-              </form>
-            ) : (
-              <div className="mt-4 border-t border-border pt-4">
-                <a href="/sign-in" onClick={closeMenu} className="block rounded-lg px-3 py-3.5 text-sm font-medium text-ink hover:bg-white/[0.06]">Sign in</a>
-                <a href="/sign-up" onClick={closeMenu} className="block rounded-lg px-3 py-3.5 text-sm font-medium text-accent hover:bg-accent/[0.08]">Create an account</a>
-              </div>
-            )}
+            <div className="mt-4 border-t border-border pt-4">
+              <Link href="/#waitlist" onClick={closeMenu} className="block rounded-lg px-3 py-3.5 text-sm font-medium text-accent hover:bg-accent/[0.08]">Join waitlist</Link>
+            </div>
           </nav>
         </>
       )}

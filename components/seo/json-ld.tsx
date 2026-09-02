@@ -22,7 +22,7 @@ export function JsonLd() {
         description:
           "RecruitOS is an AI recruiting employee that screens resumes, matches candidates to jobs, and accelerates hiring workflows.",
 
-        url: `${siteConfig.url}/dashboard/agents/recruitos`,
+        url: `${siteConfig.url}/recruitos`,
 
         creator: {
           "@id": `${siteConfig.url}/#organization`,

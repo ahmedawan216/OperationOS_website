@@ -52,7 +52,7 @@ export default function RecruitOSLandingPage() {
 
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
-              href="/dashboard/agents/recruitos"
+              href="/#waitlist"
               className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90"
             >
               Try RecruitOS →
@@ -335,7 +335,7 @@ export default function RecruitOSLandingPage() {
           </p>
 
           <Link
-            href="/dashboard/agents/recruitos"
+            href="/#waitlist"
             className="mt-8 inline-flex rounded-lg bg-white px-7 py-3.5 text-sm font-semibold text-black transition-colors hover:bg-white/90"
           >
             Get early access →

@@ -11,11 +11,6 @@ import { Footer } from "@/components/layout/footer";
 
 import "./globals.css";
 
-// The shared header reads the authenticated user's cookies to decide whether
-// to render "Sign in" or "Sign out". The root layout therefore depends on
-// request-time auth state and must not be prerendered without a request.
-export const dynamic = "force-dynamic";
-
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "600", "700"],

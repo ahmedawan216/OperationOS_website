@@ -23,7 +23,6 @@
     "framer-motion": "11.15.0",
     "lucide-react": "0.469.0",
     "next": "15.5.20",
-    "openai": "^6.48.0",
     "posthog-js": "^1.404.0",
     "posthog-node": "^5.45.2",
     "react": "^19.0.0",
@@ -32,7 +31,6 @@
     "resend": "^6.17.2",
     "server-only": "^0.0.1",
     "tailwind-merge": "2.5.5",
-    "unpdf": "^1.6.2",
     "zod": "^4.0.0"
   },
   "devDependencies": {

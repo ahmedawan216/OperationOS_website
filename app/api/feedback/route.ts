@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { posthog } from "@/lib/posthog";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { feedbackSupabase } from "@/lib/supabase/feedback";
 
 export async function POST(req: Request) {
   try {
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const safeName = typeof name === "string" ? name.trim() : null;
     const safeEmail = typeof email === "string" ? email.trim().toLowerCase() : null;
 
-    const { error } = await supabaseAdmin.from("feedback").insert([{
+    const { error } = await feedbackSupabase.from("feedback").insert([{
       name: safeName,
       email: safeEmail,
       feedback: feedback.trim(),

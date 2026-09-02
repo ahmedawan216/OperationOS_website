@@ -9,16 +9,15 @@ import type {
 
 /** Primary nav — mirrors the approved prototype's <nav class="nav-links"> */
 export const navLinks: NavLink[] = [
-  { label: "How it works", href: "#how" },
-  { label: "Agents", href: "#ecosystem" },
-  { label: "RecruitOS", href: "#recruitos" },
-  { label: "Dashboard", href: "/dashboard" },
+  { label: "How it works", href: "/#how" },
+  { label: "Agents", href: "/#ecosystem" },
+  { label: "RecruitOS", href: "/#recruitos" },
 ];
 
 /** Footer links — mirrors <div class="footer-links"> */
 export const footerLinks: NavLink[] = [
-  { label: "RecruitOS", href: "#recruitos" },
-  { label: "Agents", href: "#ecosystem" },
+  { label: "RecruitOS", href: "/#recruitos" },
+  { label: "Agents", href: "/#ecosystem" },
   { label: "Blog", href: "/blog" },
   { label: "Privacy", href: "/privacy" },
 ];
