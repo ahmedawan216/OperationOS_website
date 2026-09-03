@@ -52,4 +52,14 @@
   .type-body { font-size: 1rem; line-height: 1.65; }
   .type-small { font-size: 0.875rem; line-height: 1.55; }
   .type-meta { font-size: 0.75rem; line-height: 1.4; letter-spacing: 0.08em; }
+  .guidelines-prose { @apply text-base leading-7 text-ink-dim; }
+  .guidelines-prose h2 { @apply mt-12 scroll-mt-28 font-display text-2xl font-semibold tracking-[-0.02em] text-ink first:mt-0 sm:text-3xl; }
+  .guidelines-prose h3 { @apply mt-8 scroll-mt-28 font-display text-xl font-semibold tracking-[-0.015em] text-ink; }
+  .guidelines-prose p { @apply mt-4; }
+  .guidelines-prose ul, .guidelines-prose ol { @apply mt-5 space-y-3 pl-6; }
+  .guidelines-prose ul { @apply list-disc; }
+  .guidelines-prose ol { @apply list-decimal; }
+  .guidelines-prose li { @apply pl-1; }
+  .guidelines-prose strong { @apply font-semibold text-ink; }
+  .guidelines-prose a { @apply font-medium text-accent underline decoration-accent-dim underline-offset-4 hover:text-accent-hover; }
 }

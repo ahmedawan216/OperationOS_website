@@ -10,6 +10,48 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      path: "/recruitos",
+      lastModified: "2026-09-03",
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+    },
+    {
+      path: "/guidelines",
+      lastModified: "2026-09-03",
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    },
+    {
+      path: "/guidelines/getting-started",
+      lastModified: "2026-09-03",
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
+    {
+      path: "/guidelines/recruitos",
+      lastModified: "2026-09-03",
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
+    {
+      path: "/guidelines/concepts",
+      lastModified: "2026-09-03",
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
+    {
+      path: "/guidelines/account-billing",
+      lastModified: "2026-09-03",
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    },
+    {
+      path: "/guidelines/privacy-security",
+      lastModified: "2026-09-03",
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    },
+    {
       path: "/blog",
       lastModified: "2026-08-08",
       changeFrequency: "weekly" as const,

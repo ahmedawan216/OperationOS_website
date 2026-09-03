@@ -18,7 +18,10 @@ export function Footer() {
           </nav>
           <nav aria-labelledby="footer-resources-heading">
             <h2 id="footer-resources-heading" className="type-meta font-semibold uppercase text-ink-faint">Resources</h2>
-            <Link className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-ink underline-offset-4 hover:text-accent hover:underline" href="/blog">Blog</Link>
+            <div className="mt-3 flex flex-col items-start">
+              <Link className="inline-flex min-h-11 items-center text-sm font-medium text-ink underline-offset-4 hover:text-accent hover:underline" href="/guidelines">Guidelines</Link>
+              <Link className="inline-flex min-h-11 items-center text-sm font-medium text-ink underline-offset-4 hover:text-accent hover:underline" href="/blog">Blog</Link>
+            </div>
           </nav>
         </div>
         <div className="mt-10 flex flex-col gap-3 border-t border-border pt-6 text-sm text-ink-dim sm:flex-row sm:items-center sm:justify-between">
