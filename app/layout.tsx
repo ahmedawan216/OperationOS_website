@@ -61,9 +61,9 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: "OperationOS.org — The Operating System for AI Employees",
+    title: "OperationOS.org | Focused Software for Operational Work",
     description:
-      "OperationOS helps businesses automate work with AI employees. RecruitOS is our first AI hiring employee that screens resumes, matches candidates, and accelerates recruitment.",
+      "OperationOS builds focused software products for operational work. RecruitOS helps hiring teams review candidates and keep hiring workflows organized.",
     url: "https://operationos.org/",
     siteName: "OperationOS.org",
     images: [
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
         url: "https://operationos.org/images/og-image-v2.png",
         width: 1200,
         height: 630,
-        alt: "OperationOS.org — The Operating System for AI Employees",
+        alt: "OperationOS focused software for operational work",
       },
     ],
     type: "website",
@@ -79,9 +79,9 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "OperationOS.org — The Operating System for AI Employees",
+    title: "OperationOS.org | Focused Software for Operational Work",
     description:
-      "OperationOS helps businesses automate work with AI employees.",
+      "OperationOS builds focused software products for clear, efficient operational work.",
     images: ["https://operationos.org/images/og-image-v2.png"],
   },
 

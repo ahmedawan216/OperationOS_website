@@ -11,7 +11,7 @@ export const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
 
 /** Named durations (seconds) for Framer Motion transitions across the site. */
 export const DURATIONS = {
-  /** Scroll-triggered section/content reveals (`<Reveal />`). */
+  /** Larger interface entrances, such as dialogs. */
   reveal: 0.8,
   /** Mobile nav hamburger icon morph. */
   menuIcon: 0.3,
