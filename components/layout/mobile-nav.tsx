@@ -4,8 +4,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-const futureLinks = ["Solutions", "Pricing", "Guidelines", "Sign in"];
-
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const menuId = useId();
@@ -50,9 +48,6 @@ export function MobileNav() {
               <span className="block text-base font-semibold text-ink">RecruitOS</span>
               <span className="mt-1 block text-sm leading-5 text-ink-dim">AI-assisted recruiting workflows for clearer candidate decisions.</span>
             </Link>
-            <div className="mt-5 border-t border-border pt-3">
-              {futureLinks.map((label) => <span key={label} aria-disabled="true" className="flex min-h-11 items-center px-3 text-sm font-medium text-ink-faint">{label}</span>)}
-            </div>
             <Button asChild className="mt-5 w-full"><Link href="/#waitlist" onClick={closeMenu}>Get started</Link></Button>
           </nav>
         </>

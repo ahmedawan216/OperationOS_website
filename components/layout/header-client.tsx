@@ -9,8 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { MobileNav } from "@/components/layout/mobile-nav";
 
-const futureLinks = ["Solutions", "Pricing", "Guidelines"];
-
 export function HeaderClient() {
   const [productsOpen, setProductsOpen] = useState(false);
   const productsRef = useRef<HTMLDivElement>(null);
@@ -55,12 +53,8 @@ export function HeaderClient() {
               </div>
             )}
           </div>
-          {futureLinks.map((label) => (
-            <span key={label} aria-disabled="true" title="This destination is not available yet" className="flex min-h-11 cursor-default items-center rounded-md px-3 text-sm font-medium text-ink-faint">{label}</span>
-          ))}
         </div>
         <div className="ml-auto hidden shrink-0 items-center gap-2 lg:flex">
-          <span aria-disabled="true" title="Sign in is not available yet" className="flex min-h-11 cursor-default items-center px-3 text-sm font-medium text-ink-faint">Sign in</span>
           <Button asChild size="sm"><Link href="/#waitlist">Get started</Link></Button>
         </div>
         <div className="ml-auto lg:hidden"><MobileNav /></div>
