@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { TrackedLink } from "@/components/home/tracked-link";
@@ -7,8 +6,8 @@ import { TrackedLink } from "@/components/home/tracked-link";
 export function HomeHero() {
   return (
     <section className="relative overflow-hidden border-b border-border pt-[72px]">
-      <div className="container-standard grid min-h-[calc(100svh-72px)] items-center gap-12 py-20 lg:grid-cols-[minmax(0,1fr)_360px] lg:py-24">
-        <div className="max-w-[780px]">
+      <div className="container-standard flex min-h-[calc(100svh-72px)] items-center py-20 lg:py-24">
+        <div className="max-w-[860px]">
           <p className="type-meta mb-6 font-mono font-medium uppercase text-accent">
             Focused software for operational work
           </p>
@@ -29,17 +28,6 @@ export function HomeHero() {
               <a href="#approach">See how it works</a>
             </Button>
           </div>
-        </div>
-
-        <div className="border-l border-border pl-7 lg:pl-9">
-          <p className="text-sm font-semibold text-ink">OperationOS is the company.</p>
-          <p className="mt-3 text-sm leading-6 text-ink-dim">
-            RecruitOS is its first public product, built for clearer candidate review and more organized hiring workflows.
-          </p>
-          <Link className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent underline-offset-4 hover:text-accent-hover hover:underline" href="/recruitos">
-            Meet RecruitOS
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
         </div>
       </div>
     </section>

@@ -48,7 +48,10 @@ export function MobileNav() {
               <span className="block text-base font-semibold text-ink">RecruitOS</span>
               <span className="mt-1 block text-sm leading-5 text-ink-dim">AI-assisted recruiting workflows for clearer candidate decisions.</span>
             </Link>
-            <Button asChild className="mt-5 w-full"><Link href="/#waitlist" onClick={closeMenu}>Get started</Link></Button>
+            <Link href="/blog" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2 focus-visible:outline-none">
+              Blog
+            </Link>
+            <Button asChild className="mt-5 w-full"><Link href="/recruitos#waitlist" onClick={closeMenu}>Get started</Link></Button>
           </nav>
         </>
       )}

@@ -10,7 +10,7 @@ export function ProductSpotlight() {
     <Section id="products" className="bg-bg-secondary">
       <div className="grid items-end gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:gap-14">
         <div className="pb-2">
-          <p className="type-meta font-mono font-medium uppercase text-accent">Available product</p>
+          <p className="type-meta font-mono font-medium uppercase text-accent">An OperationOS product</p>
           <p className="mt-5 font-display text-xl font-semibold text-ink">{featuredProduct.name}</p>
           <h2 className="type-h2 mt-3 font-display font-semibold text-ink">
             Recruiting work, organized around better decisions.

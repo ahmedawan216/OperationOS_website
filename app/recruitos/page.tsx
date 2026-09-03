@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Waitlist } from "@/components/sections/waitlist";
 
 export const metadata: Metadata = {
   title: "RecruitOS — AI Resume Screening for Recruiters",
@@ -52,7 +53,7 @@ export default function RecruitOSLandingPage() {
 
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
-              href="/#waitlist"
+              href="#waitlist"
               className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90"
             >
               Try RecruitOS →
@@ -315,33 +316,7 @@ export default function RecruitOSLandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section
-        id="get-started"
-        className="px-6 py-28"
-      >
-        <div className="mx-auto max-w-4xl rounded-2xl border border-white/10 bg-white/[0.025] px-6 py-16 text-center md:px-12">
-          <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-[#667cff]">
-            RECRUITOS
-          </p>
-
-          <h2 className="mt-5 font-display text-3xl font-semibold tracking-[-0.03em] md:text-5xl">
-            Spend less time screening resumes.
-          </h2>
-
-          <p className="mx-auto mt-5 max-w-xl text-[15px] leading-7 text-white/50">
-            Let RecruitOS handle the repetitive first pass so your team can
-            focus on qualified candidates and better conversations.
-          </p>
-
-          <Link
-            href="/#waitlist"
-            className="mt-8 inline-flex rounded-lg bg-white px-7 py-3.5 text-sm font-semibold text-black transition-colors hover:bg-white/90"
-          >
-            Get early access →
-          </Link>
-        </div>
-      </section>
+      <Waitlist />
 
       {/* Footer */}
       

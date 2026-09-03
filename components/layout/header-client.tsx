@@ -53,9 +53,12 @@ export function HeaderClient() {
               </div>
             )}
           </div>
+          <Link href="/blog" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none">
+            Blog
+          </Link>
         </div>
         <div className="ml-auto hidden shrink-0 items-center gap-2 lg:flex">
-          <Button asChild size="sm"><Link href="/#waitlist">Get started</Link></Button>
+          <Button asChild size="sm"><Link href="/recruitos#waitlist">Get started</Link></Button>
         </div>
         <div className="ml-auto lg:hidden"><MobileNav /></div>
       </nav>
