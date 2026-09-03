@@ -16,16 +16,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      path: "/ai-resume-screening",
+      path: "/blog/ai-resume-screening",
       lastModified: "2026-08-06",
       changeFrequency: "monthly" as const,
       priority: 0.9,
-    },
-    {
-      path: "/privacy",
-      lastModified: "2026-08-08",
-      changeFrequency: "yearly" as const,
-      priority: 0.5,
     },
   ];
 
