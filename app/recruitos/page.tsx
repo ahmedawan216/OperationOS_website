@@ -1,325 +1,261 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
+import { ArrowDown, ArrowRight, Check } from "lucide-react";
+
+import { Section } from "@/components/layout/section";
 import { Waitlist } from "@/components/sections/waitlist";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "RecruitOS — AI Resume Screening for Recruiters",
+  title: "RecruitOS | Clearer Candidate Review Workflows",
   description:
-    "RecruitOS helps recruiters analyze resumes against job requirements, understand candidate fit, and spend less time on manual screening.",
-  alternates: {
-    canonical: "/recruitos",
-  },
+    "RecruitOS helps recruiters and hiring teams review candidates against role requirements, understand recommendations, and keep hiring work organized.",
+  alternates: { canonical: "/recruitos" },
   openGraph: {
-    title: "RecruitOS — AI Resume Screening for Recruiters",
+    title: "RecruitOS | Clearer Candidate Review Workflows",
     description:
-      "Analyze resumes, understand candidate fit, and spend less time on manual screening.",
+      "Review candidates against role requirements, understand the context behind recommendations, and keep the next action visible.",
     url: "/recruitos",
     siteName: "OperationOS.org",
     type: "website",
-    images: [
-      {
-        url: "/images/recruitos/RecruitOS_workspace_preview.png",
-        width: 1200,
-        height: 700,
-        alt: "RecruitOS dashboard",
-      },
-    ],
+    images: [{
+      url: "/images/recruitos/RecruitOS_workspace_preview.png",
+      width: 1642,
+      height: 1382,
+      alt: "RecruitOS job workspace showing role requirements and an organized candidate pipeline",
+    }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RecruitOS | Clearer Candidate Review Workflows",
+    description: "Review candidates with role context, readable recommendations, and visible next actions.",
+    images: ["/images/recruitos/RecruitOS_workspace_preview.png"],
   },
 };
 
-export default function RecruitOSLandingPage() {
+const workflowSteps = [
+  { number: "01", title: "Define the role", description: "Start with the job context and requirements candidates should be reviewed against." },
+  { number: "02", title: "Add a candidate", description: "Bring a resume into the workspace so the review stays connected to the active role." },
+  { number: "03", title: "Review the analysis", description: "Inspect relevant experience, skills, concerns, and the reasoning behind the recommendation." },
+  { number: "04", title: "Choose the next action", description: "Update the candidate status and decide what should happen next with the full context visible." },
+] as const;
+
+const workspaceCapabilities = [
+  "Role requirements remain visible during review",
+  "Candidates stay connected to the correct job",
+  "Status and progress are available in one workspace",
+] as const;
+
+const analysisDetails = [
+  "Recommendation and match context",
+  "Relevant experience and supporting summary",
+  "Matching skills, gaps, and concerns",
+  "Reasoning available for recruiter review",
+] as const;
+
+export default function RecruitOSPage() {
   return (
-    <div className="min-h-screen bg-[#08090c] text-white">
-      {/* Navigation */}
-      
-
-      {/* Hero */}
-      <section className="px-6 pb-20 pt-24 md:pb-28 md:pt-32">
-        <div className="mx-auto max-w-5xl text-center">
-          <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.18em] text-[#667cff]">
-            AI RESUME SCREENING
-          </p>
-
-          <h1 className="mx-auto max-w-4xl font-display text-5xl font-semibold leading-[1.05] tracking-[-0.04em] text-white md:text-7xl">
-            Stop spending hours screening resumes.
-          </h1>
-
-          <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-white/55 md:text-xl">
-            RecruitOS analyzes candidates against your job requirements,
-            explains why they match, and helps your team spend more time on
-            the people worth talking to.
-          </p>
-
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href="#waitlist"
-              className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90"
-            >
-              Try RecruitOS →
-            </Link>
-
-            <a
-              href="#how-it-works"
-              className="rounded-lg border border-white/10 px-6 py-3 text-sm font-medium text-white/60 transition-colors hover:border-white/20 hover:text-white"
-            >
-              See how it works
-            </a>
-          </div>
-
-          <p className="mt-5 text-xs text-white/30">
-            AI-assisted screening. Human-controlled hiring decisions.
-          </p>
-        </div>
-      </section>
-
-      {/* Product preview */}
-      <section className="px-6 pb-28">
-        <div className="mx-auto max-w-6xl">
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b0c0f] shadow-2xl shadow-black/40">
-            <Image
-              src="/images/recruitos/RecruitOS_workspace_preview.png"
-              alt="RecruitOS dashboard showing resume analysis, candidates, and jobs"
-              width={1200}
-              height={700}
-              className="h-auto w-full"
-              priority
-            />
-          </div>
-
-          <p className="mt-4 text-center text-xs text-white/30">
-            The RecruitOS workspace for analyzing resumes, managing
-            candidates, and organizing hiring roles.
-          </p>
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section className="border-y border-white/[0.06] px-6 py-24">
-        <div className="mx-auto max-w-5xl">
-          <div className="grid gap-12 md:grid-cols-2 md:items-center">
-            <div>
-              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[#667cff]">
-                THE PROBLEM
-              </p>
-
-              <h2 className="font-display text-3xl font-semibold tracking-[-0.025em] md:text-4xl">
-                Resume screening shouldn't consume your day.
-              </h2>
-            </div>
-
-            <div className="space-y-5 text-[15px] leading-7 text-white/55">
-              <p>
-                A single role can attract dozens or hundreds of applications.
-                Reading every resume manually takes time that recruiters
-                could spend interviewing candidates, sourcing talent, and
-                improving the hiring process.
-              </p>
-
-              <p>
-                RecruitOS handles the repetitive first pass so your team can
-                quickly understand which candidates deserve a closer look.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section
-        id="how-it-works"
-        className="px-6 py-24 md:py-32"
-      >
-        <div className="mx-auto max-w-6xl">
-          <div className="max-w-2xl">
-            <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[#667cff]">
-              HOW IT WORKS
+    <>
+      <section className="border-b border-border pt-[72px]">
+        <div className="container-wide grid min-h-[calc(100svh-72px)] items-center gap-12 py-16 sm:py-20 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16 lg:py-24">
+          <div className="max-w-[650px]">
+            <p className="type-meta font-mono font-medium uppercase text-accent">RecruitOS by OperationOS</p>
+            <h1 className="type-h1 mt-6 font-display font-semibold text-ink">
+              Review candidates with the role, reasoning, and next step in view.
+            </h1>
+            <p className="type-body-lg mt-6 max-w-xl text-ink-dim">
+              RecruitOS gives recruiters and hiring teams one focused workflow for comparing candidates with role requirements, understanding recommendations, and keeping review progress organized.
             </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild>
+                <a href="#waitlist">
+                  Join the waitlist
+                  <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </Button>
+              <Button asChild variant="secondary"><a href="#workflow">See how RecruitOS works</a></Button>
+            </div>
+            <p className="mt-5 text-sm leading-6 text-ink-faint">Software-assisted review. Hiring decisions remain with your team.</p>
+          </div>
+          <figure className="min-w-0">
+            <div className="overflow-hidden rounded-lg border border-border-strong bg-surface shadow-lift">
+              <Image
+                src="/images/recruitos/RecruitOS_workspace_preview.png"
+                alt="RecruitOS job workspace showing role requirements, candidates, match context, and recruiting status"
+                width={1642}
+                height={1382}
+                sizes="(max-width: 1023px) 100vw, 58vw"
+                className="h-auto w-full"
+                priority
+              />
+            </div>
+            <figcaption className="mt-3 text-sm leading-6 text-ink-faint">
+              A real RecruitOS workspace with job context, candidate progress, and review actions together.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
 
-            <h2 className="font-display text-3xl font-semibold tracking-[-0.025em] md:text-4xl">
-              From resume pile to candidate shortlist.
+      <Section>
+        <div className="grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-20">
+          <div>
+            <p className="type-meta font-mono font-medium uppercase text-accent">Candidate review needs context</p>
+            <h2 className="type-h2 mt-5 font-display font-semibold text-ink">The repetitive work should not hide the hiring decision.</h2>
+          </div>
+          <div className="grid gap-8 sm:grid-cols-2">
+            <p className="text-base leading-7 text-ink-dim">
+              Reviewing resumes against a role takes sustained attention. Requirements, candidate details, and review notes can become separated just when a recruiter needs to compare them.
+            </p>
+            <p className="text-base leading-7 text-ink-dim">
+              RecruitOS organizes that first review into a clear workflow, helping teams process repeatable steps while preserving the context needed for a closer look.
+            </p>
+          </div>
+        </div>
+      </Section>
+
+      <Section id="workflow" className="border-y border-border bg-bg-secondary">
+        <div className="max-w-3xl">
+          <p className="type-meta font-mono font-medium uppercase text-accent">A connected review workflow</p>
+          <h2 className="type-h2 mt-5 font-display font-semibold text-ink">From role requirements to a considered next action.</h2>
+          <p className="mt-5 text-base leading-7 text-ink-dim">
+            Each step keeps the candidate connected to the job and leaves the final decision with the people responsible for hiring.
+          </p>
+        </div>
+        <ol className="mt-12 grid border-y border-border sm:grid-cols-2 lg:grid-cols-4">
+          {workflowSteps.map((step, index) => (
+            <li
+              key={step.number}
+              className={`py-7 sm:p-7 ${index > 0 ? "border-t border-border sm:border-t-0" : ""} ${index % 2 === 1 ? "sm:border-l" : ""} ${index > 1 ? "lg:border-l" : ""}`}
+            >
+              <span className="font-mono text-xs font-medium text-accent">{step.number}</span>
+              <h3 className="mt-5 font-display text-lg font-semibold text-ink">{step.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-ink-dim">{step.description}</p>
+            </li>
+          ))}
+        </ol>
+      </Section>
+
+      <Section>
+        <div className="grid gap-12 lg:grid-cols-[0.78fr_1.22fr] lg:gap-20">
+          <div>
+            <p className="type-meta font-mono font-medium uppercase text-accent">One place for active review</p>
+            <h2 className="type-h2 mt-5 font-display font-semibold text-ink">Keep the role, candidate pipeline, and progress connected.</h2>
+            <p className="mt-5 text-base leading-7 text-ink-dim">
+              The RecruitOS workspace brings the information around candidate review into one focused view, so status and next actions do not disappear between disconnected steps.
+            </p>
+            <ul className="mt-8 space-y-4">
+              {workspaceCapabilities.map((capability) => (
+                <li key={capability} className="flex gap-3 text-sm leading-6 text-ink-dim">
+                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
+                  {capability}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <dl className="divide-y divide-border border-y border-border">
+            <div className="py-6 sm:grid sm:grid-cols-[170px_1fr] sm:gap-8">
+              <dt className="font-semibold text-ink">Review context</dt>
+              <dd className="mt-2 text-sm leading-6 text-ink-dim sm:mt-0">See the active role and its requirements alongside the candidate pipeline.</dd>
+            </div>
+            <div className="py-6 sm:grid sm:grid-cols-[170px_1fr] sm:gap-8">
+              <dt className="font-semibold text-ink">Visible progress</dt>
+              <dd className="mt-2 text-sm leading-6 text-ink-dim sm:mt-0">Keep candidate status connected to the work instead of tracking it in a separate step.</dd>
+            </div>
+            <div className="py-6 sm:grid sm:grid-cols-[170px_1fr] sm:gap-8">
+              <dt className="font-semibold text-ink">Next action</dt>
+              <dd className="mt-2 text-sm leading-6 text-ink-dim sm:mt-0">Return to the workspace and understand where review attention is needed next.</dd>
+            </div>
+          </dl>
+        </div>
+      </Section>
+
+      <Section className="bg-ink text-white">
+        <div className="grid items-center gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
+          <div>
+            <p className="type-meta font-mono font-medium uppercase text-[#9aabff]">Readable candidate analysis</p>
+            <h2 className="type-h2 mt-5 font-display font-semibold text-white">
+              A recommendation is more useful when you can examine the reasons.
             </h2>
-
-            <p className="mt-5 text-[15px] leading-7 text-white/50">
-              RecruitOS turns the first-pass screening process into a
-              structured workflow your recruiting team can actually use.
+            <p className="mt-5 text-base leading-7 text-white/70">
+              RecruitOS surfaces role-related context alongside its recommendation. Recruiters can review the supporting information, question the result, and decide whether a candidate should move forward.
             </p>
+            <ul className="mt-8 space-y-4 border-l border-white/20 pl-6">
+              {analysisDetails.map((detail) => <li key={detail} className="text-sm leading-6 text-white/70">{detail}</li>)}
+            </ul>
           </div>
-
-          <div className="mt-14 grid gap-4 md:grid-cols-4">
-            {[
-              {
-                number: "01",
-                title: "Add your job",
-                description:
-                  "Choose the hiring role and requirements you want to evaluate candidates against.",
-              },
-              {
-                number: "02",
-                title: "Upload a resume",
-                description:
-                  "Give RecruitOS the candidate resume you want to analyze.",
-              },
-              {
-                number: "03",
-                title: "Understand the match",
-                description:
-                  "See relevant experience, matching skills, gaps, concerns, and the overall assessment.",
-              },
-              {
-                number: "04",
-                title: "Make the decision",
-                description:
-                  "Use the analysis to focus your attention while keeping the final hiring decision with your team.",
-              },
-            ].map((step) => (
-              <div
-                key={step.number}
-                className="rounded-xl border border-white/[0.08] bg-white/[0.015] p-6"
-              >
-                <span className="font-mono text-xs text-[#667cff]">
-                  {step.number}
-                </span>
-
-                <h3 className="mt-8 font-display text-lg font-semibold">
-                  {step.title}
-                </h3>
-
-                <p className="mt-3 text-sm leading-6 text-white/45">
-                  {step.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Candidate analysis */}
-      <section className="border-y border-white/[0.06] px-6 py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid gap-14 md:grid-cols-[0.8fr_1.2fr] md:items-center">
-            <div>
-              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[#667cff]">
-                EXPLAINABLE SCREENING
-              </p>
-
-              <h2 className="font-display text-3xl font-semibold tracking-[-0.025em] md:text-4xl">
-                Don't just get a score. Understand why.
-              </h2>
-
-              <p className="mt-5 text-[15px] leading-7 text-white/50">
-                A match percentage on its own doesn't tell a recruiter much.
-                RecruitOS gives you the information behind the assessment so
-                your team can quickly verify the result.
-              </p>
-
-              <div className="mt-8 space-y-3">
-                {[
-                  "Matching skills",
-                  "Missing skills",
-                  "Relevant experience",
-                  "Candidate concerns",
-                  "Recruiter recommendation",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center gap-3 text-sm text-white/65"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#667cff]" />
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b0c0f]">
+          <figure className="min-w-0">
+            <div className="mx-auto max-w-[775px] overflow-hidden rounded-lg border border-white/15 bg-[#08090c]">
               <Image
                 src="/images/recruitos/Candidate_analysis_2.png"
-                alt="RecruitOS candidate analysis showing match score, skills, experience, and recommendation"
-                width={1200}
-                height={700}
+                alt="RecruitOS candidate analysis showing a recommendation, match context, summary, skills, concerns, and reasoning"
+                width={775}
+                height={1230}
+                sizes="(max-width: 1023px) 100vw, 58vw"
                 className="h-auto w-full"
               />
             </div>
-          </div>
+            <figcaption className="mt-3 text-sm leading-6 text-white/60">
+              A real candidate analysis with the result and supporting context available for review.
+            </figcaption>
+          </figure>
         </div>
-      </section>
+      </Section>
 
-      {/* Benefits */}
-      <section className="px-6 py-24 md:py-32">
-        <div className="mx-auto max-w-6xl">
-          <div className="max-w-2xl">
-            <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.15em] text-[#667cff]">
-              BUILT FOR RECRUITERS
+      <Section>
+        <div className="grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+          <div>
+            <p className="type-meta font-mono font-medium uppercase text-accent">Assistance with clear boundaries</p>
+            <h2 className="type-h2 mt-5 font-display font-semibold text-ink">RecruitOS organizes the review. Your team makes the call.</h2>
+            <p className="mt-5 text-base leading-7 text-ink-dim">
+              Software assistance can process repetitive review work and surface useful context. It cannot replace the judgment required to interpret a candidate&apos;s experience or make a consequential hiring decision.
             </p>
-
-            <h2 className="font-display text-3xl font-semibold tracking-[-0.025em] md:text-4xl">
-              Less screening. More recruiting.
-            </h2>
           </div>
-
-          <div className="mt-14 grid gap-4 md:grid-cols-3">
-            <div className="rounded-xl border border-white/[0.08] p-7">
-              <h3 className="font-display text-lg font-semibold">
-                Save time
-              </h3>
-
-              <p className="mt-3 text-sm leading-6 text-white/45">
-                Start with structured candidate assessments instead of
-                manually reading every resume from beginning to end.
-              </p>
+          <dl className="divide-y divide-border border-y border-border">
+            <div className="py-6 sm:grid sm:grid-cols-[170px_1fr] sm:gap-8">
+              <dt className="font-semibold text-ink">RecruitOS helps</dt>
+              <dd className="mt-2 text-sm leading-6 text-ink-dim sm:mt-0">Analyze role-related information, organize candidates, and explain recommendations.</dd>
             </div>
-
-            <div className="rounded-xl border border-white/[0.08] p-7">
-              <h3 className="font-display text-lg font-semibold">
-                Understand candidates
-              </h3>
-
-              <p className="mt-3 text-sm leading-6 text-white/45">
-                Quickly see which experience and skills match the
-                requirements and where the candidate may fall short.
-              </p>
+            <div className="py-6 sm:grid sm:grid-cols-[170px_1fr] sm:gap-8">
+              <dt className="font-semibold text-ink">People decide</dt>
+              <dd className="mt-2 text-sm leading-6 text-ink-dim sm:mt-0">How to interpret the context, whether to continue the conversation, and what happens next.</dd>
             </div>
+          </dl>
+        </div>
+      </Section>
 
-            <div className="rounded-xl border border-white/[0.08] p-7">
-              <h3 className="font-display text-lg font-semibold">
-                Stay in control
-              </h3>
-
-              <p className="mt-3 text-sm leading-6 text-white/45">
-                RecruitOS assists with screening. Your recruiters remain
-                responsible for deciding who moves forward.
-              </p>
-            </div>
+      <Section className="border-y border-border bg-bg-secondary">
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
+          <div>
+            <p className="type-meta font-mono font-medium uppercase text-accent">A focused fit</p>
+            <h2 className="type-h2 mt-5 font-display font-semibold text-ink">For teams that need a clearer candidate-review process.</h2>
+            <p className="mt-5 text-base leading-7 text-ink-dim">
+              RecruitOS is designed for recruiters, hiring teams, and smaller teams reviewing multiple candidates against active roles. It supports candidate review and organization without claiming to replace every part of an applicant tracking system.
+            </p>
+          </div>
+          <div className="border-t border-border pt-10 lg:border-l lg:border-t-0 lg:pl-16 lg:pt-0">
+            <p className="type-meta font-mono font-medium uppercase text-accent">Clarity that lasts</p>
+            <h2 className="type-h2 mt-5 font-display font-semibold text-ink">Understand the first step, then move faster with practice.</h2>
+            <p className="mt-5 text-base leading-7 text-ink-dim">
+              RecruitOS follows the OperationOS principle: easy to learn, fast after you&apos;ve learned it. The workflow keeps important context available and is designed to support guidance where unfamiliar decisions need more explanation.
+            </p>
           </div>
         </div>
-      </section>
-
-      {/* Human in control */}
-      <section className="border-y border-white/[0.06] bg-white/[0.015] px-6 py-24">
-        <div className="mx-auto max-w-4xl text-center">
-          <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.15em] text-[#667cff]">
-            HUMAN IN THE LOOP
-          </p>
-
-          <h2 className="font-display text-3xl font-semibold tracking-[-0.025em] md:text-5xl">
-            AI should assist hiring decisions.
-            <br />
-            Not secretly make them.
-          </h2>
-
-          <p className="mx-auto mt-6 max-w-2xl text-[15px] leading-7 text-white/50">
-            RecruitOS is designed to make the repetitive part of recruiting
-            faster while keeping recruiters responsible for the decisions
-            that matter.
-          </p>
-        </div>
-      </section>
+      </Section>
 
       <Waitlist />
 
-      {/* Footer */}
-      
-    </div>
+      <section className="border-t border-border">
+        <div className="container-standard flex flex-col gap-5 py-10 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-ink-dim">RecruitOS is a focused recruiting product built by OperationOS.</p>
+          <a
+            href="#waitlist"
+            className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent underline-offset-4 hover:text-accent-hover hover:underline"
+          >
+            Request RecruitOS access
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </a>
+        </div>
+      </section>
+    </>
   );
 }
