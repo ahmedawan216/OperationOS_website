@@ -41,8 +41,7 @@ export function Hero() {
 </h1>
 
         <p className="mx-auto mb-9 max-w-[480px] animate-fade-up text-[17.5px] text-ink-dim [animation-delay:200ms]">
-          Start with RecruitOS, your first AI recruiting employee.
-          Sales, support, finance, and more AI employees are coming soon.
+          Start with RecruitOS, an AI-assisted workspace that helps hiring teams review candidates with clarity.
         </p>
 
         <div className="flex animate-fade-up flex-col items-center gap-[18px] [animation-delay:310ms]">

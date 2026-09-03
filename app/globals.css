@@ -3,31 +3,53 @@
 @tailwind utilities;
 
 :root {
-  --color-bg: #08090c;
-  --color-surface: #0e1015;
-  --color-surface-2: #14161c;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.18);
-  --color-ink: #f2f3f5;
-  --color-ink-dim: #8b8f98;
-  --color-ink-faint: #4c515a;
-  --color-accent: #6e7bf7;
-  --color-accent-dim: rgba(110, 123, 247, 0.35);
-  --color-accent-soft: rgba(110, 123, 247, 0.09);
-  --color-success: #34d399;
-  --color-danger: #f0776c;
+  --color-bg: #f7f6f2;
+  --color-bg-secondary: #efeee8;
+  --color-surface: #ffffff;
+  --color-surface-2: #f3f2ed;
+  --color-border: #dcdad2;
+  --color-border-strong: #bebbb1;
+  --color-ink: #181a1f;
+  --color-ink-dim: #515761;
+  --color-ink-faint: #737982;
+  --color-accent: #3157d5;
+  --color-accent-hover: #2445b5;
+  --color-accent-dim: rgba(49, 87, 213, 0.28);
+  --color-accent-soft: #e9edff;
+  --color-focus: #284fce;
+  --color-success: #237a52;
+  --color-warning: #9a6700;
+  --color-danger: #b42318;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-raised: 0 1px 2px rgba(24, 26, 31, 0.06), 0 8px 24px rgba(24, 26, 31, 0.06);
+  --shadow-overlay: 0 24px 64px rgba(24, 26, 31, 0.14);
 }
 
 @layer base {
   * { @apply border-border; }
-  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-  body { @apply bg-bg text-ink antialiased; font-feature-settings: "cv11", "ss01"; text-rendering: optimizeLegibility; }
+  html { scroll-behavior: smooth; scroll-padding-top: 5rem; -webkit-text-size-adjust: 100%; }
+  body { @apply bg-bg text-ink antialiased; min-width: 320px; font-feature-settings: "cv11", "ss01"; text-rendering: optimizeLegibility; }
   ::selection { background-color: var(--color-accent-dim); color: var(--color-ink); }
-  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  :focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }
 }
 
-/* Progressive-enhancement safety net for the Framer-Motion Reveal component. */
+@layer components {
+  .container-standard { @apply mx-auto w-full max-w-[1120px] px-5 sm:px-8 lg:px-10; }
+  .container-wide { @apply mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-10; }
+  .container-reading { @apply mx-auto w-full max-w-[720px] px-5 sm:px-8; }
+  .section-space { @apply py-20 sm:py-24 lg:py-28; }
+  .type-display { font-size: clamp(2.75rem, 6vw, 4.75rem); line-height: 1.02; letter-spacing: -0.045em; }
+  .type-h1 { font-size: clamp(2.25rem, 4.5vw, 3.75rem); line-height: 1.08; letter-spacing: -0.035em; }
+  .type-h2 { font-size: clamp(1.875rem, 3.25vw, 3rem); line-height: 1.12; letter-spacing: -0.03em; }
+  .type-h3 { font-size: clamp(1.25rem, 2vw, 1.5rem); line-height: 1.25; letter-spacing: -0.018em; }
+  .type-body-lg { font-size: clamp(1.0625rem, 1.5vw, 1.25rem); line-height: 1.65; }
+  .type-body { font-size: 1rem; line-height: 1.65; }
+  .type-small { font-size: 0.875rem; line-height: 1.55; }
+  .type-meta { font-size: 0.75rem; line-height: 1.4; letter-spacing: 0.08em; }
+}

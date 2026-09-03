@@ -19,8 +19,8 @@ interface SectionProps {
  */
 export function Section({ id, children, className }: SectionProps) {
   return (
-    <section id={id} className={cn("px-5 py-24 sm:px-8", className)}>
-      <div className="mx-auto max-w-wrap">{children}</div>
+    <section id={id} className={cn("section-space", className)}>
+      <div className="container-standard">{children}</div>
     </section>
   );
 }

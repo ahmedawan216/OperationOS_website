@@ -5,20 +5,26 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[7px] text-[13.5px] font-medium transition-[transform,background-color,border-color,box-shadow] duration-250 ease-out-expo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-md border text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg active:translate-y-px disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-45",
   {
     variants: {
       variant: {
         primary:
-          "bg-ink text-bg hover:-translate-y-px hover:shadow-lift",
+          "border-accent bg-accent text-white hover:border-accent-hover hover:bg-accent-hover hover:shadow-lift",
+        secondary:
+          "border-border-strong bg-surface text-ink hover:border-ink-dim hover:bg-surface-2",
+        quiet:
+          "border-transparent bg-transparent text-ink-dim hover:bg-surface-2 hover:text-ink",
         ghost:
-          "border border-border-strong text-ink-dim hover:border-accent hover:text-ink",
+          "border-border-strong bg-transparent text-ink-dim hover:border-ink-dim hover:bg-surface-2 hover:text-ink",
         terminal:
-          "bg-accent text-bg hover:brightness-110",
+          "border-accent bg-accent text-white hover:border-accent-hover hover:bg-accent-hover",
+        destructive:
+          "border-danger bg-danger text-white hover:brightness-90",
       },
       size: {
-        default: "px-4 py-[9px]",
-        sm: "px-3.5 py-[7px] text-[12.5px]",
+        default: "px-5 py-2.5",
+        sm: "min-h-10 px-4 py-2 text-[13px]",
       },
     },
     defaultVariants: {

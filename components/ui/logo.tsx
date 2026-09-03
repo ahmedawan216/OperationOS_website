@@ -26,9 +26,9 @@ export function Logo({ className }: LogoProps) {
         "flex items-center gap-3 font-display text-base font-semibold text-ink",
         className
       )}
-      aria-label="OperationOS.org — home"
+      aria-label="OperationOS home"
     >
-      <span className="block h-[32px] w-[32px] shrink-0 overflow-hidden rounded-[6px]">
+      <span className="block h-8 w-8 shrink-0 overflow-hidden rounded-md ring-1 ring-border">
         <Image
           src="/operationos-logo-final.svg"
           alt="OperationOS"

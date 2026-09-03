@@ -2,88 +2,58 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { navLinks } from "@/lib/data";
 import { Button } from "@/components/ui/button";
+
+const futureLinks = ["Solutions", "Pricing", "Guidelines", "Sign in"];
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const firstLinkRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     if (!open) return;
-
+    firstLinkRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpen(false);
         toggleRef.current?.focus();
       }
     };
-
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  function closeMenu() {
-    setOpen(false);
-  }
+  const closeMenu = () => setOpen(false);
 
   return (
-    <div className="lg:hidden">
-      <Button
-        ref={toggleRef}
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="relative z-[140] h-10 w-10 border-0 p-0"
-        aria-expanded={open}
-        aria-controls={menuId}
-        aria-label={open ? "Close menu" : "Open menu"}
-        onClick={() => setOpen((value) => !value)}
-      >
+    <div>
+      <Button ref={toggleRef} type="button" variant="quiet" size="sm" className="relative z-[140] h-11 w-11 px-0" aria-expanded={open} aria-controls={menuId} aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen((value) => !value)}>
         <span className="relative block h-5 w-5" aria-hidden="true">
-          <span className={`absolute left-0 top-1/2 block h-[1.5px] w-5 origin-center bg-ink transition-transform duration-200 ${open ? "rotate-45" : "-translate-y-[6px]"}`} />
-          <span className={`absolute left-0 top-1/2 block h-[1.5px] w-5 bg-ink transition-opacity duration-150 ${open ? "opacity-0" : "opacity-100"}`} />
-          <span className={`absolute left-0 top-1/2 block h-[1.5px] w-5 origin-center bg-ink transition-transform duration-200 ${open ? "-rotate-45" : "translate-y-[6px]"}`} />
+          <span className={`absolute left-0 top-1/2 block h-[1.5px] w-5 bg-ink transition-transform ${open ? "rotate-45" : "-translate-y-[6px]"}`} />
+          <span className={`absolute left-0 top-1/2 block h-[1.5px] w-5 bg-ink transition-opacity ${open ? "opacity-0" : "opacity-100"}`} />
+          <span className={`absolute left-0 top-1/2 block h-[1.5px] w-5 bg-ink transition-transform ${open ? "-rotate-45" : "translate-y-[6px]"}`} />
         </span>
       </Button>
-
       {open && (
         <>
-          <button
-            type="button"
-            aria-label="Close navigation"
-            className="fixed inset-0 z-[120] cursor-default bg-black/80 backdrop-blur-md"
-            onClick={closeMenu}
-          />
-          <nav
-            id={menuId}
-            aria-label="Mobile navigation"
-            className="fixed inset-x-0 top-16 z-[130] max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-[#08090c] px-4 py-5 shadow-2xl sm:px-6"
-          >
-            <div className="space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={closeMenu}
-                  className="block rounded-lg px-3 py-3.5 text-sm font-medium text-ink transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:bg-white/[0.06] focus-visible:text-white focus-visible:outline-none"
-                >
-                  {link.label}
-                </Link>
-              ))}
+          <button type="button" aria-label="Close navigation" className="fixed inset-0 z-[120] cursor-default bg-ink/20 backdrop-blur-sm" onClick={closeMenu} />
+          <nav id={menuId} aria-label="Mobile navigation" className="fixed inset-x-0 top-[72px] z-[130] max-h-[calc(100dvh-72px)] overflow-y-auto border-b border-border bg-bg px-5 py-6 shadow-panel sm:px-8">
+            <p className="type-meta mb-2 font-semibold uppercase text-ink-faint">Products</p>
+            <Link ref={firstLinkRef} href="/recruitos" onClick={closeMenu} className="block min-h-11 rounded-md bg-surface px-4 py-3 ring-1 ring-border transition-colors hover:bg-surface-2 focus-visible:outline-none">
+              <span className="block text-base font-semibold text-ink">RecruitOS</span>
+              <span className="mt-1 block text-sm leading-5 text-ink-dim">AI-assisted recruiting workflows for clearer candidate decisions.</span>
+            </Link>
+            <div className="mt-5 border-t border-border pt-3">
+              {futureLinks.map((label) => <span key={label} aria-disabled="true" className="flex min-h-11 items-center px-3 text-sm font-medium text-ink-faint">{label}</span>)}
             </div>
-
-            <div className="mt-4 border-t border-border pt-4">
-              <Link href="/#waitlist" onClick={closeMenu} className="block rounded-lg px-3 py-3.5 text-sm font-medium text-accent hover:bg-accent/[0.08]">Join waitlist</Link>
-            </div>
+            <Button asChild className="mt-5 w-full"><Link href="/#waitlist" onClick={closeMenu}>Get started</Link></Button>
           </nav>
         </>
       )}

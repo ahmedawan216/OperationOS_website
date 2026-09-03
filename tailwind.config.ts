@@ -1,5 +1,4 @@
 import type { Config } from "tailwindcss";
-import tailwindcssAnimate from "tailwindcss-animate";
 import typography from "@tailwindcss/typography";
 
 import { EASE_OUT_EXPO } from "./lib/motion";
@@ -16,6 +15,7 @@ const config: Config = {
       colors: {
         // Base surfaces
         bg: "var(--color-bg)",
+        "bg-secondary": "var(--color-bg-secondary)",
         surface: "var(--color-surface)",
         "surface-2": "var(--color-surface-2)",
 
@@ -30,11 +30,13 @@ const config: Config = {
 
         // Brand accent
         accent: "var(--color-accent)",
+        "accent-hover": "var(--color-accent-hover)",
         "accent-dim": "var(--color-accent-dim)",
         "accent-soft": "var(--color-accent-soft)",
 
         // Status
         success: "var(--color-success)",
+        warning: "var(--color-warning)",
         danger: "var(--color-danger)",
       },
       fontFamily: {
@@ -44,6 +46,13 @@ const config: Config = {
       },
       maxWidth: {
         wrap: "1120px",
+        wide: "1320px",
+        reading: "720px",
+      },
+      borderRadius: {
+        sm: "var(--radius-sm)",
+        md: "var(--radius-md)",
+        lg: "var(--radius-lg)",
       },
       transitionTimingFunction: {
         // Built from the same tuple Framer Motion uses (see lib/motion.ts)
@@ -96,8 +105,8 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       boxShadow: {
-        panel: "0 40px 80px -30px rgba(0,0,0,0.6)",
-        lift: "0 8px 22px rgba(255,255,255,0.10)",
+        panel: "var(--shadow-overlay)",
+        lift: "var(--shadow-raised)",
       },
     },
   },

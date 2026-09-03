@@ -1,60 +1,69 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { navLinks } from "@/lib/data";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useScrolled } from "@/hooks/use-scrolled";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { MobileNav } from "@/components/layout/mobile-nav";
 
+const futureLinks = ["Solutions", "Pricing", "Guidelines"];
+
 export function HeaderClient() {
-  const pathname = usePathname();
-  const scrolled = useScrolled(20);
+  const [productsOpen, setProductsOpen] = useState(false);
+  const productsRef = useRef<HTMLDivElement>(null);
+  const productsButtonRef = useRef<HTMLButtonElement>(null);
+  const scrolled = useScrolled(12);
+
+  useEffect(() => {
+    if (!productsOpen) return;
+    const close = (event: MouseEvent) => {
+      if (!productsRef.current?.contains(event.target as Node)) setProductsOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setProductsOpen(false);
+        productsButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [productsOpen]);
 
   return (
-    <header
-      className={cn(
-        "fixed inset-x-0 top-0 z-[100] border-b border-transparent transition-[background-color,border-color] duration-400 ease-out",
-        scrolled && "border-border bg-bg/[0.88] backdrop-blur-md backdrop-saturate-[140%]"
-      )}
-    >
-      <nav
-        aria-label="Primary"
-        className="mx-auto flex h-16 w-full max-w-[1280px] items-center gap-3 px-4 sm:px-6 lg:px-8"
-      >
-        <div className="flex min-w-0 shrink-0 items-center gap-4 sm:gap-5">
-          <Logo />
+    <header className={cn("fixed inset-x-0 top-0 z-[100] border-b border-transparent bg-bg/95 transition-[background-color,border-color,box-shadow] duration-200", scrolled && "border-border bg-bg/90 shadow-[0_1px_0_rgba(24,26,31,0.03)] backdrop-blur-lg")}>
+      <nav aria-label="Primary" className="container-wide flex h-[72px] items-center gap-6">
+        <Logo />
+        <div className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+          <div ref={productsRef} className="relative">
+            <button ref={productsButtonRef} type="button" aria-expanded={productsOpen} aria-haspopup="true" aria-controls="products-navigation" onClick={() => setProductsOpen((value) => !value)} className="flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none">
+              Products
+              <ChevronDown className={cn("h-4 w-4 transition-transform", productsOpen && "rotate-180")} aria-hidden="true" />
+            </button>
+            {productsOpen && (
+              <div id="products-navigation" aria-label="Products" className="absolute left-0 top-[calc(100%+8px)] w-[320px] rounded-lg border border-border bg-surface p-2 shadow-panel">
+                <Link href="/recruitos" onClick={() => setProductsOpen(false)} className="block rounded-md px-4 py-3 transition-colors hover:bg-surface-2 focus-visible:outline-none">
+                  <span className="block text-sm font-semibold text-ink">RecruitOS</span>
+                  <span className="mt-1 block text-sm leading-5 text-ink-dim">Review, compare, and understand candidates with AI-assisted recruiting workflows.</span>
+                </Link>
+              </div>
+            )}
+          </div>
+          {futureLinks.map((label) => (
+            <span key={label} aria-disabled="true" title="This destination is not available yet" className="flex min-h-11 cursor-default items-center rounded-md px-3 text-sm font-medium text-ink-faint">{label}</span>
+          ))}
         </div>
-
-        <div className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">
-          {navLinks.map((link) => {
-            const active = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "whitespace-nowrap rounded-md px-3 py-2 text-[13px] transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
-                  active
-                    ? "bg-accent/[0.08] text-ink"
-                    : "text-ink-dim hover:bg-ink/[0.04] hover:text-ink"
-                )}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
+        <div className="ml-auto hidden shrink-0 items-center gap-2 lg:flex">
+          <span aria-disabled="true" title="Sign in is not available yet" className="flex min-h-11 cursor-default items-center px-3 text-sm font-medium text-ink-faint">Sign in</span>
+          <Button asChild size="sm"><Link href="/#waitlist">Get started</Link></Button>
         </div>
-
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-          <Button asChild variant="ghost" size="sm" className="hidden lg:inline-flex">
-            <Link href="/#waitlist">Join waitlist</Link>
-          </Button>
-          <MobileNav />
-        </div>
+        <div className="ml-auto lg:hidden"><MobileNav /></div>
       </nav>
     </header>
   );

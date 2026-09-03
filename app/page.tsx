@@ -1,4 +1,3 @@
-import { AgentRack } from "@/components/sections/agent-rack";
 import { Hero } from "@/components/sections/hero";
 import { HowItWorks } from "@/components/sections/how-it-works";
 import { RecruitOsSection } from "@/components/sections/recruit-os-section";
@@ -20,8 +19,6 @@ export default function HomePage() {
       <Hero />
       <Rail />
       <HowItWorks />
-      <Rail />
-      <AgentRack />
       <Rail />
       <RecruitOSPreview />
       <Rail/>

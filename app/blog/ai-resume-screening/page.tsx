@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-24">
-      <article className="prose prose-invert max-w-none text-white">
+      <article className="prose prose-neutral max-w-none text-ink">
         <h1>AI Resume Screening: How It Works (Complete Guide for Recruiters in 2026)</h1>
 
         <p>
@@ -497,15 +497,15 @@ export default function Page() {
           </Link>
         </p>
 
-        <div className="not-prose my-12 rounded-xl border bg-neutral-50 p-8 text-center dark:bg-neutral-900">
+        <div className="not-prose my-12 rounded-lg border border-border bg-surface-2 p-8 text-center">
           <h2 className="mb-2 text-2xl font-semibold">Ready to try AI resume screening?</h2>
-          <p className="mb-6 text-neutral-600 dark:text-neutral-400">
+          <p className="mb-6 text-ink-dim">
             See how RecruitOS can help you screen candidates faster, cut down on manual resume review, and
             give your team clear, explainable recommendations for every applicant.
           </p>
           <Link
             href="/"
-            className="inline-block rounded-lg bg-neutral-900 px-6 py-3 font-medium text-white no-underline transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            className="inline-block rounded-md bg-accent px-6 py-3 font-medium text-white no-underline transition hover:bg-accent-hover"
           >
             Explore RecruitOS
           </Link>
