@@ -18,7 +18,7 @@ export function CompanyClosing() {
             </p>
           </div>
           <Button asChild>
-            <TrackedLink href="/recruitos" eventName="closing_recruitos_cta_clicked">
+            <TrackedLink href="/recruitos" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "homepage", action: "explore_product" }}>
               Explore RecruitOS
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </TrackedLink>

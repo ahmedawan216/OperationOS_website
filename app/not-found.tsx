@@ -6,6 +6,8 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 
 export const metadata: Metadata = {
   title: "Page not found",
+  alternates: { canonical: null },
+  robots: { index: false, follow: false },
 };
 
 /**

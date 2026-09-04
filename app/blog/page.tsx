@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "OperationOS Blog",
-  description:
-    "Insights on AI recruiting, automation, AI employees, RecruitOS, and the future of work.",
-};
+import { createPageMetadata } from "@/lib/page-metadata";
+
+export const metadata = createPageMetadata(
+  "OperationOS Blog",
+  "Practical articles about recruiting workflows, responsible AI-assisted review, and the products OperationOS is building.",
+  "/blog",
+);
 
 export default function BlogPage() {
   return (
@@ -15,8 +16,8 @@ export default function BlogPage() {
       </h1>
 
       <p className="mt-6 max-w-3xl text-lg text-muted-foreground">
-        Articles about AI recruiting, automation, AI employees,
-        RecruitOS, and the future of intelligent work.
+        Practical articles about recruiting workflows, responsible AI-assisted review,
+        and the products OperationOS is building.
       </p>
 
       <div className="mt-16 rounded-xl border p-8 transition hover:border-accent">

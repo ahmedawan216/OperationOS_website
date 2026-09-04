@@ -8,15 +8,15 @@ export const metadata: Metadata = {
   description:
     "Learn how AI resume screening works, how it compares with ATS software, and how RecruitOS helps recruiters evaluate candidates faster.",
   alternates: {
-    canonical: "/ai-resume-screening",
+    canonical: "/blog/ai-resume-screening",
   },
   openGraph: {
     title:
       "AI Resume Screening: How It Works",
     description:
       "Complete guide to AI resume screening for recruiters.",
-    url: "https://operationos.org/ai-resume-screening",
-    siteName: "OperationOS",
+    url: "/blog/ai-resume-screening",
+    siteName: "OperationOS.org",
     type: "article",
     images: [
       {
@@ -95,9 +95,8 @@ export default function Page() {
         </nav>
 
         <p>
-          According to LinkedIn, hiring teams can receive hundreds of applications for a single role, making
-          manual resume screening one of the most time-consuming parts of recruitment. AI resume screening
-          helps recruiters evaluate candidates faster while keeping hiring decisions under human control.
+          Roles can attract more applications than a hiring team can review efficiently in one pass. AI-assisted
+          resume screening can organize an initial review while keeping hiring decisions under human control.
         </p>
         <p>
           For a lot of recruiters and hiring managers, that phrase lands somewhere between relief and
@@ -145,10 +144,9 @@ export default function Page() {
           buried or auto-rejected.
         </p>
         <p>
-          AI resume screening, particularly the kind built on modern language models, works differently. It
-          reads resumes more like a human would, understanding context, synonyms, and equivalent experience
-          rather than just scanning for exact keyword hits. That difference matters more than it might seem,
-          and we&apos;ll come back to it.
+          AI resume screening, particularly systems built on modern language models, can compare semantic
+          context and related terms rather than scanning only for exact keyword hits. The quality of that
+          comparison depends on the model, instructions, source material, and review process.
         </p>
 
         <h2 id="why-manual-screening-is-slow">Why Manual Resume Screening Is Inefficient</h2>
@@ -160,8 +158,7 @@ export default function Page() {
           It doesn&apos;t scale. A single job posting on a popular platform can attract anywhere from dozens
           to hundreds of applicants. Recruiters and hiring managers who are already juggling interviews,
           stakeholder meetings, and offer negotiations often only have a few seconds to skim each resume.
-          Research on recruiter behavior has repeatedly found that initial resume reviews are extremely
-          brief, often just a matter of seconds per resume.
+          Initial review can become increasingly time-constrained as the application queue grows.
         </p>
         <p>
           It&apos;s inconsistent. The same resume reviewed by two different recruiters or even the same
@@ -274,9 +271,8 @@ export default function Page() {
           transferable frontend fundamentals, even for a role that lists a different framework.
         </p>
         <p>
-          This doesn&apos;t make AI screening infallible. It means the tool is reasoning about relevance
-          rather than just pattern-matching vocabulary, which tends to produce fewer false negatives —
-          qualified candidates getting screened out over a wording mismatch.
+          This doesn&apos;t make AI screening infallible. A system may compare relevance beyond literal
+          vocabulary, while its output still needs human review and validation against the role.
         </p>
 
         <table>
@@ -289,23 +285,23 @@ export default function Page() {
           <tbody>
             <tr>
               <td>Matches keywords</td>
-              <td>Understands context</td>
+              <td>Can compare semantic context</td>
             </tr>
             <tr>
-              <td>Exact wording required</td>
+              <td>Often keyword-dependent</td>
               <td>Recognizes similar skills</td>
             </tr>
             <tr>
               <td>Basic filtering</td>
-              <td>Intelligent ranking</td>
+              <td>Model-assisted ranking</td>
             </tr>
             <tr>
-              <td>No reasoning</td>
-              <td>Explains recommendations</td>
+              <td>Often limited explanation</td>
+              <td>Can provide supporting factors</td>
             </tr>
             <tr>
               <td>Can miss qualified candidates</td>
-              <td>Better at identifying relevant experience</td>
+              <td>Can recognize related experience</td>
             </tr>
           </tbody>
         </table>
@@ -369,10 +365,9 @@ export default function Page() {
           point to.
         </p>
         <p>
-          AI is good at consistent, structured comparison across a large volume of documents. It is not good
-          at understanding the specific context of your team, your culture, or the unwritten reasons a
-          candidate might be a strong fit despite an unconventional resume. That kind of judgment is exactly
-          what recruiters bring, and it&apos;s not something current AI systems are designed to replace.
+          AI tools can support structured comparison across a large volume of documents, but they cannot
+          supply a hiring team&apos;s full context, accountability, or judgment. Recruiters still need to examine
+          unconventional experience, question the output, and decide what matters for the role.
         </p>
         <p>
           The realistic framing is this: AI resume screening handles the first pass so recruiters can spend
@@ -414,8 +409,8 @@ export default function Page() {
 
         <h2 id="how-recruitos-works">How RecruitOS Approaches AI Resume Screening</h2>
         <p>
-          At OperationOS, this is the philosophy we built RecruitOS around: AI resume screening should make
-          recruiters faster and more consistent, not replace their judgment.
+          At OperationOS, RecruitOS is designed around a clear boundary: AI-assisted review should support
+          recruiters, not replace their judgment.
         </p>
         <p>
           RecruitOS analyzes a candidate&apos;s resume against a specific job description and returns a
@@ -461,53 +456,51 @@ export default function Page() {
         </figure>
 
         <p>
-          We&apos;re still early; RecruitOS is under active development, and we&apos;re building it with the
-          practices described above in mind from the start, rather than bolting them on later.
+          RecruitOS access is currently requested through a waitlist. Its product page explains the intended
+          candidate-review workflow, current access path, and the decisions that remain with hiring teams.
         </p>
         <p>
-          Learn more about RecruitOS on the OperationOS homepage.{" "}
-          <Link href="/">
-            OperationOS
+          Learn more on the{" "}
+          <Link href="/recruitos">
+            RecruitOS product page
           </Link>
         </p>
 
         <h2 id="conclusion">Conclusion</h2>
         <p>
-          AI resume screening isn&apos;t about removing people from hiring; it&apos;s about removing the part
-          of hiring that never needed a person&apos;s full attention in the first place: reading hundreds of
-          similarly formatted documents looking for the same handful of signals. Done well, it gives
-          recruiters a faster, more consistent starting point and more time for the conversations, judgment
-          calls, and relationship-building that actually determine who gets hired and who accepts the offer.
+          AI-assisted resume screening is most useful as support for repetitive comparison, not as a
+          replacement for people in hiring. A well-designed workflow can organize the first pass while
+          recruiters remain responsible for closer review, judgment, and candidate conversations.
         </p>
 
         <h2>See AI Resume Screening in Action</h2>
         <p>
-          RecruitOS helps hiring teams analyze resumes, rank candidates, and explain every recommendation
-          using transparent AI. Instead of replacing recruiters, RecruitOS helps them focus on interviews,
-          relationship building, and making confident hiring decisions.
+          RecruitOS is designed to help hiring teams analyze resumes, organize candidates, and inspect the
+          supporting context behind recommendations. Recruiters remain responsible for interviews,
+          relationship building, and hiring decisions.
         </p>
         <p>
-          The future of hiring is not recruiters versus AI. It&apos;s recruiters empowered by AI, using
-          automation for repetitive work while keeping people responsible for every hiring decision.
+          AI-assisted workflows can organize repetitive comparison while keeping people responsible for
+          every hiring decision.
         </p>
         <p>
           👉 Explore RecruitOS at{" "}
-          <Link href="/">
-            OperationOS
+          <Link href="/recruitos">
+            RecruitOS product page
           </Link>
         </p>
 
         <div className="not-prose my-12 rounded-lg border border-border bg-surface-2 p-8 text-center">
-          <h2 className="mb-2 text-2xl font-semibold">Ready to try AI resume screening?</h2>
+          <h2 className="mb-2 text-2xl font-semibold">Interested in RecruitOS access?</h2>
           <p className="mb-6 text-ink-dim">
             See how RecruitOS can help you screen candidates faster, cut down on manual resume review, and
             give your team clear, explainable recommendations for every applicant.
           </p>
           <Link
-            href="/"
+            href="/recruitos#waitlist"
             className="inline-block rounded-md bg-accent px-6 py-3 font-medium text-white no-underline transition hover:bg-accent-hover"
           >
-            Explore RecruitOS
+            Join the RecruitOS waitlist
           </Link>
         </div>
 
@@ -516,9 +509,8 @@ export default function Page() {
         <h3>Is AI resume screening accurate?</h3>
         <p>
           Accuracy depends heavily on how the tool is built and what it&apos;s trained to evaluate.
-          Language-model-based tools tend to be better at recognizing equivalent experience and skills than
-          older keyword-matching systems, but no automated tool should be treated as infallible — human
-          review remains essential.
+          Language-model-based tools can recognize related terms and experience beyond exact keyword matches,
+          but no automated tool should be treated as infallible — human review remains essential.
         </p>
 
         <h3>Does AI resume screening eliminate bias in hiring?</h3>
@@ -542,9 +534,8 @@ export default function Page() {
 
         <h3>Do I have to tell candidates I&apos;m using AI to screen resumes?</h3>
         <p>
-          In some jurisdictions, disclosure is legally required when automated tools are used in hiring
-          decisions. Even where it isn&apos;t mandatory, being transparent about your process is generally
-          good practice for candidate trust.
+          Requirements vary by jurisdiction and by how a tool is used. Organizations should obtain qualified
+          guidance for their situation and communicate their process clearly to candidates.
         </p>
 
         <h3>How is AI resume screening different from a traditional ATS keyword filter?</h3>

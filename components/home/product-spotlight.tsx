@@ -25,7 +25,7 @@ export function ProductSpotlight() {
               </li>
             ))}
           </ul>
-          <TrackedLink href={featuredProduct.href} eventName="recruitos_cta_clicked" className="mt-8 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent underline-offset-4 hover:text-accent-hover hover:underline">
+          <TrackedLink href={featuredProduct.href} eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "homepage", action: "explore_product" }} className="mt-8 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent underline-offset-4 hover:text-accent-hover hover:underline">
             Explore RecruitOS
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </TrackedLink>

@@ -1,12 +1,12 @@
 "use client";
 
-import posthog from "posthog-js";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 
 import { DURATIONS, EASE_OUT_EXPO } from "@/lib/motion";
 import { FeedbackModal } from "@/components/ui/feedback-modal";
+import { trackEvent } from "@/lib/analytics";
 
 /**
  * Global floating feedback trigger. Mounted once in the root layout (see
@@ -29,9 +29,9 @@ export function FeedbackWidget() {
       <motion.button
         type="button"
         onClick={() => {
-  posthog.capture("feedback_widget_opened");
-  setOpen(true);
-}}
+          trackEvent("feedback_opened", { location: "global" });
+          setOpen(true);
+        }}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label="Share feedback"

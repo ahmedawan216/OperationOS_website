@@ -19,7 +19,7 @@ export function HomeHero() {
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Button asChild>
-              <TrackedLink href="#products" eventName="hero_cta_clicked">
+              <TrackedLink href="#products" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "homepage", action: "explore_product" }}>
                 Explore products
                 <ArrowDown className="h-4 w-4" aria-hidden="true" />
               </TrackedLink>

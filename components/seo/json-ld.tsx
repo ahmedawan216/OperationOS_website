@@ -14,19 +14,13 @@ export function JsonLd() {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "SoftwareApplication",
-        name: "RecruitOS",
-        applicationCategory: "BusinessApplication",
-        operatingSystem: "Web",
-
-        description:
-          "RecruitOS is AI-assisted recruiting software that helps hiring teams review candidates against job requirements and organize hiring workflows.",
-
-        url: `${siteConfig.url}/recruitos`,
-
-        creator: {
-          "@id": `${siteConfig.url}/#organization`,
-        },
+        "@type": "Organization",
+        "@id": `${siteConfig.url}/#organization`,
+        name: siteConfig.organizationName,
+        alternateName: siteConfig.name,
+        url: siteConfig.url,
+        logo: `${siteConfig.url}/operationos-logo-final.png`,
+        description: siteConfig.description,
       },
       {
         "@type": "WebSite",

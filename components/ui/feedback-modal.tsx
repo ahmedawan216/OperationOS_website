@@ -1,5 +1,5 @@
 "use client";
- 
+
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { DURATIONS, EASE_OUT_EXPO } from "@/lib/motion";
 import { submitFeedback } from "@/lib/submit-feedback";
 import { feedbackFormSchema, type FeedbackFormValues } from "@/lib/validation";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -84,6 +85,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
     setErrorMessage(null);
     try {
       await submitFeedback(values);
+      trackEvent("feedback_submitted", { location: "global" });
       setStatus("success");
     } catch (err) {
       setStatus("error");
@@ -287,4 +289,3 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
     </Dialog>
   );
 }
- 

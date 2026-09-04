@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import { posthog } from "@/lib/posthog";
 import { feedbackSupabase } from "@/lib/supabase/feedback";
 
 export async function POST(req: Request) {
@@ -22,13 +21,6 @@ export async function POST(req: Request) {
     }]);
 
     if (error) throw error;
-
-    await posthog.capture({
-      distinctId: safeEmail || "anonymous",
-      event: "feedback_submitted",
-      properties: { has_email: !!safeEmail, has_name: !!safeName },
-    });
-    await posthog.shutdown();
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,12 +1,13 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent } from "react";
 import { Check } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { trackEvent } from "@/lib/analytics";
 
 type FormError = {
   field: "name" | "email" | "form";
@@ -19,9 +20,16 @@ export function Waitlist() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<FormError | null>(null);
   const [loading, setLoading] = useState(false);
+  const startedRef = useRef(false);
   const nameId = useId();
   const emailId = useId();
   const errorId = useId();
+
+  const trackStart = () => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    trackEvent("waitlist_started", { product: "recruitos", location: "recruitos" });
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -31,17 +39,21 @@ export function Waitlist() {
     const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
 
     if (!trimmedName) {
+      trackEvent("waitlist_failed", { product: "recruitos", location: "recruitos", stage: "validation" });
       setError({ field: "name", message: "Enter your name to continue." });
       return;
     }
 
     if (!isValidEmail) {
+      trackEvent("waitlist_failed", { product: "recruitos", location: "recruitos", stage: "validation" });
       setError({ field: "email", message: "Enter a valid work email to continue." });
       return;
     }
 
     setError(null);
     setLoading(true);
+
+    let failureStage: "storage" | "notification" | "unknown" = "storage";
 
     try {
       const { error: databaseError } = await supabase.from("waitlist").insert([
@@ -55,6 +67,7 @@ export function Waitlist() {
         throw new Error("Something went wrong. Please try again.");
       }
 
+      failureStage = "notification";
       const response = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,10 +76,12 @@ export function Waitlist() {
 
       if (!response.ok) throw new Error("We could not send the confirmation email. Please try again.");
 
+      trackEvent("waitlist_submitted", { product: "recruitos", location: "recruitos" });
       setSubmitted(true);
       setName("");
       setEmail("");
     } catch (submissionError) {
+      trackEvent("waitlist_failed", { product: "recruitos", location: "recruitos", stage: failureStage });
       setError({
         field: "form",
         message:
@@ -103,7 +118,7 @@ export function Waitlist() {
                 <p className="mt-2 text-sm leading-6 text-ink-dim">We will be in touch when RecruitOS access becomes available.</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} noValidate>
+              <form onSubmit={handleSubmit} onFocusCapture={trackStart} noValidate>
                 <h3 className="font-display text-xl font-semibold text-ink">Request access</h3>
                 <p className="mt-2 text-sm leading-6 text-ink-dim">Tell us where to send RecruitOS access updates.</p>
 

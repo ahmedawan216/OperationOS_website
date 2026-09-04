@@ -7,9 +7,12 @@
  * deployments (e.g. Vercel preview URLs) get correct canonical/OG URLs
  * without editing source — falls back to the production domain.
  */
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://operationos.org").replace(/\/+$/, "");
+
 export const siteConfig = {
   name: "OperationOS.org",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://operationos.org",
+  organizationName: "OperationOS",
+  url: siteUrl,
   title: "OperationOS.org | Focused Software for Operational Work",
   /** Kept under ~160 characters so it doesn't get truncated on the SERP. */
   description:

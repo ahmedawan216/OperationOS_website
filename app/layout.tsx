@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider } from "@/components/providers/posthog-provider";
+import { VercelAnalytics } from "@/components/providers/vercel-analytics";
 import { siteConfig } from "@/lib/site-config";
 import { JsonLd } from "@/components/seo/json-ld";
 import { FeedbackWidget } from "@/components/ui/feedback-widget";
@@ -43,8 +42,6 @@ export const metadata: Metadata = {
   description: siteConfig.description,
 
   keywords: [
-    "AI employees",
-    "AI workforce",
     "AI recruiting",
     "AI hiring",
     "RecruitOS",
@@ -61,14 +58,14 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: "OperationOS.org | Focused Software for Operational Work",
+    title: siteConfig.title,
     description:
       "OperationOS builds focused software products for operational work. RecruitOS helps hiring teams review candidates and keep hiring workflows organized.",
-    url: "https://operationos.org/",
-    siteName: "OperationOS.org",
+    url: "/",
+    siteName: siteConfig.name,
     images: [
       {
-        url: "https://operationos.org/images/og-image-v2.png",
+        url: "/images/og-image-v2.png",
         width: 1200,
         height: 630,
         alt: "OperationOS focused software for operational work",
@@ -79,14 +76,14 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "OperationOS.org | Focused Software for Operational Work",
+    title: siteConfig.title,
     description:
       "OperationOS builds focused software products for clear, efficient operational work.",
-    images: ["https://operationos.org/images/og-image-v2.png"],
+    images: ["/images/og-image-v2.png"],
   },
 
   icons: {
-    icon: "https://operationos.org/favicon.svg",
+    icon: "/favicon.svg",
   },
 };
 
@@ -126,8 +123,7 @@ export default function RootLayout({
 
         <JsonLd />
         <FeedbackWidget />
-        <Analytics />
-        <SpeedInsights />
+        <VercelAnalytics />
       </body>
     </html>
   );

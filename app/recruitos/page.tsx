@@ -5,6 +5,7 @@ import { ArrowDown, ArrowRight, Check } from "lucide-react";
 import { Section } from "@/components/layout/section";
 import { Waitlist } from "@/components/sections/waitlist";
 import { Button } from "@/components/ui/button";
+import { TrackedLink } from "@/components/analytics/tracked-link";
 
 export const metadata: Metadata = {
   title: "RecruitOS | Clearer Candidate Review Workflows",
@@ -68,10 +69,10 @@ export default function RecruitOSPage() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild>
-                <a href="#waitlist">
+                <TrackedLink href="#waitlist" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "recruitos", action: "join_waitlist" }}>
                   Join the waitlist
                   <ArrowDown className="h-4 w-4" aria-hidden="true" />
-                </a>
+                </TrackedLink>
               </Button>
               <Button asChild variant="secondary"><a href="#workflow">See how RecruitOS works</a></Button>
             </div>
@@ -248,16 +249,18 @@ export default function RecruitOSPage() {
         <div className="container-standard flex flex-col gap-5 py-10 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm leading-6 text-ink-dim">RecruitOS is a focused recruiting product built by OperationOS.</p>
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-6">
-            <a className="inline-flex min-h-11 items-center text-sm font-semibold text-ink-dim underline-offset-4 hover:text-accent hover:underline" href="/pricing">
+            <TrackedLink className="inline-flex min-h-11 items-center text-sm font-semibold text-ink-dim underline-offset-4 hover:text-accent hover:underline" href="/pricing" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "recruitos", action: "view_pricing" }}>
               Pricing and access
-            </a>
-            <a
+            </TrackedLink>
+            <TrackedLink
               href="#waitlist"
+              eventName="recruitos_cta_clicked"
+              eventProperties={{ product: "recruitos", location: "recruitos", action: "join_waitlist" }}
               className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent underline-offset-4 hover:text-accent-hover hover:underline"
             >
               Request RecruitOS access
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </a>
+            </TrackedLink>
           </div>
         </div>
       </section>

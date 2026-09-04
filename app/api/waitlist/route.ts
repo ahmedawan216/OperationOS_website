@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { posthog } from "@/lib/posthog";
 
 let resendClient: Resend | null = null;
 
@@ -38,17 +37,10 @@ export async function POST(req: Request) {
       from: "OperationOS <hello@operationos.org>",
       to: normalizedEmail,
       subject: "Welcome to OperationOS",
-      html: `<!DOCTYPE html><html><body style="margin:0;padding:40px 16px;background:#f5f5f5;font-family:Inter,Arial,sans-serif;color:#111827"><table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border:1px solid #e5e7eb;border-radius:16px"><tr><td style="padding:40px"><h1 style="margin:0;font-size:28px">${greeting}</h1><p style="font-size:16px;line-height:1.7;color:#4b5563">Thanks for joining the <strong>OperationOS</strong> early-access waitlist.</p><p style="font-size:16px;line-height:1.8;color:#374151">We're building the operating system for AI employees, starting with <strong>RecruitOS</strong>.</p><ul style="color:#374151;font-size:16px;line-height:1.8"><li>Early product updates</li><li>Exclusive previews and demos</li><li>Priority access before public launch</li></ul><p><a href="${siteUrl}" style="display:inline-block;background:#111827;color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600">Visit OperationOS</a></p><p style="margin-top:32px;color:#6b7280">— Ahmed<br>Founder, OperationOS</p></td></tr></table></td></tr></table></body></html>`,
+      html: `<!DOCTYPE html><html><body style="margin:0;padding:40px 16px;background:#f5f5f5;font-family:Inter,Arial,sans-serif;color:#111827"><table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border:1px solid #e5e7eb;border-radius:16px"><tr><td style="padding:40px"><h1 style="margin:0;font-size:28px">${greeting}</h1><p style="font-size:16px;line-height:1.7;color:#4b5563">Thanks for joining the <strong>OperationOS</strong> early-access waitlist.</p><p style="font-size:16px;line-height:1.8;color:#374151">OperationOS builds focused software for operational work, starting with <strong>RecruitOS</strong>.</p><ul style="color:#374151;font-size:16px;line-height:1.8"><li>Early product updates</li><li>Exclusive previews and demos</li><li>Priority access before public launch</li></ul><p><a href="${siteUrl}" style="display:inline-block;background:#111827;color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600">Visit OperationOS</a></p><p style="margin-top:32px;color:#6b7280">— Ahmed<br>Founder, OperationOS</p></td></tr></table></td></tr></table></body></html>`,
     });
 
     if (error) throw error;
-
-    await posthog.capture({
-      distinctId: normalizedEmail,
-      event: "waitlist_signup",
-      properties: { name: safeName, email: normalizedEmail, source: "website_waitlist" },
-    });
-    await posthog.shutdown();
 
     return NextResponse.json({ success: true });
   } catch (error) {

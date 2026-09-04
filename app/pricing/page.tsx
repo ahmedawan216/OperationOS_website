@@ -4,6 +4,7 @@ import { ArrowRight, Check } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
+import { TrackedLink } from "@/components/analytics/tracked-link";
 
 export const metadata: Metadata = {
   title: "Pricing and Access",
@@ -81,10 +82,10 @@ export default function PricingPage() {
             </p>
             <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
               <Button asChild>
-                <Link href="/recruitos#waitlist">
+                <TrackedLink href="/recruitos#waitlist" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "pricing", action: "join_waitlist" }}>
                   Join the RecruitOS waitlist
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
+                </TrackedLink>
               </Button>
               <Button asChild variant="quiet">
                 <Link href="/recruitos">Explore RecruitOS</Link>
@@ -175,10 +176,10 @@ export default function PricingPage() {
             </p>
           </div>
           <Button asChild className="shrink-0 border-white bg-white text-ink hover:border-white hover:bg-white/90">
-            <Link href="/recruitos#waitlist">
+            <TrackedLink href="/recruitos#waitlist" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "pricing", action: "join_waitlist" }}>
               Join the RecruitOS waitlist
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+            </TrackedLink>
           </Button>
         </div>
       </section>

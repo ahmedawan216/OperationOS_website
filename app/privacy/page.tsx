@@ -22,6 +22,7 @@ export default function PrivacyPage() {
 
       <h2>Information processed through website operation</h2>
       <p>The website uses PostHog, Vercel Analytics, and Vercel Speed Insights to understand page use and website performance. Depending on those services and your browser, this processing may involve page interactions, browser or device information, network information such as an IP address, and identifiers stored through browser technologies.</p>
+      <p>When a landing-page URL includes standard UTM campaign parameters, the website sanitizes the supported campaign values and keeps them in session storage for the current browser session. Those values may be attached to analytics events to help OperationOS understand campaign performance. Names, email addresses, and feedback messages submitted through website forms are not intentionally included as analytics event properties.</p>
       <p>OperationOS does not describe this information as anonymous and does not promise that analytics services use no cookies or local storage. Browser controls and privacy tools may let you limit some storage or analytics behavior.</p>
 
       <h2>How information is used</h2>
