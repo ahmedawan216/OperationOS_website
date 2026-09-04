@@ -19,6 +19,7 @@ export function Footer() {
           <nav aria-labelledby="footer-resources-heading">
             <h2 id="footer-resources-heading" className="type-meta font-semibold uppercase text-ink-faint">Resources</h2>
             <div className="mt-3 flex flex-col items-start">
+              <Link className="inline-flex min-h-11 items-center text-sm font-medium text-ink underline-offset-4 hover:text-accent hover:underline" href="/pricing">Pricing</Link>
               <Link className="inline-flex min-h-11 items-center text-sm font-medium text-ink underline-offset-4 hover:text-accent hover:underline" href="/guidelines">Guidelines</Link>
               <Link className="inline-flex min-h-11 items-center text-sm font-medium text-ink underline-offset-4 hover:text-accent hover:underline" href="/blog">Blog</Link>
             </div>

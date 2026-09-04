@@ -247,13 +247,18 @@ export default function RecruitOSPage() {
       <section className="border-t border-border">
         <div className="container-standard flex flex-col gap-5 py-10 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm leading-6 text-ink-dim">RecruitOS is a focused recruiting product built by OperationOS.</p>
-          <a
-            href="#waitlist"
-            className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent underline-offset-4 hover:text-accent-hover hover:underline"
-          >
-            Request RecruitOS access
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </a>
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-6">
+            <a className="inline-flex min-h-11 items-center text-sm font-semibold text-ink-dim underline-offset-4 hover:text-accent hover:underline" href="/pricing">
+              Pricing and access
+            </a>
+            <a
+              href="#waitlist"
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent underline-offset-4 hover:text-accent-hover hover:underline"
+            >
+              Request RecruitOS access
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </section>
     </>

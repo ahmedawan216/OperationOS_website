@@ -16,6 +16,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      path: "/pricing",
+      lastModified: "2026-09-04",
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    },
+    {
       path: "/guidelines",
       lastModified: "2026-09-03",
       changeFrequency: "monthly" as const,
