@@ -22,6 +22,42 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      path: "/solutions",
+      lastModified: "2026-09-04",
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    },
+    {
+      path: "/security",
+      lastModified: "2026-09-04",
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    },
+    {
+      path: "/about",
+      lastModified: "2026-09-04",
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
+    {
+      path: "/contact",
+      lastModified: "2026-09-04",
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    },
+    {
+      path: "/privacy",
+      lastModified: "2026-09-04",
+      changeFrequency: "yearly" as const,
+      priority: 0.4,
+    },
+    {
+      path: "/terms",
+      lastModified: "2026-09-04",
+      changeFrequency: "yearly" as const,
+      priority: 0.4,
+    },
+    {
       path: "/guidelines",
       lastModified: "2026-09-03",
       changeFrequency: "monthly" as const,

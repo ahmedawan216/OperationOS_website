@@ -53,6 +53,9 @@ export function HeaderClient() {
               </div>
             )}
           </div>
+          <Link href="/solutions" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none">
+            Solutions
+          </Link>
           <Link href="/pricing" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none">
             Pricing
           </Link>
