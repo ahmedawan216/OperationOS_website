@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { GuidelinesArticle } from "@/components/guidelines/guidelines-article";
 import { GuidelinesCallout } from "@/components/guidelines/guidelines-callout";
+import { TrackedLink } from "@/components/analytics/tracked-link";
+import { recruitosConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "RecruitOS Guide | Guidelines",
@@ -17,6 +19,9 @@ export default function RecruitOSGuidelinesPage() {
       title="Use each candidate review to reach a considered next action."
       description="RecruitOS keeps role requirements, candidate information, analysis, and progress in one review workflow. The software organizes context and provides a recommendation; the hiring team decides what happens next."
     >
+      <h2>Begin in the RecruitOS application</h2>
+      <p><TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "guidelines", cta_location: "recruitos_guide", destination: "sign_up" }}>Create an account</TrackedLink> if you are new to RecruitOS, or <TrackedLink href={recruitosConfig.signInUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "guidelines", cta_location: "recruitos_guide", destination: "sign_in" }}>sign in</TrackedLink> if you are returning. The operational workflow described below takes place in RecruitOS.</p>
+
       <h2>Before you begin, know the role</h2>
       <p>A useful candidate review starts with a defined role. The requirements provide the context for evaluating a candidate&apos;s experience and skills. If the role context is incomplete or unclear, the resulting analysis should be treated with additional care.</p>
 

@@ -5,16 +5,17 @@ import { ArrowRight, Check } from "lucide-react";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { TrackedLink } from "@/components/analytics/tracked-link";
+import { recruitosConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "Pricing and Access",
   description:
-    "Understand how RecruitOS access works today and how OperationOS presents product-specific pricing and commercial terms.",
+    "RecruitOS is available now. Review the current public pricing and checkout status, then create an account to begin.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "Pricing and Access | OperationOS.org",
     description:
-      "See how RecruitOS access works today and what OperationOS makes clear before any paid commitment.",
+      "RecruitOS is available now. Public pricing and self-service checkout are not currently published.",
     url: "/pricing",
     siteName: "OperationOS.org",
     type: "website",
@@ -31,14 +32,14 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Pricing and Access | OperationOS.org",
     description:
-      "See how RecruitOS access works today and what OperationOS makes clear before any paid commitment.",
+      "RecruitOS is available now. Public pricing and self-service checkout are not currently published.",
     images: ["/images/og-image-v2.png"],
   },
 };
 
 const accessDetails = [
   { term: "Product", detail: "RecruitOS" },
-  { term: "Current access", detail: "Requested through the waitlist" },
+  { term: "Current access", detail: "Create an account in RecruitOS" },
   { term: "Public pricing", detail: "Not currently published" },
   { term: "Self-service checkout", detail: "Not currently available" },
 ] as const;
@@ -82,8 +83,8 @@ export default function PricingPage() {
             </p>
             <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
               <Button asChild>
-                <TrackedLink href="/recruitos#waitlist" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "pricing", action: "join_waitlist" }}>
-                  Join the RecruitOS waitlist
+                <TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "pricing", cta_location: "product_summary", destination: "sign_up" }}>
+                  Create account
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </TrackedLink>
               </Button>
@@ -121,7 +122,7 @@ export default function PricingPage() {
               The important details should be visible before payment enters the workflow.
             </h2>
             <p className="mt-5 text-base leading-7 text-ink-dim">
-              RecruitOS is currently in an access stage, not a public purchasing flow. Joining the waitlist requests access and does not create a paid subscription.
+              RecruitOS is available now through its account creation flow. Public pricing and self-service checkout are not currently published, so no plan, trial, or paid commitment is represented on this page.
             </p>
           </div>
           <ul className="divide-y divide-border border-y border-border">
@@ -172,12 +173,12 @@ export default function PricingPage() {
               See whether RecruitOS fits your candidate-review workflow.
             </h2>
             <p className="mt-4 text-base leading-7 text-white/70">
-              Explore the product, then request access through the RecruitOS waitlist when you are ready.
+              Explore the product, then create a RecruitOS account when you are ready to begin.
             </p>
           </div>
           <Button asChild className="shrink-0 border-white bg-white text-ink hover:border-white hover:bg-white/90">
-            <TrackedLink href="/recruitos#waitlist" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "pricing", action: "join_waitlist" }}>
-              Join the RecruitOS waitlist
+            <TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "pricing", cta_location: "closing", destination: "sign_up" }}>
+              Create account
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </TrackedLink>
           </Button>

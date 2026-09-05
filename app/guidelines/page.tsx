@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const areas = [
   { href: "/guidelines/recruitos", label: "Product guide", title: "Use the RecruitOS review workflow", description: "Understand roles, candidate analysis, recommendations, status, and the decisions that remain with recruiters." },
   { href: "/guidelines/concepts", label: "Shared concepts", title: "Recognize the ideas used across products", description: "Learn how context, status, next actions, and human judgment shape an OperationOS workflow." },
-  { href: "/guidelines/account-billing", label: "Account", title: "Understand access and billing today", description: "See how RecruitOS access currently works and what is not yet available through the public website." },
+  { href: "/guidelines/account-billing", label: "Account", title: "Understand accounts and billing today", description: "See how to create or access a RecruitOS account and what billing information is not published on this website." },
   { href: "/guidelines/privacy-security", label: "Trust", title: "Handle product information carefully", description: "Follow practical principles for sensitive information, credentials, recommendations, and responsible decisions." },
 ] as const;
 

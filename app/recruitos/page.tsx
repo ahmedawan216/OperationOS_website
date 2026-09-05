@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { ArrowDown, ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
-import { Waitlist } from "@/components/sections/waitlist";
 import { Button } from "@/components/ui/button";
 import { TrackedLink } from "@/components/analytics/tracked-link";
+import { recruitosConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "RecruitOS | Clearer Candidate Review Workflows",
@@ -69,12 +69,12 @@ export default function RecruitOSPage() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild>
-                <TrackedLink href="#waitlist" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "recruitos", action: "join_waitlist" }}>
-                  Join the waitlist
-                  <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                <TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "recruitos", cta_location: "hero", destination: "sign_up" }}>
+                  Create account
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </TrackedLink>
               </Button>
-              <Button asChild variant="secondary"><a href="#workflow">See how RecruitOS works</a></Button>
+              <Button asChild variant="secondary"><TrackedLink href={recruitosConfig.signInUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "recruitos", cta_location: "hero", destination: "sign_in" }}>Sign in</TrackedLink></Button>
             </div>
             <p className="mt-5 text-sm leading-6 text-ink-faint">Software-assisted review. Hiring decisions remain with your team.</p>
           </div>
@@ -243,22 +243,40 @@ export default function RecruitOSPage() {
         </div>
       </Section>
 
-      <Waitlist />
+      <Section>
+        <div className="overflow-hidden rounded-lg border border-border-strong bg-surface">
+          <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="bg-accent px-6 py-10 text-white sm:px-10 sm:py-12 lg:px-12 lg:py-14">
+              <p className="type-meta font-mono font-medium uppercase text-white/70">RecruitOS is available now</p>
+              <h2 className="type-h2 mt-5 font-display font-semibold text-white">Bring a clearer workflow to candidate review.</h2>
+              <p className="mt-5 max-w-lg text-base leading-7 text-white/80">Create a RecruitOS account and continue in the independent product application.</p>
+            </div>
+            <div className="flex flex-col justify-center px-6 py-10 sm:px-10 sm:py-12 lg:px-12 lg:py-14">
+              <h3 className="font-display text-2xl font-semibold text-ink">Start using RecruitOS</h3>
+              <p className="mt-3 max-w-lg text-sm leading-6 text-ink-dim">New users can create an account. Returning users can sign in and continue their work.</p>
+              <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row">
+                <Button asChild><TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "recruitos", cta_location: "access_panel", destination: "sign_up" }}>Create account<ArrowRight className="h-4 w-4" aria-hidden="true" /></TrackedLink></Button>
+                <Button asChild variant="secondary"><TrackedLink href={recruitosConfig.signInUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "recruitos", cta_location: "access_panel", destination: "sign_in" }}>Sign in</TrackedLink></Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
 
       <section className="border-t border-border">
         <div className="container-standard flex flex-col gap-5 py-10 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm leading-6 text-ink-dim">RecruitOS is a focused recruiting product built by OperationOS.</p>
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-6">
             <TrackedLink className="inline-flex min-h-11 items-center text-sm font-semibold text-ink-dim underline-offset-4 hover:text-accent hover:underline" href="/pricing" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "recruitos", action: "view_pricing" }}>
-              Pricing and access
+              Pricing
             </TrackedLink>
             <TrackedLink
-              href="#waitlist"
-              eventName="recruitos_cta_clicked"
-              eventProperties={{ product: "recruitos", location: "recruitos", action: "join_waitlist" }}
+              href={recruitosConfig.signUpUrl}
+              eventName="recruitos_access_clicked"
+              eventProperties={{ product: "recruitos", source_page: "recruitos", cta_location: "footer_strip", destination: "sign_up" }}
               className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent underline-offset-4 hover:text-accent-hover hover:underline"
             >
-              Request RecruitOS access
+              Create account
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </TrackedLink>
           </div>

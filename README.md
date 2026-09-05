@@ -56,7 +56,6 @@ components/
     how-it-works.tsx
     agent-rack.tsx
     recruit-os-section.tsx
-    waitlist.tsx             # terminal-style email capture (client component)
   seo/
     json-ld.tsx              # Organization/WebSite structured data
   ui/
@@ -126,7 +125,7 @@ content is above or below the fold on load:
   is a closer match to the approved design, not just a performance
   optimization.
 - **Everything below the fold** (`<Reveal />`, used in `how-it-works.tsx`,
-  `agent-rack.tsx`, `recruit-os-section.tsx`, `waitlist.tsx`, plus the
+  `agent-rack.tsx`, `recruit-os-section.tsx`, plus the
   mobile menu) uses Framer Motion's `whileInView`, which is the right tool
   for content that's genuinely off-screen at load.
 
@@ -157,10 +156,6 @@ so without this, content below the fold would stay invisible with no JS).
 
 ## Notes for launch
 
-- **Waitlist form**: `components/sections/waitlist.tsx` validates the email
-  client-side and shows a success state, but is not yet wired to a backend.
-  Point `handleSubmit` at a route handler (e.g. `app/api/waitlist/route.ts`)
-  or your ESP/CRM's form endpoint before launch.
 - **Feedback widget**: same situation — `lib/submit-feedback.ts` is a
   placeholder that simulates a request. Point it at a real endpoint (and
   remove its simulated failure rate) before launch.

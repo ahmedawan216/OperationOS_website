@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { TrackedLink } from "@/components/analytics/tracked-link";
+import { recruitosConfig } from "@/lib/site-config";
 
 export function HeaderClient() {
   const [productsOpen, setProductsOpen] = useState(false);
@@ -68,7 +69,7 @@ export function HeaderClient() {
           </Link>
         </div>
         <div className="ml-auto hidden shrink-0 items-center gap-2 lg:flex">
-          <Button asChild size="sm"><TrackedLink href="/recruitos#waitlist" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "header", action: "join_waitlist" }}>Get started</TrackedLink></Button>
+          <Button asChild size="sm"><TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "header", cta_location: "desktop_navigation", destination: "sign_up" }}>Get started</TrackedLink></Button>
         </div>
         <div className="ml-auto lg:hidden"><MobileNav /></div>
       </nav>

@@ -23,8 +23,8 @@ export default function GettingStartedPage() {
       <p><strong>Guidelines</strong> explain how the products are intended to work and define ideas that apply across the system. They are a shared reference, not a separate product.</p>
 
       <h2>Discovery and work happen in different places</h2>
-      <p>The public OperationOS website introduces the company, explains available products, and provides routes to request access. A product application is where the operational work itself takes place.</p>
-      <GuidelinesCallout label="Note">RecruitOS access is currently requested through the public waitlist. The website does not present a general account dashboard or self-service product access.</GuidelinesCallout>
+      <p>The public OperationOS website introduces the company, explains RecruitOS, and links to the independent RecruitOS application. Product work takes place in RecruitOS, not on the OperationOS marketing website.</p>
+      <GuidelinesCallout label="Note">Create an account or sign in at RecruitOS to use the product. The OperationOS website does not present a general account dashboard.</GuidelinesCallout>
 
       <h2>Learn the path, then move through it quickly</h2>
       <p>The product philosophy is simple: <strong>easy to learn, fast after you have learned it.</strong> A first-time user should see enough explanation to understand the next step. An experienced user should be able to work without repeatedly clearing beginner guidance.</p>
@@ -33,7 +33,7 @@ export default function GettingStartedPage() {
         <li><strong>Understand:</strong> identify the workflow a product supports.</li>
         <li><strong>Explore a product:</strong> review its purpose, boundaries, and public experience.</li>
         <li><strong>Learn the workflow:</strong> understand the steps and information involved.</li>
-        <li><strong>Get access:</strong> use the access route currently offered for that product.</li>
+        <li><strong>Create an account or sign in:</strong> continue from OperationOS to the RecruitOS application.</li>
         <li><strong>Use the product:</strong> complete the real work inside its application.</li>
         <li><strong>Return to Guidelines:</strong> revisit explanations when a step or concept becomes unfamiliar.</li>
       </ol>

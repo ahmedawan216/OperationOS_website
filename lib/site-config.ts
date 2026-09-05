@@ -19,3 +19,9 @@ export const siteConfig = {
     "OperationOS builds focused software products for operational work. RecruitOS helps hiring teams review candidates and keep hiring workflows organized.",
   ogImagePath: "/opengraph-image",
 } as const;
+
+export const recruitosConfig = {
+  appUrl: "https://recruitos.operationos.org",
+  signUpUrl: "https://recruitos.operationos.org/sign-up",
+  signInUrl: "https://recruitos.operationos.org/sign-in",
+} as const;

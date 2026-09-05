@@ -14,11 +14,11 @@ export const metadata = createPageMetadata(
 const boundaries = [
   {
     title: "Collect for a defined purpose",
-    text: "Public forms ask for information tied to a specific action, such as requesting RecruitOS access or sharing website feedback.",
+    text: "The public website asks for information only through defined paths, such as the website feedback form or direct contact email.",
   },
   {
     title: "Keep privileged credentials on the server",
-    text: "Privileged configuration used by the feedback storage path is kept in server-only code. Public browser code uses publishable configuration for the waitlist workflow.",
+    text: "Privileged configuration used by the feedback storage path is kept in server-only code and is not exposed to the browser.",
   },
   {
     title: "Validate before processing",
@@ -66,7 +66,7 @@ export default function SecurityPage() {
             <p className="type-meta font-mono font-medium uppercase text-accent">Operational transparency</p>
             <h2 className="type-h2 mt-5 font-display font-semibold text-ink">Website services should be visible in the privacy explanation.</h2>
             <p className="mt-5 text-base leading-7 text-ink-dim">
-              OperationOS uses service providers to host the website, process form submissions, send waitlist email, store feedback, and understand website usage. The Privacy Policy explains these activities at a practical level.
+              OperationOS uses service providers to host the website, store feedback, and understand website usage. The Privacy Policy explains these activities at a practical level, including historical website submissions.
             </p>
             <Link href="/privacy" className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent hover:text-accent-hover hover:underline">
               Read the Privacy Policy

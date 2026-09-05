@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { TrackedLink } from "@/components/home/tracked-link";
+import { recruitosConfig } from "@/lib/site-config";
 
 export function CompanyClosing() {
   return (
@@ -18,8 +19,8 @@ export function CompanyClosing() {
             </p>
           </div>
           <Button asChild>
-            <TrackedLink href="/recruitos" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "homepage", action: "explore_product" }}>
-              Explore RecruitOS
+            <TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "homepage", cta_location: "closing", destination: "sign_up" }}>
+              Get started with RecruitOS
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </TrackedLink>
           </Button>

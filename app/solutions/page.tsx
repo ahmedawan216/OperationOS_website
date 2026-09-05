@@ -5,6 +5,7 @@ import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { createPageMetadata } from "@/lib/page-metadata";
 import { TrackedLink } from "@/components/analytics/tracked-link";
+import { recruitosConfig } from "@/lib/site-config";
 
 export const metadata = createPageMetadata(
   "Solutions for Operational Work",
@@ -93,7 +94,7 @@ export default function SolutionsPage() {
             <p className="mt-4 text-sm leading-6 text-ink-faint">Software supports the review. Hiring decisions remain with the people responsible for them.</p>
             <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row">
               <Button asChild><TrackedLink href="/recruitos" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "solutions", action: "explore_product" }}>Explore RecruitOS</TrackedLink></Button>
-              <Button asChild variant="secondary"><TrackedLink href="/recruitos#waitlist" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "solutions", action: "join_waitlist" }}>Request access</TrackedLink></Button>
+              <Button asChild variant="secondary"><TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "solutions", cta_location: "recruitos_solution", destination: "sign_up" }}>Start with RecruitOS</TrackedLink></Button>
             </div>
           </div>
           <aside className="border-l-2 border-accent bg-accent-soft px-6 py-6 sm:px-8" aria-labelledby="guidance-title">

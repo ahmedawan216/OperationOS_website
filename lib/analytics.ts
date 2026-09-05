@@ -12,14 +12,13 @@ export interface AnalyticsProperties {
   recruitos_cta_clicked: {
     product: "recruitos";
     location: "header" | "homepage" | "solutions" | "pricing" | "recruitos";
-    action: "explore_product" | "join_waitlist" | "view_pricing";
+    action: "explore_product" | "view_pricing";
   };
-  waitlist_started: { product: "recruitos"; location: "recruitos" };
-  waitlist_submitted: { product: "recruitos"; location: "recruitos" };
-  waitlist_failed: {
+  recruitos_access_clicked: {
     product: "recruitos";
-    location: "recruitos";
-    stage: "validation" | "storage" | "notification" | "unknown";
+    source_page: "homepage" | "recruitos" | "pricing" | "solutions" | "contact" | "blog" | "guidelines" | "header";
+    cta_location: string;
+    destination: "sign_up" | "sign_in";
   };
   feedback_opened: { location: "global" };
   feedback_submitted: { location: "global" };

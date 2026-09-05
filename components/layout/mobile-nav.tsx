@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TrackedLink } from "@/components/analytics/tracked-link";
+import { recruitosConfig } from "@/lib/site-config";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -61,7 +62,7 @@ export function MobileNav() {
             <Link href="/blog" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2 focus-visible:outline-none">
               Blog
             </Link>
-            <Button asChild className="mt-5 w-full"><TrackedLink href="/recruitos#waitlist" eventName="recruitos_cta_clicked" eventProperties={{ product: "recruitos", location: "header", action: "join_waitlist" }} onClick={closeMenu}>Get started</TrackedLink></Button>
+            <Button asChild className="mt-5 w-full"><TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "header", cta_location: "mobile_navigation", destination: "sign_up" }} onClick={closeMenu}>Get started</TrackedLink></Button>
           </nav>
         </>
       )}

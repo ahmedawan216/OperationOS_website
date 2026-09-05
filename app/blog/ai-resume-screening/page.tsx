@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { TrackedLink } from "@/components/analytics/tracked-link";
+import { recruitosConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title:
@@ -456,8 +458,8 @@ export default function Page() {
         </figure>
 
         <p>
-          RecruitOS access is currently requested through a waitlist. Its product page explains the intended
-          candidate-review workflow, current access path, and the decisions that remain with hiring teams.
+          RecruitOS is available now. Its product page explains the candidate-review workflow and the
+          decisions that remain with hiring teams.
         </p>
         <p>
           Learn more on the{" "}
@@ -491,17 +493,19 @@ export default function Page() {
         </p>
 
         <div className="not-prose my-12 rounded-lg border border-border bg-surface-2 p-8 text-center">
-          <h2 className="mb-2 text-2xl font-semibold">Interested in RecruitOS access?</h2>
+          <h2 className="mb-2 text-2xl font-semibold">Ready to use RecruitOS?</h2>
           <p className="mb-6 text-ink-dim">
             See how RecruitOS can help you screen candidates faster, cut down on manual resume review, and
             give your team clear, explainable recommendations for every applicant.
           </p>
-          <Link
-            href="/recruitos#waitlist"
+          <TrackedLink
+            href={recruitosConfig.signUpUrl}
+            eventName="recruitos_access_clicked"
+            eventProperties={{ product: "recruitos", source_page: "blog", cta_location: "article_closing", destination: "sign_up" }}
             className="inline-block rounded-md bg-accent px-6 py-3 font-medium text-white no-underline transition hover:bg-accent-hover"
           >
-            Join the RecruitOS waitlist
-          </Link>
+            Create account
+          </TrackedLink>
         </div>
 
         <h2 id="faqs">Frequently Asked Questions</h2>

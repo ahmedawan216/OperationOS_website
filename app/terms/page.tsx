@@ -5,7 +5,7 @@ import { createPageMetadata } from "@/lib/page-metadata";
 
 export const metadata = createPageMetadata(
   "Terms of Use",
-  "Read the baseline Terms of Use for the OperationOS public website, RecruitOS information, waitlist, and feedback features.",
+  "Read the baseline Terms of Use for the OperationOS public website, RecruitOS information, links, and feedback features.",
   "/terms",
 );
 
@@ -14,7 +14,7 @@ export default function TermsPage() {
     <LegalDocument
       eyebrow="Terms of Use"
       title="Terms for using the current OperationOS public website."
-      description="These baseline terms apply to this informational website, its RecruitOS waitlist, and its feedback features. They are not subscription or paid-product terms."
+      description="These baseline terms apply to this informational website, its links to RecruitOS, and its feedback features. They are not RecruitOS subscription or paid-product terms."
     >
       <h2>Acceptance of these terms</h2>
       <p>By accessing or using the OperationOS public website, you agree to these Terms of Use. If you do not agree, do not use the website or submit information through its forms.</p>
@@ -23,7 +23,7 @@ export default function TermsPage() {
       <p>This website provides information about OperationOS, RecruitOS, public Guidelines, pricing and access status, and related company topics. Website content may explain current product direction or access without representing that every described capability is available to every visitor.</p>
 
       <h2>RecruitOS access information</h2>
-      <p>RecruitOS access is currently requested through a public waitlist. A waitlist submission is a request for updates or access consideration. It does not create an account, trial, paid subscription, purchase, service commitment, or guarantee that access will be provided.</p>
+      <p>RecruitOS is available through its independent application. Links on this website may take you to RecruitOS to create an account or sign in. These website terms do not establish a trial, paid subscription, purchase, service commitment, or particular commercial terms for RecruitOS.</p>
       <p>No public self-service checkout, billing controls, or subscription management is offered through this website. If commercial terms are presented later, those terms should be reviewed in the context where the relevant product or service is offered.</p>
 
       <h2>Acceptable use</h2>
@@ -40,7 +40,7 @@ export default function TermsPage() {
       <p>The website&apos;s design, text, graphics, product names, and other content are owned by OperationOS or used with permission, except where otherwise indicated. You may view the public website for its intended purpose. No broader right to reproduce, distribute, modify, or commercially exploit its content is granted by these terms.</p>
 
       <h2>Information you submit</h2>
-      <p>You are responsible for information submitted through the waitlist, feedback form, or email. Do not provide information that is unlawful, harmful, misleading, or that infringes another person&apos;s rights. Feedback may be used to understand and improve the website or products, without an obligation to adopt a suggestion.</p>
+      <p>You are responsible for information submitted through the feedback form or email. Do not provide information that is unlawful, harmful, misleading, or that infringes another person&apos;s rights. Feedback may be used to understand and improve the website or products, without an obligation to adopt a suggestion.</p>
 
       <h2>Third-party services and links</h2>
       <p>The website relies on third-party services for hosting-related functions, analytics, data storage, and email delivery, and may link to third-party websites. OperationOS does not control every third-party service or external page. Their own terms and privacy practices may apply.</p>

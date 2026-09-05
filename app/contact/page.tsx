@@ -1,8 +1,9 @@
-import Link from "next/link";
 import { ArrowRight, Mail } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
 import { createPageMetadata } from "@/lib/page-metadata";
+import { TrackedLink } from "@/components/analytics/tracked-link";
+import { recruitosConfig } from "@/lib/site-config";
 
 export const metadata = createPageMetadata(
   "Contact OperationOS",
@@ -12,7 +13,7 @@ export const metadata = createPageMetadata(
 
 const contactTopics = [
   "Questions about OperationOS or RecruitOS",
-  "RecruitOS access and waitlist questions",
+  "RecruitOS account or product questions",
   "Website, privacy, or security concerns",
   "General company inquiries",
 ] as const;
@@ -50,8 +51,8 @@ export default function ContactPage() {
 
       <section className="border-t border-border bg-bg-secondary">
         <div className="container-standard flex flex-col gap-5 py-10 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm leading-6 text-ink-dim">Looking for RecruitOS access rather than a general contact path?</p>
-          <Link href="/recruitos#waitlist" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent hover:text-accent-hover hover:underline">Join the RecruitOS waitlist<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+          <p className="text-sm leading-6 text-ink-dim">Ready to use RecruitOS rather than contact OperationOS?</p>
+          <TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "contact", cta_location: "footer_strip", destination: "sign_up" }} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent hover:text-accent-hover hover:underline">Create account<ArrowRight className="h-4 w-4" aria-hidden="true" /></TrackedLink>
         </div>
       </section>
     </>
