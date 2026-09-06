@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     images: [{
       url: "/images/recruitos/RecruitOS_workspace_preview.png",
       width: 1642,
-      height: 1382,
+      height: 1350,
       alt: "RecruitOS job workspace showing role requirements and an organized candidate pipeline",
     }],
   },
@@ -84,7 +84,7 @@ export default function RecruitOSPage() {
                 src="/images/recruitos/RecruitOS_workspace_preview.png"
                 alt="RecruitOS job workspace showing role requirements, candidates, match context, and recruiting status"
                 width={1642}
-                height={1382}
+                height={1350}
                 sizes="(max-width: 1023px) 100vw, 58vw"
                 className="h-auto w-full"
                 priority

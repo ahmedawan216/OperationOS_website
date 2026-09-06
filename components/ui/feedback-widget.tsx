@@ -1,51 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { MessageCircle } from "lucide-react";
 
-import { DURATIONS, EASE_OUT_EXPO } from "@/lib/motion";
-import { FeedbackModal } from "@/components/ui/feedback-modal";
 import { trackEvent } from "@/lib/analytics";
 
+const FeedbackModal = dynamic(
+  () => import("@/components/ui/feedback-modal").then((module) => module.FeedbackModal),
+  { ssr: false },
+);
+
 /**
- * Global floating feedback trigger. Mounted once in the root layout (see
- * `app/layout.tsx`) so it persists across every route, including the
- * 404/error pages. Owns the modal's open state and renders both the
- * button and <FeedbackModal> as a self-contained unit — mirroring how
- * <MobileNav> owns its own toggle + panel state.
- *
- * The entrance and hover/tap animations use two different transitions on
- * purpose: the mount fade+scale is slow and delayed (so it doesn't
- * compete with the hero's own entrance), while hover/tap use the fast
- * `DURATIONS.micro` — without that split, hover response would inherit
- * the slow entrance timing and feel sluggish.
+ * Global floating feedback trigger. The form and dialog dependencies load
+ * only after the first interaction, then stay mounted so close animations
+ * and form state continue to work normally.
  */
 export function FeedbackWidget() {
   const [open, setOpen] = useState(false);
+  const [hasOpened, setHasOpened] = useState(false);
 
   return (
     <>
-      <motion.button
+      <button
         type="button"
         onClick={() => {
           trackEvent("feedback_opened", { location: "global" });
+          setHasOpened(true);
           setOpen(true);
         }}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label="Share feedback"
-        className="fixed bottom-5 right-5 z-[120] flex h-14 w-14 items-center justify-center rounded-full bg-ink text-bg shadow-[0_0_0_1px_var(--color-border),0_8px_28px_-6px_var(--color-accent-dim)] transition-shadow duration-400 ease-out-expo hover:shadow-[0_0_0_1px_var(--color-accent-dim),0_10px_34px_-4px_var(--color-accent-dim)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg sm:bottom-8 sm:right-8"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: DURATIONS.reveal, ease: EASE_OUT_EXPO, delay: 0.8 }}
-        whileHover={{ scale: 1.08, transition: { duration: DURATIONS.micro, ease: EASE_OUT_EXPO } }}
-        whileTap={{ scale: 0.94, transition: { duration: DURATIONS.micro, ease: EASE_OUT_EXPO } }}
+        className="fixed bottom-5 right-5 z-[120] flex h-14 w-14 items-center justify-center rounded-full bg-ink text-bg shadow-[0_0_0_1px_var(--color-border),0_8px_28px_-6px_var(--color-accent-dim)] transition-[box-shadow,transform] duration-200 ease-out-expo hover:scale-[1.08] hover:shadow-[0_0_0_1px_var(--color-accent-dim),0_10px_34px_-4px_var(--color-accent-dim)] active:scale-[0.94] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg sm:bottom-8 sm:right-8"
       >
         <MessageCircle className="h-6 w-6" aria-hidden="true" />
-      </motion.button>
+      </button>
 
-      <FeedbackModal open={open} onOpenChange={setOpen} />
+      {hasOpened && <FeedbackModal open={open} onOpenChange={setOpen} />}
     </>
   );
 }

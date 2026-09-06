@@ -22,7 +22,7 @@ export function LegalDocument({
           <h1 className="type-h1 mt-5 font-display font-semibold text-ink">{title}</h1>
           <p className="type-body-lg mt-5 text-ink-dim">{description}</p>
           <p className="mt-6 font-mono text-xs uppercase tracking-[0.08em] text-ink-faint">
-            Effective September 4, 2026
+            Effective September 5, 2026
           </p>
         </div>
       </header>

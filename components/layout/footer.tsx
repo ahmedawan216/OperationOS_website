@@ -42,7 +42,7 @@ export function Footer() {
           </nav>
         </div>
         <div className="mt-10 flex flex-col gap-3 border-t border-border pt-6 text-sm text-ink-dim sm:flex-row sm:items-center sm:justify-between">
-          <a className="w-fit underline decoration-border-strong underline-offset-4 hover:text-accent hover:decoration-accent" href="mailto:operationos.org@gmail.com">operationos.org@gmail.com</a>
+          <a className="inline-flex min-h-11 w-fit items-center underline decoration-border-strong underline-offset-4 hover:text-accent hover:decoration-accent" href="mailto:operationos.org@gmail.com">operationos.org@gmail.com</a>
           <p>© {year} {siteConfig.name}</p>
         </div>
       </div>

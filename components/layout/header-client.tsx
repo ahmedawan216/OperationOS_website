@@ -41,30 +41,36 @@ export function HeaderClient() {
       <nav aria-label="Primary" className="container-wide flex h-[72px] items-center gap-6">
         <Logo />
         <div className="hidden flex-1 items-center justify-center gap-1 lg:flex">
-          <div ref={productsRef} className="relative">
-            <button ref={productsButtonRef} type="button" aria-expanded={productsOpen} aria-haspopup="true" aria-controls="products-navigation" onClick={() => setProductsOpen((value) => !value)} className="flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none">
+          <div
+            ref={productsRef}
+            className="relative"
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setProductsOpen(false);
+            }}
+          >
+            <button ref={productsButtonRef} type="button" aria-expanded={productsOpen} aria-haspopup="true" aria-controls="products-navigation" onClick={() => setProductsOpen((value) => !value)} className="flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
               Products
               <ChevronDown className={cn("h-4 w-4 transition-transform", productsOpen && "rotate-180")} aria-hidden="true" />
             </button>
             {productsOpen && (
               <div id="products-navigation" aria-label="Products" className="absolute left-0 top-[calc(100%+8px)] w-[320px] rounded-lg border border-border bg-surface p-2 shadow-panel">
-                <Link href="/recruitos" onClick={() => setProductsOpen(false)} className="block rounded-md px-4 py-3 transition-colors hover:bg-surface-2 focus-visible:outline-none">
+                <Link href="/recruitos" onClick={() => setProductsOpen(false)} className="block rounded-md px-4 py-3 transition-colors hover:bg-surface-2">
                   <span className="block text-sm font-semibold text-ink">RecruitOS</span>
                   <span className="mt-1 block text-sm leading-5 text-ink-dim">Review, compare, and understand candidates with AI-assisted recruiting workflows.</span>
                 </Link>
               </div>
             )}
           </div>
-          <Link href="/solutions" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none">
+          <Link href="/solutions" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
             Solutions
           </Link>
-          <Link href="/pricing" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none">
+          <Link href="/pricing" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
             Pricing
           </Link>
-          <Link href="/guidelines" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none">
+          <Link href="/guidelines" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
             Guidelines
           </Link>
-          <Link href="/blog" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none">
+          <Link href="/blog" className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
             Blog
           </Link>
         </div>

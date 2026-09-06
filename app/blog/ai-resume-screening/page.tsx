@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="mx-auto max-w-4xl px-6 py-24">
+    <div className="mx-auto max-w-4xl px-5 pb-24 pt-[calc(72px+4rem)] sm:px-8 sm:pb-28 sm:pt-[calc(72px+5rem)]">
       <article className="prose prose-neutral max-w-none text-ink">
         <h1>AI Resume Screening: How It Works (Complete Guide for Recruiters in 2026)</h1>
 
@@ -201,10 +201,10 @@ export default function Page() {
           <Image
             src="/blog/ai-resume-screening/workflow_diagram.png"
             alt="Diagram showing the AI resume screening workflow from job description and resume upload through AI analysis, candidate ranking, recruiter review, and interview"
-            width={1200}
-            height={700}
-            className="mx-auto my-8 h-auto w-full max-w-2xl rounded-xl border"
-            priority
+            width={369}
+            height={768}
+            sizes="(max-width: 409px) calc(100vw - 2.5rem), 369px"
+            className="mx-auto my-8 h-auto w-full max-w-[369px] rounded-xl border"
           />
           <figcaption>
             The AI resume screening workflow, from job description to interview.
@@ -214,14 +214,14 @@ export default function Page() {
         <h3>Step 1: Parsing the Resume</h3>
         <p>
           The first job is simply extracting usable text and structure from whatever format the resume
-          arrives in — PDF, Word doc, or plain text. This step identifies sections like work experience,
+          arrives in, whether PDF, Word document, or plain text. This step identifies sections like work experience,
           education, skills, and dates, turning an unstructured document into something the system can reason
           about.
         </p>
 
         <h3>Step 2: Understanding the Job Description</h3>
         <p>
-          The tool also processes the job description — not just as a list of keywords, but as a set of
+          The tool also processes the job description as more than a list of keywords. It treats it as a set of
           requirements: required skills, years of experience, seniority level, and sometimes softer signals
           like domain background or leadership scope.
         </p>
@@ -236,20 +236,20 @@ export default function Page() {
         <p>
           It can also weigh context: three years as a &quot;Marketing Coordinator&quot; managing a full
           campaign budget reads differently than three years as a &quot;Marketing Coordinator&quot; doing
-          administrative support — a good system tries to capture that nuance rather than treating both
+          administrative support. A good system tries to capture that nuance rather than treating both
           resumes as identical matches.
         </p>
 
         <h3>Step 4: Producing a Structured Output</h3>
         <p>
-          The final step is turning that analysis into something a recruiter can actually use — typically a
+          The final step is turning that analysis into something a recruiter can actually use, typically a
           match score, a short summary or recommendation, a list of matching skills, a list of missing or
           weaker areas, and any notable concerns (like an unexplained employment gap or a mismatch in
           seniority level).
         </p>
         <p>
           This structured output is the whole point. A resume screening tool that just says &quot;78%
-          match&quot; without explaining why isn&apos;t actually helping anyone make a better decision —
+          match&quot; without explaining why isn&apos;t actually helping anyone make a better decision;
           it&apos;s just adding a number to be second-guessed. The more useful tools show their reasoning.
         </p>
 
@@ -269,7 +269,7 @@ export default function Page() {
           AI-based screening, using language models, is designed to understand meaning rather than just
           matching strings. It can recognize that &quot;led a team of 6 engineers&quot; and &quot;managed an
           engineering team&quot; describe similar experience, even though the words don&apos;t overlap much.
-          It can also connect adjacent skills — recognizing that someone experienced with React likely has
+          It can also connect adjacent skills, recognizing that someone experienced with React likely has
           transferable frontend fundamentals, even for a role that lists a different framework.
         </p>
         <p>
@@ -324,12 +324,12 @@ export default function Page() {
           <li>
             Clearer documentation. A structured breakdown of why a candidate was flagged as a strong or weak
             match creates a record that&apos;s useful for calibrating with hiring managers, revisiting
-            decisions, and — increasingly — for compliance and audit purposes.
+            decisions and, increasingly, for compliance and audit purposes.
           </li>
           <li>
             More time for actual recruiting. This is the underrated one. The hours saved on screening are
             hours that can go into sourcing passive candidates, having better conversations with applicants,
-            and improving the candidate experience — the parts of the job that build a strong employer brand
+            and improving the candidate experience. Those are the parts of the job that build a strong employer brand
             and can&apos;t be automated.
           </li>
         </ul>
@@ -342,7 +342,7 @@ export default function Page() {
         </p>
         <p>
           &quot;AI is objective, so it removes bias entirely.&quot; AI systems are trained on data, and data
-          reflects the patterns — including the biases — present in the real world. AI screening can reduce
+          reflects real-world patterns, including biases. AI screening can reduce
           certain kinds of inconsistency, but it doesn&apos;t automatically eliminate bias, and tools should
           be evaluated and monitored for fairness, not assumed to be neutral by default.
         </p>
@@ -357,7 +357,7 @@ export default function Page() {
         </p>
 
         <h2 id="can-ai-replace-recruiters">Can AI Replace Recruiters?</h2>
-        <p>No — and it&apos;s worth being direct about why.</p>
+        <p>No. It&apos;s worth being direct about why.</p>
         <p>
           Resume screening is one task within recruiting, not the whole job. Recruiters interpret ambiguous
           or unconventional career paths (a candidate who switched industries, took time off, or built an
@@ -373,7 +373,7 @@ export default function Page() {
         </p>
         <p>
           The realistic framing is this: AI resume screening handles the first pass so recruiters can spend
-          more of their time on the parts of hiring that require actual human judgment — not less of it.
+          more of their time on the parts of hiring that require actual human judgment, not less of it.
         </p>
 
         <h2 id="best-practices">Best Practices for Using AI Screening Ethically</h2>
@@ -390,8 +390,8 @@ export default function Page() {
           </li>
           <li>
             Prioritize explainability over a single score. A match percentage on its own is nearly useless.
-            Look for tools that show their reasoning — which skills matched, which are missing, and why a
-            recommendation was made — so recruiters can sanity-check the output rather than blindly trusting
+            Look for tools that show their reasoning, including which skills matched, which are missing, and why a
+            recommendation was made, so recruiters can sanity-check the output rather than blindly trusting
             it.
           </li>
           <li>
@@ -400,7 +400,7 @@ export default function Page() {
           </li>
           <li>
             Be transparent with candidates. Depending on your jurisdiction, you may be legally required to
-            disclose the use of automated tools in hiring decisions — and even where it&apos;s not required,
+            disclose the use of automated tools in hiring decisions. Even where it&apos;s not required,
             it&apos;s good practice for maintaining candidate trust.
           </li>
           <li>
@@ -434,9 +434,10 @@ export default function Page() {
           <Image
             src="/blog/RecruitOS_dashboard.png"
             alt="RecruitOS dashboard showing a ranked list of candidates with match scores"
-            width={1200}
-            height={700}
-            className="my-8 rounded-xl border"
+            width={1807}
+            height={1247}
+            sizes="(max-width: 960px) calc(100vw - 2.5rem), 896px"
+            className="my-8 h-auto w-full rounded-xl border"
           />
           <figcaption>
             The RecruitOS dashboard, showing ranked candidates and match scores.
@@ -448,9 +449,10 @@ export default function Page() {
           <Image
             src="/blog/candidate_dashboard.png"
             alt="RecruitOS resume analysis screen showing matching skills, missing skills, and recruiter recommendations"
-            width={1200}
-            height={700}
-            className="my-8 rounded-xl border"
+            width={1032}
+            height={1165}
+            sizes="(max-width: 960px) calc(100vw - 2.5rem), 896px"
+            className="my-8 h-auto w-full rounded-xl border"
           />
           <figcaption>
             A structured RecruitOS resume analysis, with matching skills, gaps, and a recommendation.
@@ -514,7 +516,7 @@ export default function Page() {
         <p>
           Accuracy depends heavily on how the tool is built and what it&apos;s trained to evaluate.
           Language-model-based tools can recognize related terms and experience beyond exact keyword matches,
-          but no automated tool should be treated as infallible — human review remains essential.
+          but no automated tool should be treated as infallible. Human review remains essential.
         </p>
 
         <h3>Does AI resume screening eliminate bias in hiring?</h3>
@@ -550,6 +552,6 @@ export default function Page() {
           rather than relying purely on exact wording.
         </p>
       </article>
-    </main>
+    </div>
   );
 }

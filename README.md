@@ -139,12 +139,9 @@ so without this, content below the fold would stay invisible with no JS).
 
 ## Accessibility notes
 
-- `--color-ink-faint` (`#4c515a`) is ~2.5:1 contrast against the background
-  — below the WCAG AA minimum (4.5:1) for text. It's reserved for
-  exempt/decorative use only (the logo's ".ai" suffix, non-text UI chrome).
-  Anywhere that color was previously used for real text (section eyebrows,
-  footer copyright, status labels, mock-dashboard sub-labels) now uses
-  `ink-dim` (~6.1:1), which passes comfortably.
+- `--color-ink-faint` (`#646a73`) maintains at least 5:1 contrast against
+  the primary light backgrounds. `ink-dim` remains the stronger secondary
+  text color for longer supporting copy.
 - The mobile menu follows the ARIA APG disclosure pattern; closing via
   Escape or a link click returns focus to the toggle button.
 - All Framer Motion animations respect `prefers-reduced-motion` via

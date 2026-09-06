@@ -10,18 +10,18 @@ export const metadata = createPageMetadata(
 
 export default function BlogPage() {
   return (
-    <main className="mx-auto max-w-5xl px-6 py-24">
-      <h1 className="text-5xl font-bold tracking-tight">
+    <section aria-labelledby="blog-title" className="container-standard pb-24 pt-[calc(72px+4rem)] sm:pb-28 sm:pt-[calc(72px+5rem)]">
+      <h1 id="blog-title" className="type-h1 font-display font-semibold text-ink">
         OperationOS Blog
       </h1>
 
-      <p className="mt-6 max-w-3xl text-lg text-muted-foreground">
+      <p className="type-body-lg mt-6 max-w-3xl text-ink-dim">
         Practical articles about recruiting workflows, responsible AI-assisted review,
         and the products OperationOS is building.
       </p>
 
       <div className="mt-16 rounded-xl border p-8 transition hover:border-accent">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-ink-faint">
           August 6, 2026 • 12 min read
         </p>
 
@@ -29,7 +29,7 @@ export default function BlogPage() {
           AI Resume Screening: How It Works (Complete Guide for Recruiters in 2026)
         </h2>
 
-        <p className="mt-4 text-muted-foreground">
+        <p className="mt-4 text-ink-dim">
           Learn how AI resume screening works, how it differs from
           traditional ATS software, and how RecruitOS helps recruiters
           evaluate candidates faster while keeping humans in control.
@@ -42,6 +42,6 @@ export default function BlogPage() {
           Read article →
         </Link>
       </div>
-    </main>
+    </section>
   );
 }

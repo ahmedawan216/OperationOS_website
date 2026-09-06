@@ -30,6 +30,15 @@ export function MobileNav() {
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
+  useEffect(() => {
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+    const closeAtDesktop = (event: MediaQueryListEvent) => {
+      if (event.matches) setOpen(false);
+    };
+    desktopQuery.addEventListener("change", closeAtDesktop);
+    return () => desktopQuery.removeEventListener("change", closeAtDesktop);
+  }, []);
+
   const closeMenu = () => setOpen(false);
 
   return (
@@ -46,20 +55,20 @@ export function MobileNav() {
           <button type="button" aria-label="Close navigation" className="fixed inset-0 z-[120] cursor-default bg-ink/20 backdrop-blur-sm" onClick={closeMenu} />
           <nav id={menuId} aria-label="Mobile navigation" className="fixed inset-x-0 top-[72px] z-[130] max-h-[calc(100dvh-72px)] overflow-y-auto border-b border-border bg-bg px-5 py-6 shadow-panel sm:px-8">
             <p className="type-meta mb-2 font-semibold uppercase text-ink-faint">Products</p>
-            <Link ref={firstLinkRef} href="/recruitos" onClick={closeMenu} className="block min-h-11 rounded-md bg-surface px-4 py-3 ring-1 ring-border transition-colors hover:bg-surface-2 focus-visible:outline-none">
+            <Link ref={firstLinkRef} href="/recruitos" onClick={closeMenu} className="block min-h-11 rounded-md bg-surface px-4 py-3 ring-1 ring-border transition-colors hover:bg-surface-2">
               <span className="block text-base font-semibold text-ink">RecruitOS</span>
               <span className="mt-1 block text-sm leading-5 text-ink-dim">AI-assisted recruiting workflows for clearer candidate decisions.</span>
             </Link>
-            <Link href="/solutions" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2 focus-visible:outline-none">
+            <Link href="/solutions" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2">
               Solutions
             </Link>
-            <Link href="/pricing" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2 focus-visible:outline-none">
+            <Link href="/pricing" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2">
               Pricing
             </Link>
-            <Link href="/guidelines" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2 focus-visible:outline-none">
+            <Link href="/guidelines" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2">
               Guidelines
             </Link>
-            <Link href="/blog" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2 focus-visible:outline-none">
+            <Link href="/blog" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2">
               Blog
             </Link>
             <Button asChild className="mt-5 w-full"><TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "header", cta_location: "mobile_navigation", destination: "sign_up" }} onClick={closeMenu}>Get started</TrackedLink></Button>

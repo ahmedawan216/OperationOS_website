@@ -18,13 +18,17 @@ export const feedbackFormSchema = z.object({
   email: z
     .union([
       z.literal(""),
-      z.string().trim().email("Enter a valid email address."),
+      z
+        .string()
+        .trim()
+        .max(254, "Keep your email under 254 characters.")
+        .email("Enter a valid email address."),
     ])
     .optional(),
   feedback: z
     .string()
     .trim()
-    .min(10, "Give us a bit more detail — 10 characters minimum.")
+    .min(10, "Give us a bit more detail. Use at least 10 characters.")
     .max(2000, "Keep your feedback under 2000 characters."),
 });
 

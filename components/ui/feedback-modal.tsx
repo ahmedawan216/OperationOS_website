@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AlertCircle, Check, Loader2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
  
@@ -54,6 +54,9 @@ interface FeedbackModalProps {
 export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const successButtonRef = useRef<HTMLButtonElement>(null);
+  const shouldReduceMotion = useReducedMotion();
+  const animationDuration = shouldReduceMotion ? 0 : DURATIONS.menuPanel;
  
   const {
     register,
@@ -73,12 +76,16 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
       setStatus("idle");
       setErrorMessage(null);
       reset();
-    }, DURATIONS.menuPanel * 1000);
+    }, animationDuration * 1000);
     return () => clearTimeout(timeout);
-  }, [open, reset]);
+  }, [animationDuration, open, reset]);
  
   const isSubmitting = status === "submitting";
   const isSuccess = status === "success";
+
+  useEffect(() => {
+    if (isSuccess) successButtonRef.current?.focus();
+  }, [isSuccess]);
  
   const onSubmit = async (values: FeedbackFormValues) => {
     setStatus("submitting");
@@ -102,21 +109,21 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
  
   return (
     <Dialog
-    open={open}
-    onOpenChange={(value) => {
-            if (isSubmitting && !value) return;
-            onOpenChange(value);
-          }}
-        >
+      open={open}
+      onOpenChange={(value) => {
+        if (isSubmitting && !value) return;
+        onOpenChange(value);
+      }}
+    >
       <AnimatePresence>
         {open && (
           <DialogPortal forceMount>
             <DialogOverlay asChild forceMount>
               <motion.div
-                initial={{ opacity: 0 }}
+                initial={shouldReduceMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: DURATIONS.menuPanel, ease: EASE_OUT_EXPO }}
+                transition={{ duration: animationDuration, ease: EASE_OUT_EXPO }}
               />
             </DialogOverlay>
  
@@ -132,16 +139,16 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               }}
             >
               <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 8 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.96, y: 8 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 8 }}
-                transition={{ duration: DURATIONS.menuPanel, ease: EASE_OUT_EXPO }}
+                transition={{ duration: animationDuration, ease: EASE_OUT_EXPO }}
                 className="relative"
               >
                 <DialogClose
                   aria-label="Close"
                   disabled={isSubmitting}
-                  className="absolute right-0 top-0 rounded-md p-1 text-ink-dim transition-colors duration-200 ease-out-expo hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-40"
+                  className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-md text-ink-dim transition-colors duration-200 ease-out-expo hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-40"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </DialogClose>
@@ -152,7 +159,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                 <div
                   className={cn(
                     "flex flex-col gap-1.5",
-                    isSuccess ? "mb-4 items-center text-center" : "mb-6 pr-6 text-left"
+                    isSuccess ? "mb-4 items-center text-center" : "mb-6 pr-12 text-left"
                   )}
                 >
                   {isSuccess && (
@@ -165,7 +172,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                   </DialogTitle>
                   <DialogDescription id="feedback-modal-description">
                     {isSuccess
-                      ? "We read every note — this genuinely helps us build a better OperationOS."
+                      ? "We read every note. This genuinely helps us build a better OperationOS."
                       : "We\u2019re building OperationOS together. Tell us what confused you, what you liked, or what you\u2019d improve."}
                   </DialogDescription>
                 </div>
@@ -176,7 +183,8 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                     aria-live="polite"
                     className="flex flex-col items-center text-center"
                   >
-                    <Button type="button" size="default" onClick={() => onOpenChange(false)}>
+                    <p className="sr-only">Feedback submitted successfully.</p>
+                    <Button ref={successButtonRef} type="button" size="default" onClick={() => onOpenChange(false)}>
                       Done
                     </Button>
                   </div>
@@ -193,6 +201,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                       <Input
                         id="feedback-name"
                         autoComplete="name"
+                        maxLength={80}
                         placeholder="Jane Doe"
                         aria-invalid={Boolean(errors.name)}
                         aria-describedby={errors.name ? "feedback-name-error" : undefined}
@@ -215,6 +224,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                         type="email"
                         inputMode="email"
                         autoComplete="email"
+                        maxLength={254}
                         placeholder="you@company.com"
                         aria-invalid={Boolean(errors.email)}
                         aria-describedby={errors.email ? "feedback-email-error" : undefined}
@@ -229,12 +239,18 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                     </div>
  
                     <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="feedback-message">Feedback</Label>
+                      <Label htmlFor="feedback-message">
+                        Feedback <span className="normal-case text-ink-faint">(required)</span>
+                      </Label>
                       <Textarea
                         id="feedback-message"
                         rows={4}
+                        minLength={10}
+                        maxLength={2000}
+                        required
                         placeholder="What worked, what didn't, what you'd love to see..."
                         aria-invalid={Boolean(errors.feedback)}
+                        aria-required="true"
                         aria-describedby={errors.feedback ? "feedback-message-error" : undefined}
                         {...register("feedback")}
                         disabled={isSubmitting}

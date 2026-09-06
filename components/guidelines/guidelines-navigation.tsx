@@ -26,7 +26,7 @@ function NavigationLinks({ onNavigate }: { onNavigate?: () => void }) {
                     aria-current={active ? "page" : undefined}
                     onClick={onNavigate}
                     className={cn(
-                      "flex min-h-11 items-center rounded-md border-l-2 px-3 text-sm transition-colors focus-visible:outline-none",
+                      "flex min-h-11 items-center rounded-md border-l-2 px-3 text-sm transition-colors",
                       active
                         ? "border-accent bg-accent-soft font-semibold text-ink"
                         : "border-transparent font-medium text-ink-dim hover:bg-surface-2 hover:text-ink",
@@ -65,6 +65,15 @@ export function GuidelinesNavigation() {
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [open]);
 
+  useEffect(() => {
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+    const closeAtDesktop = (event: MediaQueryListEvent) => {
+      if (event.matches) setOpen(false);
+    };
+    desktopQuery.addEventListener("change", closeAtDesktop);
+    return () => desktopQuery.removeEventListener("change", closeAtDesktop);
+  }, []);
+
   return (
     <>
       <div className="border-b border-border bg-bg-secondary py-4 lg:hidden">
@@ -75,7 +84,7 @@ export function GuidelinesNavigation() {
             aria-expanded={open}
             aria-controls={navigationId}
             onClick={() => setOpen((value) => !value)}
-            className="flex min-h-11 w-full items-center justify-between rounded-md border border-border-strong bg-surface px-4 text-left focus-visible:outline-none"
+            className="flex min-h-11 w-full items-center justify-between rounded-md border border-border-strong bg-surface px-4 text-left"
           >
             <span>
               <span className="block text-xs font-medium text-ink-faint">Guidelines</span>

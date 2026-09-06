@@ -34,7 +34,7 @@ export function ProductSpotlight() {
 
         <figure>
           <div className="overflow-hidden rounded-lg border border-border-strong bg-[#08090c] shadow-lift">
-            <Image src="/images/recruitos/RecruitOS_workspace_preview.png" alt="RecruitOS job workspace showing requirements, a candidate pipeline, match score, and recruiting status" width={1642} height={1382} sizes="(max-width: 1023px) 100vw, 62vw" className="h-auto w-full" />
+            <Image src="/images/recruitos/RecruitOS_workspace_preview.png" alt="RecruitOS job workspace showing requirements, a candidate pipeline, match score, and recruiting status" width={1642} height={1350} sizes="(max-width: 1023px) 100vw, 62vw" className="h-auto w-full" />
           </div>
           <figcaption className="mt-3 text-sm text-ink-dim">
             A real RecruitOS job workspace with requirements, candidate status, and review actions in one place.
