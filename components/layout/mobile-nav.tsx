@@ -71,7 +71,7 @@ export function MobileNav() {
             <Link href="/blog" onClick={closeMenu} className="mt-3 flex min-h-11 items-center rounded-md px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-2">
               Blog
             </Link>
-            <Button asChild className="mt-5 w-full"><TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "header", cta_location: "mobile_navigation", destination: "sign_up" }} onClick={closeMenu}>Get started</TrackedLink></Button>
+            <Button asChild className="mt-5 w-full"><TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "header", cta_location: "mobile_navigation", destination: "sign_up" }} onClick={closeMenu}>Try RecruitOS</TrackedLink></Button>
           </nav>
         </>
       )}

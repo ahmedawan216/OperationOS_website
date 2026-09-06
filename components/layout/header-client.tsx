@@ -75,7 +75,7 @@ export function HeaderClient() {
           </Link>
         </div>
         <div className="ml-auto hidden shrink-0 items-center gap-2 lg:flex">
-          <Button asChild size="sm"><TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "header", cta_location: "desktop_navigation", destination: "sign_up" }}>Get started</TrackedLink></Button>
+          <Button asChild size="sm"><TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "header", cta_location: "desktop_navigation", destination: "sign_up" }}>Try RecruitOS</TrackedLink></Button>
         </div>
         <div className="ml-auto lg:hidden"><MobileNav /></div>
       </nav>
