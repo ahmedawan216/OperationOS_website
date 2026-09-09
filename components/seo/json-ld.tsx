@@ -19,7 +19,7 @@ export function JsonLd() {
         name: siteConfig.organizationName,
         alternateName: siteConfig.name,
         url: siteConfig.url,
-        logo: `${siteConfig.url}/operationos-logo-final.png`,
+        logo: `${siteConfig.url}/brand/operationos-avatar-light-1024.png`,
         description: siteConfig.description,
       },
       {

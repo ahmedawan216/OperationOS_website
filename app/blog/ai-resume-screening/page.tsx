@@ -22,18 +22,18 @@ export const metadata: Metadata = {
     type: "article",
     images: [
       {
-        url: "/images/og-image-v2.png",
-        width: 1200,
-        height: 630,
-        alt: "AI Resume Screening Guide",
+        url: "/brand/operationos-avatar-light-1024.png",
+        width: 1024,
+        height: 1024,
+        alt: "OperationOS H1 mark",
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "AI Resume Screening: How It Works",
     description: "Complete guide to AI resume screening for recruiters.",
-    images: ["/images/og-image-v2.png"],
+    images: ["/brand/operationos-avatar-light-1024.png"],
   },
 };
 

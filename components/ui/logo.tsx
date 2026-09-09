@@ -5,43 +5,44 @@ import { cn } from "@/lib/utils";
 
 interface LogoProps {
   className?: string;
+  variant?: "lockup" | "mark";
+  tone?: "black" | "white";
 }
 
 /**
- * The OperationOS logo mark (public/operationos-logo-final.svg) plus the
- * "OperationOS.ai" wordmark. Used identically in the header and footer.
- *
- * The source SVG carries its own white background + black ring baked in —
- * that's preserved exactly as supplied, nothing in the artwork is edited.
- * `rounded-[6px] overflow-hidden` on the wrapping <span> just clips its
- * corners so it matches the site's existing soft-cornered look (buttons,
- * the previous logo chip, etc.) — it's a CSS clip on the container, not a
- * change to the vector itself.
+ * Final OperationOS H1 brand assets. The outlined lockup preserves the
+ * approved Space Grotesk SemiBold wordmark without a runtime font dependency.
  */
-export function Logo({ className }: LogoProps) {
+export function Logo({
+  className,
+  variant = "lockup",
+  tone = "black",
+}: LogoProps) {
+  const isMark = variant === "mark";
+  const src = isMark
+    ? `/brand/operationos-h1-mark-${tone}.svg`
+    : `/brand/operationos-h1-horizontal-${tone}.svg`;
+
   return (
     <Link
       href="/"
       className={cn(
-        "flex items-center gap-3 font-display text-base font-semibold text-ink",
+        "inline-flex shrink-0 items-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
         className
       )}
       aria-label="OperationOS home"
     >
-      <span className="block h-8 w-8 shrink-0 overflow-hidden rounded-md ring-1 ring-border">
-        <Image
-          src="/operationos-logo-final.svg"
-          alt="OperationOS"
-          width={32}
-          height={32}
-          priority
-          className="h-full w-full object-cover"
-        />
-      </span>
-      <span>
-        OperationOS
-        <span className="text-ink-faint">.org</span>
-      </span>
+      <Image
+        src={src}
+        alt=""
+        width={isMark ? 166 : 1556.8}
+        height={isMark ? 160 : 264}
+        priority
+        className={cn(
+          "block h-auto",
+          isMark ? "w-8" : "w-[168px] sm:w-[177px]"
+        )}
+      />
     </Link>
   );
 }
