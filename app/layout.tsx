@@ -65,25 +65,37 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     images: [
       {
-        url: "/images/og-image-v2.png",
-        width: 1200,
-        height: 630,
-        alt: "OperationOS focused software for operational work",
+        url: "/brand/operationos-avatar-light-1024.png",
+        width: 1024,
+        height: 1024,
+        alt: "OperationOS H1 mark",
       },
     ],
     type: "website",
   },
 
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: siteConfig.title,
     description:
       "OperationOS builds focused software products for clear, efficient operational work.",
-    images: ["/images/og-image-v2.png"],
+    images: ["/brand/operationos-avatar-light-1024.png"],
   },
 
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      {
+        url: "/brand/operationos-h1-mark-black.svg",
+        type: "image/svg+xml",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/brand/operationos-h1-mark-white.svg",
+        type: "image/svg+xml",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
+    apple: "/apple-icon.png",
   },
 };
 
