@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
@@ -8,14 +7,14 @@ import { TrackedLink } from "@/components/analytics/tracked-link";
 import { recruitosConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "Pricing and Access",
+  title: "RecruitOS Pricing",
   description:
-    "RecruitOS is available now. Review the current public pricing and checkout status, then create an account to begin.",
+    "Compare RecruitOS Free, Standard, and Pro plans for recruiting workflows, candidate review, resume analysis, and human-reviewed actions.",
   alternates: { canonical: "/pricing" },
   openGraph: {
-    title: "Pricing and Access | OperationOS.org",
+    title: "RecruitOS Pricing | OperationOS.org",
     description:
-      "RecruitOS is available now. Public pricing and self-service checkout are not currently published.",
+      "Compare RecruitOS Free, Standard, and Pro plans. Start free, then choose more capacity as your recruiting workload grows.",
     url: "/pricing",
     siteName: "OperationOS.org",
     type: "website",
@@ -30,155 +29,289 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Pricing and Access | OperationOS.org",
+    title: "RecruitOS Pricing | OperationOS.org",
     description:
-      "RecruitOS is available now. Public pricing and self-service checkout are not currently published.",
+      "Compare RecruitOS Free, Standard, and Pro plans for different recruiting workloads.",
     images: ["/brand/operationos-avatar-light-1024.png"],
   },
 };
 
-const accessDetails = [
-  { term: "Product", detail: "RecruitOS" },
-  { term: "Current access", detail: "Create an account in RecruitOS" },
-  { term: "Public pricing", detail: "Not currently published" },
-  { term: "Self-service checkout", detail: "Not currently available" },
+type Plan = {
+  name: "Free" | "Standard" | "Pro";
+  price: string;
+  cadence: string | null;
+  badge?: string;
+  positioning: string;
+  features: readonly string[];
+  cta: string;
+  emphasized?: boolean;
+  ctaLocation: string;
+};
+
+const plans: readonly Plan[] = [
+  {
+    name: "Free",
+    price: "$0",
+    cadence: "Forever",
+    positioning: "Get started with RecruitOS on real recruiting work.",
+    features: [
+      "1 active job",
+      "2 resume analyses per day",
+      "Jobs, candidates, and candidate comparison",
+      "Natural-language RecruitOS commands",
+      "Contextual follow-ups",
+      "Human-reviewed actions",
+    ],
+    cta: "Get started free",
+    ctaLocation: "free_plan",
+  },
+  {
+    name: "Standard",
+    price: "$39",
+    cadence: "/ month",
+    badge: "MOST POPULAR",
+    positioning: "For recruiters using RecruitOS as part of their everyday workflow.",
+    features: [
+      "25 active jobs",
+      "Monthly resume analysis capacity for active recruiting",
+      "Jobs, candidates, and candidate comparison",
+      "Natural-language RecruitOS commands",
+      "Contextual follow-ups",
+      "Human-reviewed actions",
+    ],
+    cta: "Choose Standard",
+    emphasized: true,
+    ctaLocation: "standard_plan",
+  },
+  {
+    name: "Pro",
+    price: "$69",
+    cadence: "/ month",
+    positioning: "For recruiters working across larger candidate volumes and workloads.",
+    features: [
+      "100 active jobs",
+      "Higher monthly resume analysis capacity",
+      "Jobs, candidates, and candidate comparison",
+      "Natural-language RecruitOS commands",
+      "Contextual follow-ups",
+      "Human-reviewed actions",
+    ],
+    cta: "Choose Pro",
+    ctaLocation: "pro_plan",
+  },
 ] as const;
 
-const clarityPrinciples = [
-  "What access includes should be understandable before a paid commitment.",
-  "Important product limits and commercial terms should be presented in context.",
-  "Pricing should reflect the product being used, without forcing unrelated products into one bundle.",
+const faqItems = [
+  {
+    question: "Is RecruitOS Free really free?",
+    answer:
+      "Yes. Free is $0 and is intended as a permanent way to start using RecruitOS on real recruiting work.",
+  },
+  {
+    question: "Do I need a credit card for Free?",
+    answer:
+      "No. A credit card is not required to create a Free RecruitOS account.",
+  },
+  {
+    question: "What happens when I reach the Free resume-analysis limit?",
+    answer:
+      "Free includes 2 resume analyses per day. Once you reach that daily limit, you can continue using the rest of RecruitOS and resume analysis becomes available again when the daily allowance resets.",
+  },
+  {
+    question: "Can I cancel a paid plan?",
+    answer:
+      "Paid plans are intended to bill monthly with no annual commitment at launch, and you will be able to cancel anytime once billing is available. Paid checkout is not live on this website yet.",
+  },
+  {
+    question: "What is the difference between Standard and Pro?",
+    answer:
+      "Standard is designed for everyday active recruiting with 25 active jobs and monthly resume analysis capacity. Pro is designed for higher-volume workloads with 100 active jobs and a larger monthly resume analysis capacity.",
+  },
+  {
+    question: "Does RecruitOS make hiring decisions automatically?",
+    answer:
+      "No. RecruitOS can analyze, organize, compare, prepare, and propose actions, while consequential recruiting actions remain reviewable by the recruiter.",
+  },
+  {
+    question: "Can I change plans later?",
+    answer:
+      "Yes. The commercial model is designed so you can move between plans as your recruiting workload changes. Paid plan switching will become available with billing.",
+  },
 ] as const;
 
 export default function PricingPage() {
   return (
     <>
       <section className="border-b border-border pt-[72px]">
-        <div className="container-standard grid gap-10 py-16 sm:py-20 lg:grid-cols-[1.05fr_0.75fr] lg:items-end lg:gap-20 lg:py-24">
-          <div className="max-w-3xl">
-            <p className="type-meta font-mono font-medium uppercase text-accent">
-              Pricing and access
-            </p>
-            <h1 className="type-h1 mt-6 font-display font-semibold text-ink">
-              Understand the product and the terms before you commit.
-            </h1>
-          </div>
-          <p className="type-body-lg max-w-xl text-ink-dim">
-            OperationOS products have their own access path and pricing context. Commercial terms will be presented clearly with the product when they are available.
+        <div className="container-standard py-16 text-center sm:py-20 lg:py-24">
+          <p className="type-meta font-mono font-medium uppercase text-accent">
+            RecruitOS pricing
+          </p>
+          <h1 className="type-h1 mx-auto mt-6 max-w-4xl font-display font-semibold text-ink">
+            Start free. Add more capacity when recruiting becomes a daily workflow.
+          </h1>
+          <p className="type-body-lg mx-auto mt-6 max-w-2xl text-ink-dim">
+            Every plan includes the core RecruitOS experience. Choose based on the volume of recruiting work you need to manage.
           </p>
         </div>
       </section>
 
       <Section>
-        <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
-          <div className="max-w-xl">
-            <p className="type-meta font-mono font-medium uppercase text-accent">
-              RecruitOS / An OperationOS product
-            </p>
-            <h2 className="type-h2 mt-5 font-display font-semibold text-ink">
-              Start with access to the recruiting workflow.
-            </h2>
-            <p className="mt-5 text-base leading-7 text-ink-dim">
-              RecruitOS helps recruiters and hiring teams review candidates against role requirements, understand the context behind recommendations, and keep review progress organized. Hiring decisions remain with your team.
-            </p>
-            <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <Button asChild>
-                <TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "pricing", cta_location: "product_summary", destination: "sign_up" }}>
-                  Create account
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </TrackedLink>
-              </Button>
-              <Button asChild variant="quiet">
-                <Link href="/recruitos">Explore RecruitOS</Link>
-              </Button>
-            </div>
-          </div>
-
-          <div className="overflow-hidden rounded-lg border border-border-strong bg-surface shadow-lift">
-            <div className="border-b border-border bg-surface-2 px-5 py-4 sm:px-7">
-              <p className="type-meta font-mono font-medium uppercase text-ink-faint">
-                Current access status
-              </p>
-            </div>
-            <dl className="divide-y divide-border px-5 sm:px-7">
-              {accessDetails.map((item) => (
-                <div key={item.term} className="grid gap-2 py-5 sm:grid-cols-[150px_1fr] sm:gap-8">
-                  <dt className="text-sm font-semibold text-ink">{item.term}</dt>
-                  <dd className="text-sm leading-6 text-ink-dim sm:text-right">{item.detail}</dd>
+        <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
+          {plans.map((plan) => (
+            <article
+              key={plan.name}
+              className={
+                plan.emphasized
+                  ? "flex min-h-full flex-col rounded-[12px] border border-[#0E6E6E] bg-[#0F1620] p-6 text-white sm:p-8"
+                  : "flex min-h-full flex-col rounded-[12px] border border-border-strong bg-surface p-6 sm:p-8"
+              }
+              aria-label={`${plan.name} plan`}
+            >
+              <div>
+                <div className="flex min-h-7 items-start justify-between gap-4">
+                  <h2 className={plan.emphasized ? "type-h3 font-display font-semibold text-white" : "type-h3 font-display font-semibold text-ink"}>
+                    {plan.name}
+                  </h2>
+                  {plan.badge ? (
+                    <span className="rounded-full border border-[#0E6E6E] px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-white">
+                      {plan.badge}
+                    </span>
+                  ) : null}
                 </div>
-              ))}
-            </dl>
-          </div>
+
+                <div className="mt-8 flex items-end gap-2">
+                  <span className={plan.emphasized ? "font-display text-5xl font-semibold tracking-[-0.04em] text-white" : "font-display text-5xl font-semibold tracking-[-0.04em] text-ink"}>
+                    {plan.price}
+                  </span>
+                  {plan.cadence ? (
+                    <span className={plan.emphasized ? "pb-1 text-sm text-white/65" : "pb-1 text-sm text-ink-dim"}>
+                      {plan.cadence}
+                    </span>
+                  ) : null}
+                </div>
+
+                <p className={plan.emphasized ? "mt-6 min-h-[84px] text-base leading-7 text-white/75" : "mt-6 min-h-[84px] text-base leading-7 text-ink-dim"}>
+                  {plan.positioning}
+                </p>
+              </div>
+
+              <div className={plan.emphasized ? "my-7 border-t border-white/15" : "my-7 border-t border-border"} />
+
+              <ul className="space-y-4">
+                {plan.features.map((feature) => (
+                  <li key={feature} className={plan.emphasized ? "flex gap-3 text-sm leading-6 text-white/85" : "flex gap-3 text-sm leading-6 text-ink-dim"}>
+                    <Check className={plan.emphasized ? "mt-0.5 h-5 w-5 shrink-0 text-[#4FB8B0]" : "mt-0.5 h-5 w-5 shrink-0 text-accent"} aria-hidden="true" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-auto pt-8">
+                <Button
+                  asChild
+                  className={
+                    plan.emphasized
+                      ? "w-full border-white bg-white text-[#0F1620] hover:border-white hover:bg-white/90"
+                      : "w-full"
+                  }
+                  variant={plan.emphasized ? "secondary" : "primary"}
+                >
+                  <TrackedLink
+                    href={recruitosConfig.signUpUrl}
+                    eventName="recruitos_access_clicked"
+                    eventProperties={{
+                      product: "recruitos",
+                      source_page: "pricing",
+                      cta_location: plan.ctaLocation,
+                      destination: "sign_up",
+                    }}
+                  >
+                    {plan.cta}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </TrackedLink>
+                </Button>
+                {plan.name !== "Free" ? (
+                  <p className={plan.emphasized ? "mt-3 text-center text-xs leading-5 text-white/55" : "mt-3 text-center text-xs leading-5 text-ink-faint"}>
+                    Paid checkout is not live yet. This starts with account creation.
+                  </p>
+                ) : null}
+              </div>
+            </article>
+          ))}
         </div>
       </Section>
 
       <Section className="border-y border-border bg-bg-secondary">
-        <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
+        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start lg:gap-20">
           <div className="max-w-xl">
             <p className="type-meta font-mono font-medium uppercase text-accent">
-              Commercial clarity
+              Human control on every plan
             </p>
             <h2 className="type-h2 mt-5 font-display font-semibold text-ink">
-              The important details should be visible before payment enters the workflow.
+              More capacity does not mean less recruiter control.
             </h2>
-            <p className="mt-5 text-base leading-7 text-ink-dim">
-              RecruitOS is available now through its account creation flow. Public pricing and self-service checkout are not currently published, so no plan, trial, or paid commitment is represented on this page.
-            </p>
           </div>
-          <ul className="divide-y divide-border border-y border-border">
-            {clarityPrinciples.map((principle) => (
-              <li key={principle} className="flex gap-4 py-6 text-base leading-7 text-ink-dim">
-                <Check className="mt-1 h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
-                <span>{principle}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="rounded-[12px] border border-border-strong bg-surface p-6 sm:p-8">
+            <div className="flex gap-4">
+              <ShieldCheck className="mt-1 h-6 w-6 shrink-0 text-accent" aria-hidden="true" />
+              <p className="text-base leading-7 text-ink-dim">
+                RecruitOS can analyze, organize, compare, prepare, and propose actions across every plan. Consequential recruiting actions remain reviewable by the recruiter before they move forward.
+              </p>
+            </div>
+          </div>
         </div>
       </Section>
 
       <Section>
-        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-20">
-          <div className="max-w-2xl">
-            <p className="type-meta font-mono font-medium uppercase text-accent">
-              Product-specific by design
-            </p>
-            <h2 className="type-h2 mt-5 font-display font-semibold text-ink">
-              Each product carries the pricing context that belongs to it.
-            </h2>
-            <p className="mt-5 text-base leading-7 text-ink-dim">
-              OperationOS builds focused products for distinct operational work. Keeping pricing and access information with each product makes it easier to understand what you are evaluating today and leaves a clear structure for publicly announced products later.
-            </p>
+        <div className="mx-auto max-w-3xl">
+          <p className="type-meta font-mono font-medium uppercase text-accent">
+            Pricing questions
+          </p>
+          <h2 className="type-h2 mt-5 font-display font-semibold text-ink">
+            What to know before you choose a plan.
+          </h2>
+
+          <div className="mt-10 divide-y divide-border border-y border-border">
+            {faqItems.map((item) => (
+              <details key={item.question} className="group py-5">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 rounded-md text-left font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+                  <span>{item.question}</span>
+                  <span className="text-xl font-normal text-ink-faint transition-transform group-open:rotate-45" aria-hidden="true">
+                    +
+                  </span>
+                </summary>
+                <p className="max-w-2xl pb-1 pt-3 text-sm leading-6 text-ink-dim">
+                  {item.answer}
+                </p>
+              </details>
+            ))}
           </div>
-          <aside className="border-l-2 border-accent bg-accent-soft px-6 py-6 sm:px-8" aria-labelledby="billing-guidance-title">
-            <p className="type-meta font-mono font-medium uppercase text-accent">Reference</p>
-            <h2 id="billing-guidance-title" className="mt-4 font-display text-xl font-semibold text-ink">
-              Need the current account and billing details?
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-ink-dim">
-              The Guidelines explain what the public access process supports today and which account or billing controls are not part of the current website.
-            </p>
-            <Link href="/guidelines/account-billing" className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent underline-offset-4 hover:text-accent-hover hover:underline">
-              Read the Account &amp; Billing Guidelines
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </aside>
         </div>
       </Section>
 
       <section className="border-t border-border bg-ink text-white">
         <div className="container-standard flex flex-col gap-8 py-16 sm:py-20 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
           <div className="max-w-2xl">
-            <p className="type-meta font-mono font-medium uppercase text-[#9aabff]">RecruitOS access</p>
-            <h2 className="type-h2 mt-5 font-display font-semibold text-white">
-              See whether RecruitOS fits your candidate-review workflow.
-            </h2>
-            <p className="mt-4 text-base leading-7 text-white/70">
-              Explore the product, then create a RecruitOS account when you are ready to begin.
+            <p className="type-meta font-mono font-medium uppercase text-[#9aabff]">
+              Start with RecruitOS
             </p>
+            <h2 className="type-h2 mt-5 font-display font-semibold text-white">
+              Use the core recruiting workflow free, then add capacity when you need it.
+            </h2>
           </div>
           <Button asChild className="shrink-0 border-white bg-white text-ink hover:border-white hover:bg-white/90">
-            <TrackedLink href={recruitosConfig.signUpUrl} eventName="recruitos_access_clicked" eventProperties={{ product: "recruitos", source_page: "pricing", cta_location: "closing", destination: "sign_up" }}>
-              Create account
+            <TrackedLink
+              href={recruitosConfig.signUpUrl}
+              eventName="recruitos_access_clicked"
+              eventProperties={{
+                product: "recruitos",
+                source_page: "pricing",
+                cta_location: "closing",
+                destination: "sign_up",
+              }}
+            >
+              Get started free
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </TrackedLink>
           </Button>
