@@ -196,18 +196,7 @@ export default function PricingPage() {
                 </p>
               </div>
 
-              <div className={plan.emphasized ? "my-7 border-t border-white/15" : "my-7 border-t border-border"} />
-
-              <ul className="space-y-4">
-                {plan.features.map((feature) => (
-                  <li key={feature} className={plan.emphasized ? "flex gap-3 text-sm leading-6 text-white/85" : "flex gap-3 text-sm leading-6 text-ink-dim"}>
-                    <Check className={plan.emphasized ? "mt-0.5 h-5 w-5 shrink-0 text-[#4FB8B0]" : "mt-0.5 h-5 w-5 shrink-0 text-accent"} aria-hidden="true" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-auto pt-8">
+              <div className="mt-6">
                 <Button
                   asChild
                   className={
@@ -237,6 +226,17 @@ export default function PricingPage() {
                   </p>
                 ) : null}
               </div>
+
+              <div className={plan.emphasized ? "my-7 border-t border-white/15" : "my-7 border-t border-border"} />
+
+              <ul className="space-y-4">
+                {plan.features.map((feature) => (
+                  <li key={feature} className={plan.emphasized ? "flex gap-3 text-sm leading-6 text-white/85" : "flex gap-3 text-sm leading-6 text-ink-dim"}>
+                    <Check className={plan.emphasized ? "mt-0.5 h-5 w-5 shrink-0 text-[#4FB8B0]" : "mt-0.5 h-5 w-5 shrink-0 text-accent"} aria-hidden="true" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
             </article>
           ))}
         </div>
