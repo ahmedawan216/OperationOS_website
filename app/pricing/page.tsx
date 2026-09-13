@@ -4,7 +4,7 @@ import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { TrackedLink } from "@/components/analytics/tracked-link";
-import { recruitosConfig } from "@/lib/site-config";
+import { getRecruitOSCheckoutUrl, recruitosConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "RecruitOS Pricing",
@@ -46,6 +46,8 @@ type Plan = {
   cta: string;
   emphasized?: boolean;
   ctaLocation: string;
+  planKey: "free" | "standard" | "pro";
+  href: string;
 };
 
 const plans: readonly Plan[] = [
@@ -64,6 +66,8 @@ const plans: readonly Plan[] = [
     ],
     cta: "Get started free",
     ctaLocation: "free_plan",
+    planKey: "free",
+    href: recruitosConfig.signUpUrl,
   },
   {
     name: "Standard",
@@ -82,6 +86,8 @@ const plans: readonly Plan[] = [
     cta: "Choose Standard",
     emphasized: true,
     ctaLocation: "standard_plan",
+    planKey: "standard",
+    href: getRecruitOSCheckoutUrl("standard"),
   },
   {
     name: "Pro",
@@ -98,6 +104,8 @@ const plans: readonly Plan[] = [
     ],
     cta: "Choose Pro",
     ctaLocation: "pro_plan",
+    planKey: "pro",
+    href: getRecruitOSCheckoutUrl("pro"),
   },
 ] as const;
 
@@ -120,7 +128,7 @@ const faqItems = [
   {
     question: "Can I cancel a paid plan?",
     answer:
-      "Paid plans are intended to bill monthly with no annual commitment at launch, and you will be able to cancel anytime once billing is available. Paid checkout is not live on this website yet.",
+      "Paid plans are billed monthly with no annual commitment and can be canceled anytime through Paddle billing management.",
   },
   {
     question: "What is the difference between Standard and Pro?",
@@ -135,7 +143,7 @@ const faqItems = [
   {
     question: "Can I change plans later?",
     answer:
-      "Yes. The commercial model is designed so you can move between plans as your recruiting workload changes. Paid plan switching will become available with billing.",
+      "Yes. If you already have a paid RecruitOS subscription, plan changes are handled through Paddle billing management so a second subscription is not created.",
   },
 ] as const;
 
@@ -207,24 +215,20 @@ export default function PricingPage() {
                   variant={plan.emphasized ? "secondary" : "primary"}
                 >
                   <TrackedLink
-                    href={recruitosConfig.signUpUrl}
+                    href={plan.href}
                     eventName="recruitos_access_clicked"
                     eventProperties={{
                       product: "recruitos",
                       source_page: "pricing",
                       cta_location: plan.ctaLocation,
-                      destination: "sign_up",
+                      destination: plan.planKey === "free" ? "sign_up" : "checkout",
+                      plan: plan.planKey,
                     }}
                   >
                     {plan.cta}
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </TrackedLink>
                 </Button>
-                {plan.name !== "Free" ? (
-                  <p className={plan.emphasized ? "mt-3 text-center text-xs leading-5 text-white/55" : "mt-3 text-center text-xs leading-5 text-ink-faint"}>
-                    Paid checkout is not live yet. This starts with account creation.
-                  </p>
-                ) : null}
               </div>
 
               <div className={plan.emphasized ? "my-7 border-t border-white/15" : "my-7 border-t border-border"} />
@@ -309,6 +313,7 @@ export default function PricingPage() {
                 source_page: "pricing",
                 cta_location: "closing",
                 destination: "sign_up",
+                plan: "free",
               }}
             >
               Get started free

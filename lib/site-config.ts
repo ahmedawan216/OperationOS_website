@@ -25,3 +25,7 @@ export const recruitosConfig = {
   signUpUrl: "https://recruitos.operationos.org/sign-up",
   signInUrl: "https://recruitos.operationos.org/sign-in",
 } as const;
+
+export function getRecruitOSCheckoutUrl(plan: "standard" | "pro") {
+  return `${recruitosConfig.appUrl}/checkout?plan=${plan}`;
+}

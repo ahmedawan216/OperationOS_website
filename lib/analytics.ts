@@ -18,7 +18,8 @@ export interface AnalyticsProperties {
     product: "recruitos";
     source_page: "homepage" | "recruitos" | "pricing" | "solutions" | "contact" | "blog" | "guidelines" | "header";
     cta_location: string;
-    destination: "sign_up" | "sign_in";
+    destination: "sign_up" | "sign_in" | "checkout";
+    plan?: "free" | "standard" | "pro";
   };
   feedback_opened: { location: "global" };
   feedback_submitted: { location: "global" };
