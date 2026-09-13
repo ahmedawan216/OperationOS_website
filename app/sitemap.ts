@@ -58,6 +58,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.4,
     },
     {
+      path: "/refunds",
+      lastModified: "2026-09-13",
+      changeFrequency: "yearly" as const,
+      priority: 0.4,
+    },
+    {
       path: "/guidelines",
       lastModified: "2026-09-05",
       changeFrequency: "monthly" as const,

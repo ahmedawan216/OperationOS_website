@@ -38,6 +38,7 @@ export function Footer() {
               <Link className="inline-flex min-h-11 items-center text-sm font-medium text-ink underline-offset-4 hover:text-accent hover:underline" href="/security">Security</Link>
               <Link className="inline-flex min-h-11 items-center text-sm font-medium text-ink underline-offset-4 hover:text-accent hover:underline" href="/privacy">Privacy</Link>
               <Link className="inline-flex min-h-11 items-center text-sm font-medium text-ink underline-offset-4 hover:text-accent hover:underline" href="/terms">Terms</Link>
+              <Link className="inline-flex min-h-11 items-center text-sm font-medium text-ink underline-offset-4 hover:text-accent hover:underline" href="/refunds">Refunds</Link>
             </div>
           </nav>
         </div>
