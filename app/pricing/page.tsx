@@ -229,6 +229,11 @@ export default function PricingPage() {
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </TrackedLink>
                 </Button>
+                {plan.planKey !== "free" ? (
+                  <p className={plan.emphasized ? "mt-3 text-center text-xs text-white/60" : "mt-3 text-center text-xs text-ink-faint"}>
+                    Secure monthly billing. Cancel anytime.
+                  </p>
+                ) : null}
               </div>
 
               <div className={plan.emphasized ? "my-7 border-t border-white/15" : "my-7 border-t border-border"} />
