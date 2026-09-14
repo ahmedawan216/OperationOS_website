@@ -6,20 +6,20 @@ const pricing = readFileSync(new URL("../app/pricing/page.tsx", import.meta.url)
 const config = readFileSync(new URL("../lib/site-config.ts", import.meta.url), "utf8");
 const analytics = readFileSync(new URL("../lib/analytics.ts", import.meta.url), "utf8");
 
-test("pricing CTAs point to the production RecruitOS commercial paths", () => {
+test("pricing keeps Free signup available and removes paid checkout paths", () => {
   assert.ok(config.includes('appUrl: "https://recruitos.operationos.org"'));
   assert.ok(pricing.includes('href: recruitosConfig.signUpUrl'));
-  assert.ok(pricing.includes('getRecruitOSCheckoutUrl("standard")'));
-  assert.ok(pricing.includes('getRecruitOSCheckoutUrl("pro")'));
+  assert.equal(pricing.includes("getRecruitOSCheckoutUrl"), false);
+  assert.equal(pricing.includes('destination: "checkout"'), false);
+  assert.equal((pricing.match(/cta: "Coming soon"/g) ?? []).length, 2);
 });
 
 test("OperationOS pricing never embeds Paddle price IDs", () => {
   assert.equal(/pri_[a-zA-Z0-9]/.test(pricing + config), false);
 });
 
-test("obsolete checkout-not-live copy is removed", () => {
-  assert.equal(pricing.includes("Paid checkout is not live yet"), false);
-  assert.equal(pricing.includes("This starts with account creation"), false);
+test("pricing explains the temporary free early-access phase", () => {
+  assert.ok(pricing.includes("RecruitOS is currently available free during early access. Paid plans are coming soon."));
 });
 
 test("existing pricing analytics retain the event and distinguish selected plans", () => {
@@ -30,8 +30,9 @@ test("existing pricing analytics retain the event and distinguish selected plans
   assert.ok(analytics.includes('plan?: "free" | "standard" | "pro"'));
 });
 
-test("paid pricing cards keep a concise trust cue without changing billing authority", () => {
-  assert.ok(pricing.includes("Secure monthly billing. Cancel anytime."));
+test("paid pricing cards are disabled and omit the former purchase trust cue", () => {
+  assert.ok(pricing.includes("disabled"));
+  assert.equal(pricing.includes("Secure monthly billing. Cancel anytime."), false);
   assert.equal(pricing.includes("—"), false);
 });
 

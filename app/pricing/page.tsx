@@ -4,7 +4,7 @@ import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { TrackedLink } from "@/components/analytics/tracked-link";
-import { getRecruitOSCheckoutUrl, recruitosConfig } from "@/lib/site-config";
+import { recruitosConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "RecruitOS Pricing",
@@ -47,7 +47,7 @@ type Plan = {
   emphasized?: boolean;
   ctaLocation: string;
   planKey: "free" | "standard" | "pro";
-  href: string;
+  href?: string;
 };
 
 const plans: readonly Plan[] = [
@@ -83,11 +83,10 @@ const plans: readonly Plan[] = [
       "Contextual follow-ups",
       "Human-reviewed actions",
     ],
-    cta: "Choose Standard",
+    cta: "Coming soon",
     emphasized: true,
     ctaLocation: "standard_plan",
     planKey: "standard",
-    href: getRecruitOSCheckoutUrl("standard"),
   },
   {
     name: "Pro",
@@ -102,10 +101,9 @@ const plans: readonly Plan[] = [
       "Contextual follow-ups",
       "Human-reviewed actions",
     ],
-    cta: "Choose Pro",
+    cta: "Coming soon",
     ctaLocation: "pro_plan",
     planKey: "pro",
-    href: getRecruitOSCheckoutUrl("pro"),
   },
 ] as const;
 
@@ -161,6 +159,9 @@ export default function PricingPage() {
           <p className="type-body-lg mx-auto mt-6 max-w-2xl text-ink-dim">
             Every plan includes the core RecruitOS experience. Choose based on the volume of recruiting work you need to manage.
           </p>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-ink-dim">
+            RecruitOS is currently available free during early access. Paid plans are coming soon.
+          </p>
         </div>
       </section>
 
@@ -205,35 +206,44 @@ export default function PricingPage() {
               </div>
 
               <div className="mt-6">
-                <Button
-                  asChild
-                  className={
-                    plan.emphasized
-                      ? "w-full border-white bg-white text-[#0F1620] hover:border-white hover:bg-white/90"
-                      : "w-full"
-                  }
-                  variant={plan.emphasized ? "secondary" : "primary"}
-                >
-                  <TrackedLink
-                    href={plan.href}
-                    eventName="recruitos_access_clicked"
-                    eventProperties={{
-                      product: "recruitos",
-                      source_page: "pricing",
-                      cta_location: plan.ctaLocation,
-                      destination: plan.planKey === "free" ? "sign_up" : "checkout",
-                      plan: plan.planKey,
-                    }}
+                {plan.href ? (
+                  <Button
+                    asChild
+                    className={
+                      plan.emphasized
+                        ? "w-full border-white bg-white text-[#0F1620] hover:border-white hover:bg-white/90"
+                        : "w-full"
+                    }
+                    variant={plan.emphasized ? "secondary" : "primary"}
+                  >
+                    <TrackedLink
+                      href={plan.href}
+                      eventName="recruitos_access_clicked"
+                      eventProperties={{
+                        product: "recruitos",
+                        source_page: "pricing",
+                        cta_location: plan.ctaLocation,
+                        destination: "sign_up",
+                        plan: plan.planKey,
+                      }}
+                    >
+                      {plan.cta}
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </TrackedLink>
+                  </Button>
+                ) : (
+                  <Button
+                    className={
+                      plan.emphasized
+                        ? "w-full border-white bg-white text-[#0F1620]"
+                        : "w-full"
+                    }
+                    variant={plan.emphasized ? "secondary" : "primary"}
+                    disabled
                   >
                     {plan.cta}
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </TrackedLink>
-                </Button>
-                {plan.planKey !== "free" ? (
-                  <p className={plan.emphasized ? "mt-3 text-center text-xs text-white/60" : "mt-3 text-center text-xs text-ink-faint"}>
-                    Secure monthly billing. Cancel anytime.
-                  </p>
-                ) : null}
+                  </Button>
+                )}
               </div>
 
               <div className={plan.emphasized ? "my-7 border-t border-white/15" : "my-7 border-t border-border"} />
