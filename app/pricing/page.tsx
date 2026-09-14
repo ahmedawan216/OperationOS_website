@@ -57,8 +57,8 @@ const plans: readonly Plan[] = [
     cadence: "Forever",
     positioning: "Get started with RecruitOS on real recruiting work.",
     features: [
-      "1 active job",
-      "2 resume analyses per day",
+      "3 active jobs",
+      "25 resume analyses per month",
       "Jobs, candidates, and candidate comparison",
       "Natural-language RecruitOS commands",
       "Contextual follow-ups",
@@ -123,7 +123,7 @@ const faqItems = [
   {
     question: "What happens when I reach the Free resume-analysis limit?",
     answer:
-      "Free includes 2 resume analyses per day. Once you reach that daily limit, you can continue using the rest of RecruitOS and resume analysis becomes available again when the daily allowance resets.",
+      "Free includes 25 resume analyses per month. Once you reach that monthly limit, you can continue using the rest of RecruitOS and resume analysis becomes available again when the monthly allowance resets.",
   },
   {
     question: "Can I cancel a paid plan?",
