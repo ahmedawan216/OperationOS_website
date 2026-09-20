@@ -263,6 +263,7 @@ export default function RecruitOSPage() {
         </div>
       </Section>
 
+      <Section><h2 className="type-h2 font-display font-semibold text-ink">Explore RecruitOS workflows</h2><p className="mt-5 text-ink-dim">RecruitOS is free during early access, with no card required. Explore the product’s practical guides before creating an account.</p><nav aria-label="RecruitOS workflow guides" className="mt-6 flex flex-col gap-4 text-accent underline"><a href="https://recruitos.operationos.org/resume-analysis">Resume analysis against role requirements</a><a href="https://recruitos.operationos.org/compare-candidates">Candidate comparison with supporting evidence</a><a href="https://recruitos.operationos.org/guides/candidate-evaluation-template">Free candidate evaluation worksheet</a></nav></Section>
       <section className="border-t border-border">
         <div className="container-standard flex flex-col gap-5 py-10 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm leading-6 text-ink-dim">RecruitOS is a focused recruiting product built by OperationOS.</p>

@@ -1,3 +1,4 @@
+import { JsonLd as ArticleJsonLd } from "@/components/seo/article-json-ld";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -40,7 +41,9 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <div className="mx-auto max-w-4xl px-5 pb-24 pt-[calc(72px+4rem)] sm:px-8 sm:pb-28 sm:pt-[calc(72px+5rem)]">
+      <ArticleJsonLd />
       <article className="prose prose-neutral max-w-none text-ink">
+        <aside aria-label="Practical recruiting resources"><p>Putting a review process into practice? Use the <a href="https://recruitos.operationos.org/guides/candidate-evaluation-template">candidate evaluation worksheet</a>, then explore <a href="https://recruitos.operationos.org/resume-analysis">resume analysis in RecruitOS</a>. RecruitOS is free during early access, with no card required.</p></aside>
         <h1>AI Resume Screening: How It Works (Complete Guide for Recruiters in 2026)</h1>
 
         <p>
@@ -140,10 +143,9 @@ export default function Page() {
 
         <h2 id="ai-screening-vs-traditional-ats">AI Screening vs. Traditional ATS Filtering</h2>
         <p>
-          Applicant tracking systems (ATS) have used automated resume filtering for over a decade. Most of
-          that filtering has historically relied on keyword matching: does the resume contain the words
-          &quot;Python,&quot; &quot;project management,&quot; or &quot;5 years&quot;? If not, the resume gets
-          buried or auto-rejected.
+          Applicant tracking systems organize recruiting workflows. Their screening capabilities vary;
+          some support keyword searches, configurable questions, or AI-assisted matching. An ATS does not
+          necessarily reject a candidate because a resume lacks an exact keyword.
         </p>
         <p>
           AI resume screening, particularly systems built on modern language models, can compare semantic
@@ -280,7 +282,7 @@ export default function Page() {
         <table>
           <thead>
             <tr>
-              <th>Traditional ATS</th>
+              <th>Keyword-only matching</th>
               <th>AI Resume Screening</th>
             </tr>
           </thead>
@@ -317,9 +319,8 @@ export default function Page() {
             matter.
           </li>
           <li>
-            More consistent baseline evaluation. Because the tool applies the same criteria to every resume,
-            it reduces the variability that comes from reviewer fatigue or inconsistent standards across a
-            hiring team.
+            A shared review baseline. Using the same role requirements can help organize evaluations,
+            but AI outputs may still vary and require checks for errors and inconsistent treatment.
           </li>
           <li>
             Clearer documentation. A structured breakdown of why a candidate was flagged as a strong or weak
@@ -470,6 +471,7 @@ export default function Page() {
           </Link>
         </p>
 
+        <p>A match score is not a hiring probability. Missing evidence in a resume does not establish that a candidate lacks the ability. Check material claims against the source and keep consequential decisions under human control.</p>
         <h2 id="conclusion">Conclusion</h2>
         <p>
           AI-assisted resume screening is most useful as support for repetitive comparison, not as a

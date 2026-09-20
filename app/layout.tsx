@@ -41,18 +41,6 @@ export const metadata: Metadata = {
 
   description: siteConfig.description,
 
-  keywords: [
-    "AI recruiting",
-    "AI hiring",
-    "RecruitOS",
-    "resume screening",
-    "candidate matching",
-    "AI recruitment software",
-    "AI HR software",
-    "LLM recruiting",
-    "AI automation",
-  ],
-
   alternates: {
     canonical: "/",
   },
