@@ -21,6 +21,7 @@ export interface RuntimeEventDraft {
   readonly actor: { readonly kind: "runtime"; readonly id: string };
   readonly versionRefs: Readonly<Record<string, string>>;
   readonly payload: Readonly<Record<string, unknown>>;
+  readonly redactionPaths?: readonly string[];
   readonly occurredAt: string;
 }
 
