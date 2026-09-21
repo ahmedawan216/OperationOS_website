@@ -466,7 +466,7 @@ export default function Page() {
         </p>
         <p>
           Learn more on the{" "}
-          <Link href="/recruitos">
+          <Link href="https://recruitos.operationos.org/">
             RecruitOS product page
           </Link>
         </p>
@@ -491,8 +491,8 @@ export default function Page() {
         </p>
         <p>
           👉 Explore RecruitOS at{" "}
-          <Link href="/recruitos">
-            RecruitOS product page
+          <Link href="https://recruitos.operationos.org/resume-analysis">
+            Resume screening and analysis in RecruitOS
           </Link>
         </p>
 
