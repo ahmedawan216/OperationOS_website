@@ -317,6 +317,7 @@ export const approvalRequestSchema = z
     actorId: idSchema,
     actionType: keySchema,
     riskLevel: riskLevelSchema,
+    approvalType: z.enum(["human", "explicit_human"]),
     actionDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/),
     summary: z.string().trim().min(1).max(4_000),
     expiresAt: isoDateTimeSchema,
