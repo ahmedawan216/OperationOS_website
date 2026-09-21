@@ -194,6 +194,18 @@ export class ManagerExecutionLoop {
 
         if (result.status === "blocked" && result.requestedApprovalId && !postCallBudgetFailure) {
           this.dependencies.attempts.transition(stepAttemptId, "blocked", this.dependencies.now());
+          this.dependencies.events.record({
+            type: "approval.requested",
+            executionId: snapshot,
+            actor: { kind: "runtime", id: "manager-runtime" },
+            versionRefs: { specialist: validatedStep.specialist.versionId },
+            payload: {
+              approvalId: result.requestedApprovalId,
+              stepId: result.stepId,
+              attempt: attemptNumber,
+            },
+            occurredAt: this.dependencies.now(),
+          });
           this.dependencies.runtime.transitionExecution(snapshot, "awaiting_approval");
           return {
             status: "approval_required",

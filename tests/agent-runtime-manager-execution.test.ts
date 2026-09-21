@@ -176,6 +176,24 @@ test("provider errors and invalid structured results become typed failures", asy
   if (mismatchedResult.status === "failed") assert.equal(mismatchedResult.error.code, "VALIDATION_ERROR");
 });
 
+test("approval-required result blocks execution and emits a dedicated trace", async () => {
+  const context = setup({ outcomes: [{
+    kind: "response",
+    response: { result: {
+      executionId: "execution-1", stepId: "workflow", status: "blocked",
+      evidenceRefs: [], unmetCriteria: ["criterion-1"], requestedApprovalId: "approval-1",
+    } },
+  }] });
+  const result = await context.loop.execute({ goal, validatedPlan: context.validatedPlan });
+  assert.equal(result.status, "approval_required");
+  assert.equal(context.states.get("execution-1")?.status, "awaiting_approval");
+  assert.equal(
+    context.events.list("execution-1").some((event) =>
+      event.type === "approval.requested" && event.payload.approvalId === "approval-1"),
+    true,
+  );
+});
+
 test("cancellation prevents specialist work and terminal execution cannot reopen", async () => {
   const context = setup({
     outcomes: [{ kind: "response", response: { result: completedResult() } }],

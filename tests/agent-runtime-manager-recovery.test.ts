@@ -108,6 +108,23 @@ test("invalid replanning output follows a typed failure path and is not stored",
   assert.equal(history.list(snapshot.executionId).length, 0);
 });
 
+test("Manager provider errors are normalized without leaking provider details", async () => {
+  const provider = new DeterministicFakeManagerProvider([{
+    kind: "error", error: new Error("sensitive upstream response"),
+  }]);
+  const history = new InMemoryPlanHistoryStore();
+  const coordinator = new ManagerPlanningCoordinator({
+    provider, agents, history, events: traceWriter(), createPlanId: () => "plan-error", now: () => now, maxReplans: 1,
+  });
+  const result = await coordinator.createInitial({ goal, snapshot });
+  assert.equal(result.status, "failed");
+  if (result.status === "failed") {
+    assert.equal(result.error.code, "PROVIDER_ERROR");
+    assert.equal(result.error.message.includes("sensitive upstream response"), false);
+  }
+  assert.equal(history.list(snapshot.executionId).length, 0);
+});
+
 function approvalContext(status: "approved" | "rejected" = "approved", expiresAt = "2026-09-21T19:00:00.000Z") {
   const states = new InMemoryExecutionStateStore();
   const events = traceWriter();
