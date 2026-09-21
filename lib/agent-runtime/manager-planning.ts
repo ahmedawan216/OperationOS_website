@@ -4,6 +4,7 @@ import {
   agentAssignmentSchema,
   type AgentAssignment,
   type AgentDefinition,
+  type ExecutionSnapshot,
   type Plan,
   type PlanStep,
 } from "./contracts";
@@ -24,6 +25,7 @@ export interface ValidatedPlanStep {
 
 export interface ValidatedManagerPlan {
   readonly plan: Plan;
+  readonly snapshot: ExecutionSnapshot;
   readonly decisionSummary: string;
   readonly orderedSteps: readonly ValidatedPlanStep[];
 }
@@ -136,6 +138,7 @@ export function validateManagerPlan(input: {
 
   return immutableCopy({
     plan,
+    snapshot: input.request.snapshot,
     decisionSummary: input.proposal.decisionSummary,
     orderedSteps,
   });
