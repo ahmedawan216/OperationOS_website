@@ -43,7 +43,7 @@ export default function Page() {
     <div className="mx-auto max-w-4xl px-5 pb-24 pt-[calc(72px+4rem)] sm:px-8 sm:pb-28 sm:pt-[calc(72px+5rem)]">
       <ArticleJsonLd />
       <article className="prose prose-neutral max-w-none text-ink">
-        <aside aria-label="Practical recruiting resources"><p>Putting a review process into practice? Use the <a href="https://recruitos.operationos.org/guides/candidate-evaluation-template">candidate evaluation worksheet</a>, then explore <a href="https://recruitos.operationos.org/resume-analysis">resume analysis in RecruitOS</a>. RecruitOS is free during early access, with no card required.</p></aside>
+        <aside aria-label="Practical recruiting resources"><p>Putting a review process into practice? Start with the <a href="https://recruitos.operationos.org/guides/resume-screening-checklist">practical resume screening checklist</a>, use the <a href="https://recruitos.operationos.org/guides/candidate-evaluation-template">candidate evaluation worksheet</a>, then explore <a href="https://recruitos.operationos.org/resume-analysis">resume analysis in RecruitOS</a>. RecruitOS is free during early access, with no card required.</p></aside>
         <h1>AI Resume Screening: How It Works (Complete Guide for Recruiters in 2026)</h1>
 
         <p>
