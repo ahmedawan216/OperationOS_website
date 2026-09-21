@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --conditions=react-server --import tsx --test tests/*.test.mjs tests/*.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "3.9.1",
@@ -44,6 +44,7 @@
     "postcss": "8.5.28",
     "tailwindcss": "3.4.17",
     "tailwindcss-animate": "1.0.7",
+    "tsx": "4.23.15",
     "typescript": "5.7.2"
   },
   "engines": {
