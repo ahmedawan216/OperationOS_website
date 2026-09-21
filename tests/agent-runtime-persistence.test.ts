@@ -40,6 +40,15 @@ test("migration enforces append-only history and guarded state transitions", () 
   assert.match(migration, /unique \(tenant_id, idempotency_key\)/);
 });
 
+test("migration keeps approvals action-bound and single-use", () => {
+  assert.match(migration, /validate_approval_transition/);
+  assert.match(migration, /approval identity and action binding are immutable/);
+  assert.match(migration, /old\.status = 'pending' and new\.status in \('approved', 'rejected', 'expired'\)/);
+  assert.match(migration, /old\.status = 'approved' and new\.status in \('consumed', 'expired'\)/);
+  assert.match(migration, /consumed approvals require consumed_at/);
+  assert.match(migration, /agent_runtime_approval_transition_guard/);
+});
+
 test("Day 1 fixtures contain one manager, exactly two non-executable specialists, and safe/blocked tools", () => {
   assert.equal(dayOneAgentFixtures.filter((agent) => agent.role === "manager").length, 1);
   const specialists = dayOneAgentFixtures.filter((agent) => agent.role === "specialist");

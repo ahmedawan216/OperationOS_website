@@ -240,6 +240,49 @@ begin
 end;
 $$;
 
+create or replace function agent_runtime_private.validate_approval_transition()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if (new.approval_id, new.tenant_id, new.execution_id, new.candidate_id, new.requested_by,
+      new.actor_id, new.action_type, new.risk_level, new.approval_type, new.action_digest,
+      new.summary, new.expires_at, new.created_at)
+     is distinct from
+     (old.approval_id, old.tenant_id, old.execution_id, old.candidate_id, old.requested_by,
+      old.actor_id, old.action_type, old.risk_level, old.approval_type, old.action_digest,
+      old.summary, old.expires_at, old.created_at) then
+    raise exception 'approval identity and action binding are immutable' using errcode = '55000';
+  end if;
+
+  if new.status = old.status then
+    if (new.resolved_by, new.resolved_at, new.consumed_at)
+       is distinct from
+       (old.resolved_by, old.resolved_at, old.consumed_at) then
+      raise exception 'approval resolution metadata cannot change without a status transition' using errcode = '23514';
+    end if;
+    return new;
+  end if;
+
+  if not (
+    (old.status = 'pending' and new.status in ('approved', 'rejected', 'expired')) or
+    (old.status = 'approved' and new.status in ('consumed', 'expired'))
+  ) then
+    raise exception 'illegal approval status transition: % -> %', old.status, new.status using errcode = '23514';
+  end if;
+
+  if new.status in ('approved', 'rejected') and (new.resolved_by is null or new.resolved_at is null) then
+    raise exception 'resolved approvals require resolver metadata' using errcode = '23514';
+  end if;
+  if new.status = 'consumed' and new.consumed_at is null then
+    raise exception 'consumed approvals require consumed_at' using errcode = '23514';
+  end if;
+  return new;
+end;
+$$;
+
 create trigger agent_runtime_agent_definitions_immutable
   before update or delete on public.agent_runtime_agent_definitions
   for each row execute function agent_runtime_private.reject_immutable_mutation();
@@ -264,9 +307,13 @@ create trigger agent_runtime_execution_transition_guard
 create trigger agent_runtime_step_transition_guard
   before update on public.agent_runtime_execution_steps
   for each row execute function agent_runtime_private.validate_step_transition();
+create trigger agent_runtime_approval_transition_guard
+  before update on public.agent_runtime_approval_requests
+  for each row execute function agent_runtime_private.validate_approval_transition();
 
 revoke all on function agent_runtime_private.validate_execution_transition() from public, anon, authenticated;
 revoke all on function agent_runtime_private.validate_step_transition() from public, anon, authenticated;
+revoke all on function agent_runtime_private.validate_approval_transition() from public, anon, authenticated;
 
 alter table public.agent_runtime_agent_definitions enable row level security;
 alter table public.agent_runtime_tool_definitions enable row level security;
