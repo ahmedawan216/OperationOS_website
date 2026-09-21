@@ -123,6 +123,27 @@ test("fabricated verifier evidence cannot satisfy a required criterion", async (
   assert.equal(context.states.get(snapshot.executionId)?.status, "failed");
 });
 
+test("evidence from a non-verification step cannot satisfy a required criterion", async () => {
+  const context = setup({
+    criterionId: "criterion-1", satisfied: true,
+    evidenceRefs: [{ kind: "step_output", id: "other-step" }], summary: "Evidence came from an undeclared step.",
+  });
+  const result = await context.finalizer.finalize({
+    goal, plan: validatedPlan,
+    progress: {
+      status: "ready_for_verification",
+      outputs: {
+        workflow: output,
+        "other-step": { ...output, stepId: "other-step", evidenceRefs: [{ kind: "step_output", id: "other-step" }] },
+      },
+      costUsd: 0,
+    },
+    durationMs: 100,
+  });
+  assert.equal(result.status, "failed");
+  assert.equal(result.verification.criteria[0]?.satisfied, false);
+});
+
 test("failed verification prevents successful execution", async () => {
   const context = setup({
     criterionId: "criterion-1", satisfied: false, evidenceRefs: [], summary: "Required output is absent.",

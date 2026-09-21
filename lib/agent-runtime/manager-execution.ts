@@ -90,11 +90,15 @@ export class ManagerExecutionLoop {
     goal: UserGoal;
     validatedPlan: ValidatedManagerPlan;
     initialUsage?: ManagerProviderUsage;
+    continuation?: boolean;
+    deferRetryableFailure?: boolean;
+    executionStartedAtMs?: number;
   }): Promise<ManagerExecutionProgress> {
     const snapshot = input.validatedPlan.plan.executionId;
     const state = this.dependencies.states.get(snapshot);
-    if (!state || state.status !== "planning") {
-      throw new Error("Manager execution may start only from the planning state");
+    const expectedState = input.continuation ? "running" : "planning";
+    if (!state || state.status !== expectedState) {
+      throw new Error(`Manager execution may start only from the ${expectedState} state`);
     }
 
     const executionRecord = input.validatedPlan.orderedSteps[0]?.step;
@@ -105,12 +109,12 @@ export class ManagerExecutionLoop {
       return this.fail(snapshot, budgetError("steps", stepLimit, runtimeSnapshot.maxSteps), usageCost(input.initialUsage));
     }
 
-    const startedAtMs = this.dependencies.nowMs();
+    const startedAtMs = input.executionStartedAtMs ?? this.dependencies.nowMs();
     let totalCostUsd = usageCost(input.initialUsage);
     const initialBudgetFailure = this.checkBudgets(runtimeSnapshot, startedAtMs, totalCostUsd);
     if (initialBudgetFailure) return this.fail(snapshot, initialBudgetFailure, totalCostUsd);
 
-    this.dependencies.runtime.transitionExecution(snapshot, "running");
+    if (!input.continuation) this.dependencies.runtime.transitionExecution(snapshot, "running");
     const outputs: Record<string, AgentResult> = {};
 
     for (const validatedStep of input.validatedPlan.orderedSteps) {
@@ -211,7 +215,7 @@ export class ManagerExecutionLoop {
           errorCode: error.code,
         });
         if (!error.retryable || attemptNumber > runtimeSnapshot.maxRetriesPerStep) {
-          return this.fail(snapshot, error, totalCostUsd);
+          return this.fail(snapshot, error, totalCostUsd, input.deferRetryableFailure === true && error.retryable);
         }
         previousAttemptId = stepAttemptId;
         attemptNumber += 1;
@@ -246,7 +250,8 @@ export class ManagerExecutionLoop {
     });
   }
 
-  private fail(executionId: string, error: RuntimeError, costUsd: number): ManagerExecutionProgress {
+  private fail(executionId: string, error: RuntimeError, costUsd: number, defer = false): ManagerExecutionProgress {
+    if (defer) return { status: "failed", error, costUsd };
     const state = this.dependencies.states.get(executionId);
     if (state && state.status !== "failed" && state.status !== "cancelled" && state.status !== "succeeded") {
       this.dependencies.runtime.transitionExecution(executionId, "failed");

@@ -129,7 +129,37 @@ export class ManagerPlanningCoordinator {
     });
     try {
       const response = await requestValidatedManagerPlan(this.dependencies.provider, request);
-      const validated = validateManagerPlan({ proposal: response.proposal, request, agents: this.dependencies.agents });
+      let validated: ValidatedManagerPlan;
+      try {
+        validated = validateManagerPlan({ proposal: response.proposal, request, agents: this.dependencies.agents });
+      } catch (error) {
+        this.record("model.responded", input.snapshot.executionId, {
+          operation: "manager.plan", planId, valid: false, errorCode: "VALIDATION_ERROR",
+        });
+        return {
+          status: "failed",
+          error: runtimeErrorSchema.parse({
+            code: "VALIDATION_ERROR",
+            message: "Manager plan was rejected by runtime validation",
+            retryable: false,
+            safeDetails: { reason: error instanceof Error ? error.message : "Unknown validation failure" },
+          }),
+        };
+      }
+      const priorStepIds = new Set(history.flatMap((record) => record.plan.plan.steps.map((step) => step.stepId)));
+      if (input.kind === "replan" && validated.plan.steps.some((step) => priorStepIds.has(step.stepId))) {
+        this.record("model.responded", input.snapshot.executionId, {
+          operation: "manager.plan", planId, valid: false, errorCode: "VALIDATION_ERROR",
+        });
+        return {
+          status: "failed",
+          error: runtimeErrorSchema.parse({
+            code: "VALIDATION_ERROR",
+            message: "Replanned steps must preserve history by using new step IDs",
+            retryable: false,
+          }),
+        };
+      }
       this.dependencies.history.append(input.snapshot.executionId, {
         planId,
         previousPlanId: history.at(-1)?.planId,

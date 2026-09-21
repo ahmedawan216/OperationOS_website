@@ -112,6 +112,14 @@ test("plan IDs, execution IDs, verification steps, and step budget are runtime a
   unknownVerification.plan.verificationStepIds = ["missing"];
   assert.throws(() => validateManagerPlan({ proposal: unknownVerification, request, agents }), /Unknown verification step/);
 
+  const unknownCriterion = proposal();
+  unknownCriterion.plan.steps[1]!.acceptanceCriterionIds = ["fabricated-criterion"];
+  assert.throws(() => validateManagerPlan({ proposal: unknownCriterion, request, agents }), /Unknown acceptance criterion/);
+
+  const uncoveredCriterion = proposal();
+  uncoveredCriterion.plan.verificationStepIds = ["workflow"];
+  assert.throws(() => validateManagerPlan({ proposal: uncoveredCriterion, request, agents }), /not assigned to a verification step/);
+
   assert.throws(
     () => validateManagerPlan({ proposal: proposal(), request: { ...request, snapshot: { ...snapshot, maxSteps: 1 } }, agents }),
     /step budget/,

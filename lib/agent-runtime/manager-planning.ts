@@ -92,7 +92,7 @@ function validateDependencies(steps: readonly PlanStep[]): readonly PlanStep[] {
 
 function validateContextRefs(step: PlanStep, request: ManagerPlanningRequest, stepIds: ReadonlySet<string>): void {
   for (const ref of step.inputRefs) {
-    if (ref.kind === "goal_input" && !(ref.id in request.goal.inputs)) {
+    if (ref.kind === "goal_input" && !Object.hasOwn(request.goal.inputs, ref.id)) {
       throw new Error(`Assignment references an undeclared goal input: ${ref.id}`);
     }
     if (ref.kind === "step_output" && (!stepIds.has(ref.id) || !step.dependsOn.includes(ref.id))) {
@@ -117,8 +117,24 @@ export function validateManagerPlan(input: {
   if (plan.steps.length > input.request.snapshot.maxSteps) throw new Error("Manager plan exceeds the step budget");
 
   const stepIds = new Set(plan.steps.map((step) => step.stepId));
+  const criterionIds = new Set(input.request.goal.acceptanceCriteria.map((criterion) => criterion.id));
+  for (const step of plan.steps) {
+    for (const criterionId of step.acceptanceCriterionIds) {
+      if (!criterionIds.has(criterionId)) throw new Error(`Unknown acceptance criterion: ${criterionId}`);
+    }
+  }
   for (const verificationStepId of plan.verificationStepIds) {
     if (!stepIds.has(verificationStepId)) throw new Error(`Unknown verification step: ${verificationStepId}`);
+  }
+  const verificationCriterionIds = new Set(
+    plan.steps
+      .filter((step) => plan.verificationStepIds.includes(step.stepId))
+      .flatMap((step) => step.acceptanceCriterionIds),
+  );
+  for (const criterion of input.request.goal.acceptanceCriteria) {
+    if (criterion.required && !verificationCriterionIds.has(criterion.id)) {
+      throw new Error(`Required acceptance criterion is not assigned to a verification step: ${criterion.id}`);
+    }
   }
   const orderedSteps = validateDependencies(plan.steps).map((step) => {
     validateContextRefs(step, input.request, stepIds);

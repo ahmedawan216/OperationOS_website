@@ -62,9 +62,13 @@ function refKey(ref: DataRef): string {
   return `${ref.kind}:${ref.id}:${ref.digest ?? ""}`;
 }
 
-function allowedEvidence(outputs: Readonly<Record<string, AgentResult>>): ReadonlySet<string> {
+function allowedEvidence(
+  outputs: Readonly<Record<string, AgentResult>>,
+  verificationStepIds: readonly string[],
+): ReadonlySet<string> {
   const keys = new Set<string>();
   for (const [stepId, result] of Object.entries(outputs)) {
+    if (!verificationStepIds.includes(stepId)) continue;
     keys.add(refKey({ kind: "step_output", id: stepId }));
     for (const ref of result.evidenceRefs) keys.add(refKey(ref));
   }
@@ -92,7 +96,7 @@ export class ManagerFinalizer {
     if (this.dependencies.states.get(executionId)?.status !== "verifying") {
       throw new Error("Manager finalization may run only in the verifying state");
     }
-    const evidence = allowedEvidence(input.progress.outputs);
+    const evidence = allowedEvidence(input.progress.outputs, input.plan.plan.verificationStepIds);
     const criteria: CriterionVerification[] = [];
     for (const criterion of input.goal.acceptanceCriteria) {
       const raw = await this.dependencies.verifier.verify({
