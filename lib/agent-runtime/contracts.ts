@@ -482,6 +482,7 @@ export type PolicyBundleVersion = z.infer<typeof policyBundleVersionSchema>;
 export type AgentAssignment = z.infer<typeof agentAssignmentSchema>;
 export type RuntimeError = z.infer<typeof runtimeErrorSchema>;
 export type AgentResult = z.infer<typeof agentResultSchema>;
+export type TraceEventType = z.infer<typeof traceEventTypeSchema>;
 export type TraceEvent = z.infer<typeof traceEventSchema>;
 export type OutcomeSignal = z.infer<typeof outcomeSignalSchema>;
 export type ApprovalRequest = z.infer<typeof approvalRequestSchema>;
