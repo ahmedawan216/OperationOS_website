@@ -167,6 +167,22 @@ export const toolDefinitionSchema = z
   })
   .strict();
 
+export const policyBundleVersionSchema = z
+  .object({
+    policyKey: keySchema,
+    versionId: idSchema,
+    version: z.number().int().positive(),
+    status: z.enum(["candidate", "active", "retired"]),
+    description: z.string().trim().min(1).max(2_000),
+    defaultDecision: z.literal("deny"),
+    mediumRiskRequiresApproval: z.literal(true),
+    highRiskRequiresExplicitApproval: z.literal(true),
+    createdBy: idSchema,
+    createdAt: isoDateTimeSchema,
+    parentVersionId: idSchema.optional(),
+  })
+  .strict();
+
 export const agentAssignmentSchema = z
   .object({
     executionId: idSchema,
@@ -461,6 +477,7 @@ export type ModelPolicy = z.infer<typeof modelPolicySchema>;
 export type CapabilityGrant = z.infer<typeof capabilityGrantSchema>;
 export type AgentDefinition = z.infer<typeof agentDefinitionSchema>;
 export type ToolDefinition = z.infer<typeof toolDefinitionSchema>;
+export type PolicyBundleVersion = z.infer<typeof policyBundleVersionSchema>;
 export type AgentAssignment = z.infer<typeof agentAssignmentSchema>;
 export type RuntimeError = z.infer<typeof runtimeErrorSchema>;
 export type AgentResult = z.infer<typeof agentResultSchema>;
