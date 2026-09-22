@@ -57,7 +57,7 @@ function frozenClone<T>(value: T): T {
 /** Runtime-owned resolver that selects only references declared on an assignment. */
 export class InMemorySpecialistContextStore implements WorkflowContextResolver, ArchitectureContextResolver {
   readonly #workflowContexts = new Map<string, WorkflowContextRegistration>();
-  readonly #architectureContexts = new Map<string, ArchitectureContextRegistration>();
+  readonly #architectureContexts = new Map<string, readonly ArchitectureContextRegistration[]>();
 
   registerWorkflowContext(context: WorkflowContextRegistration): void {
     if (this.#workflowContexts.has(context.executionId)) {
@@ -88,9 +88,6 @@ export class InMemorySpecialistContextStore implements WorkflowContextResolver, 
   }
 
   registerArchitectureContext(context: ArchitectureContextRegistration): void {
-    if (this.#architectureContexts.has(context.executionId)) {
-      throw new Error(`Architecture context is already registered: ${context.executionId}`);
-    }
     if (context.verifiedWorkflow.model.executionId !== context.executionId) {
       throw new Error("Verified workflow execution ID must match its architecture context");
     }
@@ -98,20 +95,26 @@ export class InMemorySpecialistContextStore implements WorkflowContextResolver, 
       context.verifiedWorkflow.sourceRef.id !== context.verifiedWorkflow.model.stepId) {
       throw new Error("Verified workflow source must be its runtime step output");
     }
-    this.#architectureContexts.set(context.executionId, frozenClone(context));
+    const history = this.#architectureContexts.get(context.executionId) ?? [];
+    if (history.some((item) => refKey(item.verifiedWorkflow.sourceRef) === refKey(context.verifiedWorkflow.sourceRef))) {
+      throw new Error(`Verified workflow context is already registered: ${context.verifiedWorkflow.sourceRef.id}`);
+    }
+    this.#architectureContexts.set(context.executionId, [...history, frozenClone(context)]);
   }
 
   resolveArchitectureContext(assignment: AgentAssignment): ArchitectureAssignmentContext {
-    const context = this.#architectureContexts.get(assignment.executionId);
-    if (!context) throw new ContractValidationError("specialist.architecture.context", [{
+    const history = this.#architectureContexts.get(assignment.executionId) ?? [];
+    if (history.length === 0) throw new ContractValidationError("specialist.architecture.context", [{
       path: ["executionId"], message: "No runtime-verified architecture context exists for this execution",
     }]);
-    const sourceKey = refKey(context.verifiedWorkflow.sourceRef);
-    if (!assignment.contextRefs.some((ref) => refKey(ref) === sourceKey)) {
+    const declared = new Set(assignment.contextRefs.map(refKey));
+    const context = [...history].reverse().find((item) => declared.has(refKey(item.verifiedWorkflow.sourceRef)));
+    if (!context) {
       throw new ContractValidationError("specialist.architecture.context", [{
         path: ["assignment", "contextRefs"], message: "Assignment does not declare the verified workflow output",
       }]);
     }
+    const sourceKey = refKey(context.verifiedWorkflow.sourceRef);
     const unrelated = assignment.contextRefs.find((ref) => refKey(ref) !== sourceKey);
     if (unrelated) throw new ContractValidationError("specialist.architecture.context", [{
       path: ["assignment", "contextRefs"], message: "Architecture assignment includes unrelated context",
