@@ -1,0 +1,1 @@
+import type{z}from"zod";import type{approvalSummarySchema,canarySummarySchema}from"./contracts";export type ApprovalSummary=z.infer<typeof approvalSummarySchema>;export type CanarySummary=z.infer<typeof canarySummarySchema>;
