@@ -1,0 +1,3 @@
+export default function ControlPlanePage() {
+  return <main className="cp-main" aria-labelledby="control-title"><div className="cp-page-heading"><div><span className="cp-kicker">System overview</span><h1 id="control-title">Command Center</h1><p>Authoritative system state will appear through the configured read-model provider.</p></div><span className="cp-status cp-status-neutral">Provider required</span></div><section className="cp-empty"><span>CONTROL PLANE / READY</span><h2>The protected operational surface is online.</h2><p>Connect an authoritative Day 1–5 projection, or explicitly enable fixture mode outside production for local verification.</p></section></main>;
+}
