@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Activity, Bot, Boxes, Brain, CheckSquare, FlaskConical, Gauge, LayoutDashboard, ShieldCheck, Sparkles, Workflow } from "lucide-react";
+import { Activity, Bot, Boxes, Brain, CheckSquare, FlaskConical, Gauge, LayoutDashboard, MessageSquareText, ShieldCheck, Sparkles, Workflow } from "lucide-react";
 
 const navigation = [
   ["Command", "/control", LayoutDashboard], ["Products", "/control/products", Boxes], ["Agents", "/control/agents", Bot],
   ["Executions", "/control/executions", Workflow], ["Learnings", "/control/learnings", Brain], ["Improvements", "/control/improvements", Sparkles],
   ["Evaluations", "/control/evaluations", FlaskConical], ["Safety", "/control/safety", ShieldCheck], ["Approvals", "/control/approvals", CheckSquare],
   ["Versions", "/control/versions", Activity], ["Health", "/control/health", Gauge],
+  ["Meta-Agent", "/control/meta-agent", MessageSquareText],
 ] as const;
 
 export function ControlPlaneShell({ children, founderId }: { children: React.ReactNode; founderId: string }) {
