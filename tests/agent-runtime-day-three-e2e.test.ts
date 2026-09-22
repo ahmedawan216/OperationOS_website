@@ -201,3 +201,31 @@ test("a failed workflow prerequisite prevents architecture execution", async () 
   assert.equal(context.attempts.listForStep(executionId, "workflow-step")[0]?.status, "failed");
   assert.equal(context.states.get(executionId)?.status, "failed");
 });
+
+test("typed specialist provider failure retries without losing the prior attempt", async () => {
+  const context = setup({
+    workflow: [
+      { kind: "error", error: new TypeError("credential-like provider detail") },
+      { kind: "response", response: { output: workflowModel(), usage: { costUsd: 0.01 } } },
+    ],
+    architecture: [{ kind: "response", response: { output: architectureProposal(), usage: { costUsd: 0.01 } } }],
+  });
+  const result = await context.service.run({
+    goal,
+    manifest: {
+      managerVersionId: manager.versionId,
+      specialistVersionIds: [workflowAgent.versionId, architectureAgent.versionId],
+      policyBundleVersionId: dayOnePolicyFixture.versionId,
+      toolVersionIds: ["onboarding-record-read-tool-v1"], modelBindings: { manager: "deterministic-fake" },
+    },
+    budget: { maxSteps: 2, maxRetriesPerStep: 1, maxWallTimeMs: 30_000, maxCostUsd: 1 },
+  });
+  assert.equal(result.status, "completed");
+  const attempts = context.attempts.listForStep(executionId, "workflow-step");
+  assert.deepEqual(attempts.map((item) => item.status), ["failed", "succeeded"]);
+  assert.equal(attempts[1]?.retryOfStepAttemptId, attempts[0]?.stepAttemptId);
+  const failedTrace = context.events.list(executionId).find((event) =>
+    event.type === "step.failed" && event.payload.stepId === "workflow-step");
+  assert.equal(failedTrace?.payload.errorCode, "PROVIDER_ERROR");
+  assert.equal(JSON.stringify(failedTrace).includes("credential-like"), false);
+});

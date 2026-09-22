@@ -84,6 +84,15 @@ export const workflowFailureConditionSchema = z.object({
   recoveryOwnerActorId: idSchema.optional(),
 }).strict();
 
+export const workflowHumanCheckpointSchema = z.object({
+  checkpointId: idSchema,
+  stageId: idSchema,
+  trigger: textSchema,
+  approvalType: z.enum(["human", "explicit_human"]),
+  responsibleHumanRole: textSchema,
+  evidenceRefs: z.array(idSchema).max(100),
+}).strict();
+
 export const workflowStageSchema = z.object({
   stageId: idSchema,
   name: z.string().trim().min(1).max(200),
@@ -126,6 +135,7 @@ export const workflowModelSchema = z.object({
   unknowns: z.array(workflowUnknownSchema).max(200),
   successCriteria: z.array(workflowSuccessCriterionSchema).min(1).max(100),
   failureConditions: z.array(workflowFailureConditionSchema).min(1).max(200),
+  humanCheckpoints: z.array(workflowHumanCheckpointSchema).max(100),
   evidenceReferences: z.array(workflowEvidenceReferenceSchema).min(1).max(500),
   decisionSummary: conciseSummarySchema,
 }).strict().superRefine((model, context) => {
@@ -133,6 +143,15 @@ export const workflowModelSchema = z.object({
   uniqueIds(model.stages, (item) => item.stageId, "Stage", context);
   uniqueIds(model.decisions, (item) => item.decisionId, "Decision", context);
   uniqueIds(model.dependencies, (item) => item.dependencyId, "Dependency", context);
+  uniqueIds(model.inputs, (item) => item.inputId, "Input", context);
+  uniqueIds(model.outputs, (item) => item.outputId, "Output", context);
+  uniqueIds(model.constraints, (item) => item.constraintId, "Constraint", context);
+  uniqueIds(model.facts, (item) => item.factId, "Fact", context);
+  uniqueIds(model.assumptions, (item) => item.assumptionId, "Assumption", context);
+  uniqueIds(model.unknowns, (item) => item.unknownId, "Unknown", context);
+  uniqueIds(model.successCriteria, (item) => item.criterionId, "Success criterion", context);
+  uniqueIds(model.failureConditions, (item) => item.failureId, "Failure condition", context);
+  uniqueIds(model.humanCheckpoints, (item) => item.checkpointId, "Human checkpoint", context);
   uniqueIds(model.evidenceReferences, (item) => item.evidenceId, "Evidence", context);
   const actors = new Set(model.actors.map((item) => item.actorId));
   const stages = new Set(model.stages.map((item) => item.stageId));
@@ -140,15 +159,26 @@ export const workflowModelSchema = z.object({
   const evidence = new Set(model.evidenceReferences.map((item) => item.evidenceId));
   const inputs = new Set(model.inputs.map((item) => item.inputId));
   const outputs = new Set(model.outputs.map((item) => item.outputId));
+  const checkpoints = new Map(model.humanCheckpoints.map((item) => [item.checkpointId, item]));
   const checkEvidence = (refs: readonly string[], label: string) => {
     for (const ref of refs) if (!evidence.has(ref)) context.addIssue({ code: "custom", message: `${label} references unknown evidence: ${ref}` });
   };
   for (const actor of model.actors) checkEvidence(actor.evidenceRefs, `Actor ${actor.actorId}`);
+  for (const item of model.inputs) checkEvidence(item.evidenceRefs, `Input ${item.inputId}`);
+  for (const item of model.outputs) checkEvidence(item.evidenceRefs, `Output ${item.outputId}`);
+  for (const item of model.constraints) checkEvidence(item.evidenceRefs, `Constraint ${item.constraintId}`);
   for (const fact of model.facts) checkEvidence(fact.evidenceRefs, `Fact ${fact.factId}`);
+  for (const item of model.assumptions) checkEvidence(item.evidenceRefs, `Assumption ${item.assumptionId}`);
+  for (const item of model.successCriteria) checkEvidence(item.evidenceRefs, `Success criterion ${item.criterionId}`);
+  for (const item of model.humanCheckpoints) checkEvidence(item.evidenceRefs, `Human checkpoint ${item.checkpointId}`);
   for (const stage of model.stages) {
     for (const id of stage.actorIds) if (!actors.has(id)) context.addIssue({ code: "custom", message: `Stage references unknown actor: ${id}` });
     for (const id of stage.dependsOnStageIds) if (!stages.has(id) || id === stage.stageId) context.addIssue({ code: "custom", message: `Stage has invalid dependency: ${id}` });
     for (const id of stage.decisionIds) if (!decisions.has(id)) context.addIssue({ code: "custom", message: `Stage references unknown decision: ${id}` });
+    for (const id of stage.humanCheckpointIds) {
+      const checkpoint = checkpoints.get(id);
+      if (!checkpoint || checkpoint.stageId !== stage.stageId) context.addIssue({ code: "custom", message: `Stage references invalid human checkpoint: ${id}` });
+    }
     for (const id of stage.inputIds) if (!inputs.has(id)) context.addIssue({ code: "custom", message: `Stage references unknown input: ${id}` });
     for (const id of stage.outputIds) if (!outputs.has(id)) context.addIssue({ code: "custom", message: `Stage references unknown output: ${id}` });
     checkEvidence(stage.evidenceRefs, `Stage ${stage.stageId}`);
@@ -166,6 +196,25 @@ export const workflowModelSchema = z.object({
   for (const failure of model.failureConditions) {
     if (failure.stageId && !stages.has(failure.stageId)) context.addIssue({ code: "custom", message: `Failure condition references unknown stage: ${failure.stageId}` });
     if (failure.recoveryOwnerActorId && !actors.has(failure.recoveryOwnerActorId)) context.addIssue({ code: "custom", message: `Failure condition references unknown actor: ${failure.recoveryOwnerActorId}` });
+  }
+  for (const checkpoint of model.humanCheckpoints) {
+    if (!stages.has(checkpoint.stageId)) context.addIssue({ code: "custom", message: `Human checkpoint references unknown stage: ${checkpoint.stageId}` });
+  }
+  const dependencyGraph = new Map(model.stages.map((stage) => [stage.stageId, new Set(stage.dependsOnStageIds)]));
+  for (const dependency of model.dependencies) dependencyGraph.get(dependency.toStageId)?.add(dependency.fromStageId);
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+  const visit = (stageId: string): boolean => {
+    if (visiting.has(stageId)) return true;
+    if (visited.has(stageId)) return false;
+    visiting.add(stageId);
+    for (const dependencyId of dependencyGraph.get(stageId) ?? []) if (visit(dependencyId)) return true;
+    visiting.delete(stageId);
+    visited.add(stageId);
+    return false;
+  };
+  if (model.stages.some((stage) => visit(stage.stageId))) {
+    context.addIssue({ code: "custom", message: "Workflow stage dependencies must be acyclic" });
   }
 });
 
@@ -205,6 +254,49 @@ export const agentHandoffSchema = z.object({
   outputContract: keySchema,
 }).strict();
 
+export const proposedAgentSchema = z.object({
+  proposedAgentId: idSchema,
+  name: z.string().trim().min(1).max(200),
+  responsibility: textSchema,
+  capabilityRequirements: z.array(capabilityRequirementSchema).max(100),
+  toolRequirements: z.array(toolRequirementSchema).max(100),
+  inputContextBoundaryIds: z.array(idSchema).max(100),
+  outputContextBoundaryIds: z.array(idSchema).max(100),
+  riskLevel: riskLevelSchema,
+}).strict();
+
+export const approvalRequirementSchema = z.object({
+  approvalRequirementId: idSchema,
+  trigger: textSchema,
+  riskLevel: riskLevelSchema,
+  approvalType: z.enum(["human", "explicit_human"]),
+  responsibleHumanRole: textSchema,
+}).strict().superRefine((approval, context) => {
+  if (approval.riskLevel === "high" && approval.approvalType !== "explicit_human") context.addIssue({ code: "custom", message: "High-risk actions require explicit human approval" });
+});
+
+export const verificationResponsibilitySchema = z.object({
+  verificationId: idSchema,
+  responsibleAgentId: idSchema,
+  criterionId: idSchema,
+  requiredEvidenceRefs: z.array(idSchema).min(1).max(100),
+}).strict();
+
+export const recoveryStrategySchema = z.object({
+  recoveryId: idSchema,
+  failureType: keySchema,
+  strategy: z.enum(["retry", "replan", "human_escalation", "fail_closed"]),
+  retryLimit: z.number().int().min(0).max(10),
+  humanEscalation: z.boolean(),
+}).strict();
+
+export const outcomeDefinitionSchema = z.object({
+  outcomeId: idSchema,
+  metricKey: keySchema,
+  target: z.union([z.string().max(1_000), z.number().finite(), z.boolean()]),
+  evaluatorRef: keySchema,
+}).strict();
+
 export const agentArchitectureInputSchema = z.object({
   contractVersion: z.literal("agent-architecture-input-v1"),
   assignment: agentAssignmentSchema,
@@ -224,46 +316,13 @@ export const agentSystemProposalSchema = z.object({
   status: z.literal("proposal"),
   sourceWorkflowId: idSchema,
   productSnapshotId: idSchema,
-  agents: z.array(z.object({
-    proposedAgentId: idSchema,
-    name: z.string().trim().min(1).max(200),
-    responsibility: textSchema,
-    capabilityRequirements: z.array(capabilityRequirementSchema).max(100),
-    toolRequirements: z.array(toolRequirementSchema).max(100),
-    inputContextBoundaryIds: z.array(idSchema).max(100),
-    outputContextBoundaryIds: z.array(idSchema).max(100),
-    riskLevel: riskLevelSchema,
-  }).strict()).min(1).max(50),
+  agents: z.array(proposedAgentSchema).min(1).max(50),
   handoffs: z.array(agentHandoffSchema).max(200),
   contextBoundaries: z.array(contextBoundarySchema).min(1).max(200),
-  approvalRequirements: z.array(z.object({
-    approvalRequirementId: idSchema,
-    trigger: textSchema,
-    riskLevel: riskLevelSchema,
-    approvalType: z.enum(["human", "explicit_human"]),
-    responsibleHumanRole: textSchema,
-  }).strict().superRefine((approval, context) => {
-    if (approval.riskLevel === "high" && approval.approvalType !== "explicit_human") context.addIssue({ code: "custom", message: "High-risk actions require explicit human approval" });
-  })).max(100),
-  verificationResponsibilities: z.array(z.object({
-    verificationId: idSchema,
-    responsibleAgentId: idSchema,
-    criterionId: idSchema,
-    requiredEvidenceRefs: z.array(idSchema).min(1).max(100),
-  }).strict()).min(1).max(100),
-  recoveryStrategies: z.array(z.object({
-    recoveryId: idSchema,
-    failureType: keySchema,
-    strategy: z.enum(["retry", "replan", "human_escalation", "fail_closed"]),
-    retryLimit: z.number().int().min(0).max(10),
-    humanEscalation: z.boolean(),
-  }).strict()).min(1).max(100),
-  outcomes: z.array(z.object({
-    outcomeId: idSchema,
-    metricKey: keySchema,
-    target: z.union([z.string().max(1_000), z.number().finite(), z.boolean()]),
-    evaluatorRef: keySchema,
-  }).strict()).min(1).max(100),
+  approvalRequirements: z.array(approvalRequirementSchema).max(100),
+  verificationResponsibilities: z.array(verificationResponsibilitySchema).min(1).max(100),
+  recoveryStrategies: z.array(recoveryStrategySchema).min(1).max(100),
+  outcomes: z.array(outcomeDefinitionSchema).min(1).max(100),
   decisionSummary: conciseSummarySchema,
 }).strict().superRefine((proposal, context) => {
   uniqueIds(proposal.agents, (item) => item.proposedAgentId, "Proposed agent", context);
@@ -280,6 +339,11 @@ export const agentSystemProposalSchema = z.object({
   for (const handoff of proposal.handoffs) {
     if (!agents.has(handoff.fromAgentId) || !agents.has(handoff.toAgentId) || handoff.fromAgentId === handoff.toAgentId) context.addIssue({ code: "custom", message: `Handoff references invalid agents: ${handoff.handoffId}` });
     if (!boundaries.has(handoff.contextBoundaryId)) context.addIssue({ code: "custom", message: `Handoff references unknown context boundary: ${handoff.contextBoundaryId}` });
+    const boundary = boundaries.get(handoff.contextBoundaryId);
+    const source = proposal.agents.find((item) => item.proposedAgentId === handoff.fromAgentId);
+    if (boundary && (boundary.ownerAgentId !== handoff.fromAgentId || !source?.outputContextBoundaryIds.includes(handoff.contextBoundaryId))) {
+      context.addIssue({ code: "custom", message: `Handoff must use a declared source-agent output boundary: ${handoff.handoffId}` });
+    }
   }
   for (const verification of proposal.verificationResponsibilities) {
     if (!agents.has(verification.responsibleAgentId)) context.addIssue({ code: "custom", message: `Verification references unknown agent: ${verification.responsibleAgentId}` });
@@ -287,7 +351,26 @@ export const agentSystemProposalSchema = z.object({
 });
 
 export type WorkflowEvidenceReference = z.infer<typeof workflowEvidenceReferenceSchema>;
+export type WorkflowActor = z.infer<typeof workflowActorSchema>;
+export type WorkflowStage = z.infer<typeof workflowStageSchema>;
+export type WorkflowDecision = z.infer<typeof workflowDecisionSchema>;
+export type WorkflowDependency = z.infer<typeof workflowDependencySchema>;
+export type WorkflowConstraint = z.infer<typeof workflowConstraintSchema>;
+export type WorkflowAssumption = z.infer<typeof workflowAssumptionSchema>;
+export type WorkflowUnknown = z.infer<typeof workflowUnknownSchema>;
+export type WorkflowSuccessCriterion = z.infer<typeof workflowSuccessCriterionSchema>;
+export type WorkflowFailureCondition = z.infer<typeof workflowFailureConditionSchema>;
+export type WorkflowHumanCheckpoint = z.infer<typeof workflowHumanCheckpointSchema>;
 export type WorkflowDiscoveryInput = z.infer<typeof workflowDiscoveryInputSchema>;
 export type WorkflowModel = z.infer<typeof workflowModelSchema>;
+export type CapabilityRequirement = z.infer<typeof capabilityRequirementSchema>;
+export type ToolRequirement = z.infer<typeof toolRequirementSchema>;
+export type ProposedAgent = z.infer<typeof proposedAgentSchema>;
+export type AgentHandoff = z.infer<typeof agentHandoffSchema>;
+export type ContextBoundary = z.infer<typeof contextBoundarySchema>;
+export type ApprovalRequirement = z.infer<typeof approvalRequirementSchema>;
+export type VerificationResponsibility = z.infer<typeof verificationResponsibilitySchema>;
+export type RecoveryStrategy = z.infer<typeof recoveryStrategySchema>;
+export type OutcomeDefinition = z.infer<typeof outcomeDefinitionSchema>;
 export type AgentArchitectureInput = z.infer<typeof agentArchitectureInputSchema>;
 export type AgentSystemProposal = z.infer<typeof agentSystemProposalSchema>;

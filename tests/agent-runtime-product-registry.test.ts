@@ -98,6 +98,22 @@ test("snapshot resolution rejects cross-product or omitted capability tools", ()
     }),
     /not registered by the product version/,
   );
+  assert.throws(
+    () => resolveProductSnapshot({
+      productSnapshotId: "duplicate", manifest: {
+        ...manifest(), capabilityVersionIds: ["onboarding-record-read-capability-v1", "onboarding-record-read-capability-v1"],
+      }, registries, createdAt: now,
+    }),
+    /must be unique/,
+  );
+  assert.throws(
+    () => resolveProductSnapshot({
+      productSnapshotId: "dangling-feature", manifest: {
+        ...manifest(), capabilityVersionIds: [], toolVersionIds: [],
+      }, registries, createdAt: now,
+    }),
+    /Feature onboarding capability is missing/,
+  );
 });
 
 test("product registration never grants runtime permission", () => {

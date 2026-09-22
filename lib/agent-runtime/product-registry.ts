@@ -90,6 +90,14 @@ function requireListed(selected: readonly string[], registered: readonly string[
   for (const id of selected) if (!allowed.has(id)) throw new Error(`${label} is not registered by the product version: ${id}`);
 }
 
+function requireUnique(selected: readonly string[], label: string): void {
+  if (new Set(selected).size !== selected.length) throw new Error(`${label} version IDs must be unique`);
+}
+
+function requireSubset(required: readonly string[], selected: ReadonlySet<string>, label: string): void {
+  for (const value of required) if (!selected.has(value)) throw new Error(`${label} is missing from the product snapshot: ${value}`);
+}
+
 export function resolveProductSnapshot(input: {
   productSnapshotId: string;
   manifest: ProductVersionManifest;
@@ -98,6 +106,13 @@ export function resolveProductSnapshot(input: {
 }): ResolvedProductContext {
   const product = input.registries.products.requireByVersionId(input.manifest.productVersionId);
   if (product.status !== "active") throw new Error("Product version must be active");
+  requireUnique(input.manifest.featureVersionIds, "Feature");
+  requireUnique(input.manifest.capabilityVersionIds, "Capability");
+  requireUnique(input.manifest.workflowVersionIds, "Workflow");
+  requireUnique(input.manifest.toolVersionIds, "Tool");
+  requireUnique(input.manifest.signalDefinitionVersionIds, "Signal");
+  requireUnique(input.manifest.evaluatorDefinitionVersionIds, "Evaluator");
+  requireUnique(input.manifest.contextReferenceVersionIds, "Context reference");
   requireListed(input.manifest.featureVersionIds, product.featureVersionIds, "Feature");
   requireListed(input.manifest.capabilityVersionIds, product.capabilityVersionIds, "Capability");
   requireListed(input.manifest.workflowVersionIds, product.workflowVersionIds, "Workflow");
@@ -121,10 +136,45 @@ export function resolveProductSnapshot(input: {
   for (const item of [...features, ...capabilities, ...workflows, ...signals, ...evaluators, ...contexts]) {
     if (item.status !== "active") throw new Error("Product snapshot may reference only active versions");
   }
+  const selectedFeatureKeys = new Set(features.map((item) => item.featureKey));
+  const selectedCapabilityVersions = new Set(capabilities.map((item) => item.versionId));
+  const selectedCapabilityKeys = new Set(capabilities.map((item) => item.capabilityKey));
+  const selectedWorkflowVersions = new Set(workflows.map((item) => item.versionId));
+  const selectedSignalKeys = new Set(signals.map((item) => item.signalKey));
+  const selectedContextVersions = new Set(contexts.map((item) => item.versionId));
+  for (const feature of features) {
+    requireSubset(feature.capabilityVersionIds, selectedCapabilityVersions, `Feature ${feature.featureKey} capability`);
+    requireSubset(feature.workflowVersionIds, selectedWorkflowVersions, `Feature ${feature.featureKey} workflow`);
+    requireSubset(feature.contextReferenceVersionIds, selectedContextVersions, `Feature ${feature.featureKey} context`);
+  }
+  for (const item of [...capabilities, ...workflows, ...signals, ...contexts]) {
+    if (item.featureKey && !selectedFeatureKeys.has(item.featureKey)) {
+      throw new Error(`Component references an unavailable feature: ${item.featureKey}`);
+    }
+  }
+  for (const workflow of workflows) {
+    requireSubset(workflow.capabilityKeys, selectedCapabilityKeys, `Workflow ${workflow.workflowKey} capability`);
+    requireSubset(workflow.outcomeSignalKeys, selectedSignalKeys, `Workflow ${workflow.workflowKey} signal`);
+  }
+  for (const evaluator of evaluators) {
+    requireSubset(evaluator.supportedSignalKeys, selectedSignalKeys, `Evaluator ${evaluator.evaluatorKey} signal`);
+  }
   const selectedTools = new Set(input.manifest.toolVersionIds);
+  const toolsByVersion = new Map(tools.map((item) => [item.versionId, item]));
+  const riskRank = { low: 0, medium: 1, high: 2 } as const;
   for (const capability of capabilities) {
     for (const toolVersionId of capability.toolVersionIds) {
       if (!selectedTools.has(toolVersionId)) throw new Error(`Capability tool is missing from the product snapshot: ${toolVersionId}`);
+      const tool = toolsByVersion.get(toolVersionId);
+      if (!tool || riskRank[tool.riskLevel] < riskRank[capability.riskLevel]) {
+        throw new Error(`Capability tool understates registered capability risk: ${toolVersionId}`);
+      }
+      const validSideEffects = capability.actionClass === "draft"
+        ? new Set(["none", "internal_write"])
+        : new Set([capability.actionClass === "read" ? "none" : capability.actionClass]);
+      if (!validSideEffects.has(tool.sideEffect)) {
+        throw new Error(`Capability tool side effect does not match the registered action class: ${toolVersionId}`);
+      }
     }
   }
 

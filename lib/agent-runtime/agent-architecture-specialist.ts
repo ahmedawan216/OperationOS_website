@@ -46,8 +46,10 @@ function validateRuntimeOwnedProposal(input: {
     input.workflow.stepId,
   ]);
   const evaluators = new Map(input.product.evaluators.map((item) => [item.evaluatorKey, item]));
+  const riskRank = { low: 0, medium: 1, high: 2 } as const;
 
   for (const agent of input.proposal.agents) {
+    const agentCapabilityKeys = new Set(agent.capabilityRequirements.map((item) => item.capabilityKey));
     for (const requirement of agent.capabilityRequirements) {
       if (!capabilities.has(requirement.capabilityKey)) {
         issues.push({ path: ["agents", agent.proposedAgentId, "capabilityRequirements"], message: `Proposal references an unavailable capability: ${requirement.capabilityKey}` });
@@ -59,6 +61,9 @@ function validateRuntimeOwnedProposal(input: {
     for (const requirement of agent.toolRequirements) {
       const tool = tools.get(requirement.toolKey);
       const capability = capabilities.get(requirement.capabilityKey);
+      if (!agentCapabilityKeys.has(requirement.capabilityKey)) {
+        issues.push({ path: ["agents", agent.proposedAgentId, "toolRequirements"], message: `Tool capability is not declared by the proposed agent: ${requirement.capabilityKey}` });
+      }
       if (!tool) {
         issues.push({ path: ["agents", agent.proposedAgentId, "toolRequirements"], message: `Proposal references an unavailable tool: ${requirement.toolKey}` });
         continue;
@@ -68,6 +73,9 @@ function validateRuntimeOwnedProposal(input: {
       }
       if (requirement.riskLevel !== tool.riskLevel || requirement.approvalType !== tool.requiredApproval) {
         issues.push({ path: ["agents", agent.proposedAgentId, "toolRequirements"], message: `Tool risk or approval does not match its registered definition: ${requirement.toolKey}` });
+      }
+      if (riskRank[agent.riskLevel] < riskRank[tool.riskLevel]) {
+        issues.push({ path: ["agents", agent.proposedAgentId, "riskLevel"], message: `Proposed agent understates its registered tool risk: ${requirement.toolKey}` });
       }
     }
   }

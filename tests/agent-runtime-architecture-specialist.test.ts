@@ -24,16 +24,20 @@ function assignment(): AgentAssignment {
   return architectureInput().assignment;
 }
 
-function setup(output = architectureProposal()) {
+function setup(output = architectureProposal(), expandedProduct = false) {
   const registries = productRegistries();
   const productContext = resolveProductSnapshot({
     productSnapshotId: "product-snapshot-1",
     manifest: {
-      productVersionId: "operations-suite-product-v1",
-      featureVersionIds: ["onboarding-feature-v1"],
-      capabilityVersionIds: ["onboarding-record-read-capability-v1"],
+      productVersionId: expandedProduct ? "operations-suite-product-v2" : "operations-suite-product-v1",
+      featureVersionIds: expandedProduct ? ["onboarding-feature-v1", "scorecards-feature-v1"] : ["onboarding-feature-v1"],
+      capabilityVersionIds: expandedProduct
+        ? ["onboarding-record-read-capability-v1", "scorecard-draft-write-capability-v1"]
+        : ["onboarding-record-read-capability-v1"],
       workflowVersionIds: ["onboarding-workflow-v1"],
-      toolVersionIds: ["onboarding-record-read-tool-v1"],
+      toolVersionIds: expandedProduct
+        ? ["onboarding-record-read-tool-v1", "scorecard-draft-write-tool-v1"]
+        : ["onboarding-record-read-tool-v1"],
       signalDefinitionVersionIds: ["onboarding-completed-signal-v1"],
       evaluatorDefinitionVersionIds: ["onboarding-evaluator-v1"],
       contextReferenceVersionIds: ["onboarding-context-version-v1"],
@@ -59,7 +63,7 @@ function setup(output = architectureProposal()) {
     artifacts: new InMemoryTraceArtifactStore(),
   });
   const executor = new AgentArchitectureSpecialist({ provider, contexts, events, now: () => now });
-  return { executor, provider, events, registries, productContext };
+  return { executor, provider, events, registries, productContext, contexts };
 }
 
 test("architecture specialist consumes only verified workflow and immutable registered product context", async () => {
@@ -93,6 +97,23 @@ test("architecture specialist rejects unavailable capabilities and tools", async
   await assert.rejects(
     setup(unknownTool).executor.execute({ assignment: assignment(), specialist: architectureAgent }),
     /Invalid payload at specialist.architecture.runtime_validation/,
+  );
+});
+
+test("a newly registered product capability works without changing specialist core logic", async () => {
+  const proposal = structuredClone(architectureProposal());
+  proposal.agents[0]!.capabilityRequirements[0]!.capabilityKey = "scorecard.draft.write";
+  proposal.agents[0]!.toolRequirements[0] = {
+    toolKey: "scorecard.draft.write-tool", purpose: "Store a registered draft only.",
+    capabilityKey: "scorecard.draft.write", riskLevel: "medium", approvalType: "human",
+  };
+  proposal.agents[0]!.riskLevel = "medium";
+  const context = setup(proposal, true);
+  const response = await context.executor.execute({ assignment: assignment(), specialist: architectureAgent });
+  assert.equal((response.result as { status: string }).status, "completed");
+  assert.equal(
+    context.provider.architectureRequests[0]?.availableCapabilityKeys.includes("scorecard.draft.write"),
+    true,
   );
 });
 
@@ -157,5 +178,33 @@ test("architecture provider cannot change proposal identity or deploy status", a
   await assert.rejects(
     setup(deploy as ReturnType<typeof architectureProposal>).executor.execute({ assignment: assignment(), specialist: architectureAgent }),
     /Invalid payload at specialist.architecture.response/,
+  );
+});
+
+test("verified workflow context history is immutable across replanning", () => {
+  const context = setup();
+  const revised = structuredClone(workflowModel());
+  revised.stepId = "workflow-replan-step";
+  context.contexts.registerArchitectureContext({
+    executionId: "execution-1",
+    verifiedWorkflow: {
+      model: revised, sourceRef: { kind: "step_output", id: "workflow-replan-step" },
+      verifierVersionId: "workflow-runtime-verifier-v1", verifiedAt: now,
+    },
+    productContext: context.productContext,
+  });
+  const original = context.contexts.resolveArchitectureContext(assignment());
+  const replanned = context.contexts.resolveArchitectureContext({
+    ...assignment(), stepId: "architecture-replan-step",
+    contextRefs: [{ kind: "step_output", id: "workflow-replan-step" }],
+  });
+  assert.equal(original.verifiedWorkflow.model.stepId, "workflow-step");
+  assert.equal(replanned.verifiedWorkflow.model.stepId, "workflow-replan-step");
+  assert.throws(
+    () => context.contexts.registerArchitectureContext({
+      executionId: "execution-1", verifiedWorkflow: original.verifiedWorkflow,
+      productContext: context.productContext,
+    }),
+    /already registered/,
   );
 });

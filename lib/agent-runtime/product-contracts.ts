@@ -36,7 +36,14 @@ export const productCapabilitySchema = z.object({
   riskLevel: riskLevelSchema,
   resourceScopes: z.array(z.string().trim().min(1).max(500)).min(1).max(100),
   toolVersionIds: z.array(idSchema).max(100),
-}).strict();
+}).strict().superRefine((capability, context) => {
+  if ((capability.actionClass === "external_write" || capability.actionClass === "destructive") && capability.riskLevel !== "high") {
+    context.addIssue({ code: "custom", message: "External and destructive capabilities must be high risk", path: ["riskLevel"] });
+  }
+  if (capability.actionClass === "internal_write" && capability.riskLevel === "low") {
+    context.addIssue({ code: "custom", message: "Internal-write capabilities cannot be low risk", path: ["riskLevel"] });
+  }
+});
 
 export const productWorkflowMetadataSchema = z.object({
   ...versionFields,

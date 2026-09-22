@@ -42,6 +42,7 @@ export function workflowModel(): WorkflowModel {
     unknowns: [{ unknownId: "unknown-volume", question: "What is the request volume?", impact: "Capacity requirements remain unknown." }],
     successCriteria: [{ criterionId: "criterion-decision", metricKey: "onboarding.decision.exists", operator: "exists", target: true, unit: "boolean", evidenceRefs: ["evidence-brief"] }],
     failureConditions: [{ failureId: "failure-missing-request", description: "Request evidence is missing.", stageId: "stage-review", detectableSignal: "onboarding.request.missing", recoveryOwnerActorId: "actor-operator" }],
+    humanCheckpoints: [{ checkpointId: "checkpoint-approval", stageId: "stage-review", trigger: "Before a consequential onboarding decision.", approvalType: "explicit_human", responsibleHumanRole: "Onboarding operator", evidenceRefs: ["evidence-brief"] }],
     evidenceReferences: workflowInput().evidence,
     decisionSummary: "The supplied evidence supports a single human-reviewed draft stage; volume remains unknown.",
   };

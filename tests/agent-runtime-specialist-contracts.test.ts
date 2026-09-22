@@ -25,6 +25,22 @@ test("malformed, extra-field, and invalid-reference WorkflowModels are rejected"
   const evidence = workflowModel();
   evidence.facts[0]!.evidenceRefs = ["fabricated-evidence"];
   assert.equal(workflowModelSchema.safeParse(evidence).success, false);
+  const outputEvidence = workflowModel();
+  outputEvidence.outputs[0]!.evidenceRefs = ["fabricated-evidence"];
+  assert.equal(workflowModelSchema.safeParse(outputEvidence).success, false);
+  const checkpoint = workflowModel();
+  checkpoint.humanCheckpoints[0]!.stageId = "missing-stage";
+  assert.equal(workflowModelSchema.safeParse(checkpoint).success, false);
+});
+
+test("cyclic workflow stage dependencies are rejected", () => {
+  const cyclic = workflowModel();
+  cyclic.stages.push({
+    ...structuredClone(cyclic.stages[0]!), stageId: "stage-finalize", name: "Finalize",
+    dependsOnStageIds: ["stage-review"], humanCheckpointIds: [],
+  });
+  cyclic.stages[0]!.dependsOnStageIds = ["stage-finalize"];
+  assert.equal(workflowModelSchema.safeParse(cyclic).success, false);
 });
 
 test("valid AgentSystemProposal is accepted while invalid handoffs and approvals are rejected", () => {
@@ -38,6 +54,21 @@ test("valid AgentSystemProposal is accepted while invalid handoffs and approvals
   const approval = architectureProposal();
   approval.approvalRequirements[0]!.approvalType = "human";
   assert.equal(agentSystemProposalSchema.safeParse(approval).success, false);
+
+  const wrongBoundaryOwner = architectureProposal();
+  wrongBoundaryOwner.agents.push({
+    ...structuredClone(wrongBoundaryOwner.agents[0]!), proposedAgentId: "proposed-recorder", name: "Recorder",
+    inputContextBoundaryIds: ["boundary-recorder"], outputContextBoundaryIds: ["boundary-recorder"],
+  });
+  wrongBoundaryOwner.contextBoundaries.push({
+    ...structuredClone(wrongBoundaryOwner.contextBoundaries[0]!),
+    boundaryId: "boundary-recorder", ownerAgentId: "proposed-recorder",
+  });
+  wrongBoundaryOwner.handoffs = [{
+    handoffId: "handoff-wrong-boundary", fromAgentId: "proposed-reviewer", toAgentId: "proposed-recorder",
+    condition: "After review", contextBoundaryId: "boundary-recorder", outputContract: "review.output.v1",
+  }];
+  assert.equal(agentSystemProposalSchema.safeParse(wrongBoundaryOwner).success, false);
 });
 
 test("specialist provider boundaries validate structured output before acceptance", async () => {
