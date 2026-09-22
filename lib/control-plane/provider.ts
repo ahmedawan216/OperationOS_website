@@ -29,3 +29,12 @@ export async function readControlPlaneSnapshot(input: {
 export function assertFixtureModeAllowed(environment: string | undefined): void {
   if (environment === "production") throw new ControlPlaneConfigurationError("Fixture Control Plane data is forbidden in production");
 }
+
+export async function getConfiguredControlPlaneProvider(): Promise<ControlPlaneDataProvider> {
+  if (process.env.CONTROL_PLANE_DATA_MODE === "fixture") {
+    assertFixtureModeAllowed(process.env.NODE_ENV);
+    const { fixtureControlPlaneProvider } = await import("./testing/fixture-provider");
+    return fixtureControlPlaneProvider;
+  }
+  throw new ControlPlaneConfigurationError("An authoritative Control Plane provider must be configured");
+}
