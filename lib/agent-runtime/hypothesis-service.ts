@@ -12,6 +12,7 @@ import {
 } from "./hypothesis-contracts";
 import { ObservationStore } from "./observation-store";
 import { parseContract } from "./validation";
+import { LearningProviderError } from "./learning-errors";
 
 export interface HypothesisProvider {
   proposeHypothesis(request: HypothesisRequest): Promise<{ readonly output: unknown }>;
@@ -70,7 +71,7 @@ export async function requestValidatedHypothesis(input: {
   try {
     response = await input.provider.proposeHypothesis(request);
   } catch {
-    throw new Error("Hypothesis provider failed");
+    throw new LearningProviderError("Hypothesis");
   }
   const hypothesis = parseContract(hypothesisSchema, response.output, "hypothesis.response");
   if (hypothesis.hypothesisId !== request.hypothesisId || hypothesis.patternId !== request.pattern.patternId) throw new Error("Hypothesis provider changed runtime-owned identity");
@@ -85,9 +86,18 @@ export async function requestValidatedHypothesis(input: {
   for (const evidenceId of hypothesis.supportEvidenceIds) if (!allowedSupport.has(evidenceId)) throw new Error(`Hypothesis fabricated support evidence: ${evidenceId}`);
   for (const evidenceId of hypothesis.counterEvidenceIds) if (!allowedCounter.has(evidenceId)) throw new Error(`Hypothesis omitted or fabricated counter-evidence: ${evidenceId}`);
   if (hypothesis.counterEvidenceIds.length !== request.pattern.counterEvidenceIds.length) throw new Error("Hypothesis must preserve all counter-evidence");
+  if (hypothesis.confidenceBand === "high" && request.pattern.supportCount < 5) throw new Error("Hypothesis confidence exceeds available evidence strength");
   if (hypothesis.affectedCapabilityKeys.some((key) => !request.affectedCapabilityKeys.includes(key))) throw new Error("Hypothesis expanded affected capabilities");
   if (hypothesis.affectedWorkflowKeys.some((key) => !request.affectedWorkflowKeys.includes(key))) throw new Error("Hypothesis expanded affected workflows");
-  return Object.freeze(structuredClone(hypothesis));
+  return deepFreeze(structuredClone(hypothesis));
+}
+
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === "object" && !Object.isFrozen(value)) {
+    for (const nested of Object.values(value as Record<string, unknown>)) deepFreeze(nested);
+    Object.freeze(value);
+  }
+  return value;
 }
 
 export class DeterministicHypothesisProvider implements HypothesisProvider {

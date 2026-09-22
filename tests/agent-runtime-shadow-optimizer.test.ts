@@ -78,5 +78,5 @@ test("unregistered agents, models, and tools are rejected instead of created", a
 });
 
 test("optimizer provider failures are sanitized", async () => {
-  await assert.rejects(() => requestValidatedShadowCandidate({ provider: { proposeCandidate: async () => { throw new Error("provider secret"); } }, request: request() }), (error: Error) => error.message === "Shadow optimizer provider failed");
+  await assert.rejects(() => requestValidatedShadowCandidate({ provider: { proposeCandidate: async () => { throw new Error("provider secret"); } }, request: request() }), (error: Error & { runtimeError?: { code: string } }) => error.message === "Shadow optimizer provider failed" && error.runtimeError?.code === "PROVIDER_ERROR");
 });

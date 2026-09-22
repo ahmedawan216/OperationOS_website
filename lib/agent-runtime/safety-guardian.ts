@@ -71,26 +71,31 @@ export async function reviewCandidateSafety(input: {
     return blocked(request, "Safety Guardian assessment was malformed or incomplete.");
   }
   if (assessment.assessmentId !== request.assessmentId || assessment.candidateId !== request.candidate.candidateId) return blocked(request, "Safety Guardian changed runtime-owned identity.");
+  const availableEvidence = new Set(request.availableEvidenceIds);
+  if (assessment.evidenceIds.length !== availableEvidence.size || assessment.evidenceIds.some((id) => !availableEvidence.has(id))) return blocked(request, "Safety Guardian changed the evidence scope.");
+  if (assessment.findings.some((finding) => finding.condition !== "missing_evidence" && finding.evidenceIds.some((id) => !availableEvidence.has(id)))) return blocked(request, "Safety Guardian finding cites unavailable evidence.");
   const requiredIds = new Set(request.deterministicFindings.map((finding) => finding.findingId));
   const returnedIds = new Set(assessment.findings.map((finding) => finding.findingId));
   if ([...requiredIds].some((id) => !returnedIds.has(id))) return blocked(request, "Safety Guardian omitted deterministic safety findings.");
-  const hasHigh = request.deterministicFindings.some((finding) => finding.severity === "high");
-  const hasMedium = request.deterministicFindings.some((finding) => finding.severity === "medium");
+  const hasHigh = assessment.findings.some((finding) => finding.severity === "high");
+  const hasMedium = assessment.findings.some((finding) => finding.severity === "medium");
   const expected = hasHigh ? "reject_candidate" : hasMedium ? "require_human_review" : "allow_for_evaluation";
   if (assessment.recommendedDisposition !== expected) return blocked(request, "Safety Guardian disposition conflicts with deterministic runtime findings.");
+  const expectedSeverity = hasHigh ? "high" : hasMedium ? "medium" : "low";
+  if (assessment.severity !== expectedSeverity) return blocked(request, "Safety Guardian severity conflicts with validated findings.");
   const eligible = expected === "allow_for_evaluation" && !assessment.requiredHumanReview;
   return {
     assessment: deepFreeze(structuredClone(assessment)),
-    eligibility: candidateEligibilitySchema.parse({
+    eligibility: deepFreeze(candidateEligibilitySchema.parse({
       contractVersion: "candidate-eligibility-v1", candidateId: request.candidate.candidateId,
       assessmentId: assessment.assessmentId, evaluationEligible: eligible, active: false, executable: false,
       reason: eligible ? "Validated safety assessment permits independent Day 5 evaluation only." : "Candidate requires review or rejection before evaluation.",
-    }),
+    })),
   };
 }
 
 function blocked(request: SafetyReviewRequest, reason: string): { eligibility: CandidateEligibility } {
-  return { eligibility: candidateEligibilitySchema.parse({ contractVersion: "candidate-eligibility-v1", candidateId: request.candidate.candidateId, evaluationEligible: false, active: false, executable: false, reason }) };
+  return { eligibility: deepFreeze(candidateEligibilitySchema.parse({ contractVersion: "candidate-eligibility-v1", candidateId: request.candidate.candidateId, evaluationEligible: false, active: false, executable: false, reason })) };
 }
 
 function deepFreeze<T>(value: T): T {

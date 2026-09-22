@@ -2,6 +2,7 @@ import "server-only";
 
 import { shadowCandidateSchema, optimizerRequestSchema, type OptimizerRequest, type ShadowCandidate } from "./optimizer-contracts";
 import { parseContract } from "./validation";
+import { LearningProviderError } from "./learning-errors";
 
 export interface ShadowOptimizerProvider {
   proposeCandidate(request: OptimizerRequest): Promise<{ readonly output: unknown }>;
@@ -36,13 +37,14 @@ export async function requestValidatedShadowCandidate(input: {
   try {
     response = await input.provider.proposeCandidate(request);
   } catch {
-    throw new Error("Shadow optimizer provider failed");
+    throw new LearningProviderError("Shadow optimizer");
   }
   const candidate = parseContract(shadowCandidateSchema, response.output, "shadow-optimizer.response");
   if (candidate.candidateId !== request.candidateId || candidate.candidateVersion !== request.candidateVersion || candidate.parentCandidateId !== request.parentCandidateId) throw new Error("Optimizer changed runtime-owned candidate identity");
   if (candidate.hypothesisId !== request.hypothesis.hypothesisId || candidate.productKey !== request.hypothesis.productKey || candidate.productSnapshotId !== request.hypothesis.productSnapshotId) throw new Error("Optimizer changed hypothesis or product context");
   if (JSON.stringify(candidate.baseline) !== JSON.stringify(request.baseline)) throw new Error("Optimizer changed immutable baseline");
   if (candidate.optimizationObjective !== request.optimizationObjective) throw new Error("Optimizer changed its optimization objective");
+  if (candidate.expectedOutcomeSignalKey !== request.hypothesis.expectedOutcomeSignalKey) throw new Error("Optimizer changed the expected outcome signal");
   if (candidate.riskClassification !== request.requiredRiskLevel) throw new Error("Optimizer changed runtime-owned risk classification");
   if (!sameStrings(candidate.evidenceIds, request.hypothesis.supportEvidenceIds)) throw new Error("Optimizer altered supporting evidence");
   if (!sameStrings(candidate.counterEvidenceIds, request.hypothesis.counterEvidenceIds)) throw new Error("Optimizer hid or altered counter-evidence");
@@ -65,6 +67,7 @@ export class ShadowCandidateRegistry {
   register(candidate: ShadowCandidate): ShadowCandidate {
     const validated = shadowCandidateSchema.parse(candidate);
     if (this.candidates.has(validated.candidateId)) throw new Error(`Candidate already finalized: ${validated.candidateId}`);
+    if (validated.candidateVersion === 1 && validated.parentCandidateId) throw new Error("Initial candidate cannot have a parent");
     if (validated.candidateVersion > 1) {
       const parent = validated.parentCandidateId && this.candidates.get(validated.parentCandidateId);
       if (!parent || validated.candidateVersion !== parent.candidateVersion + 1) throw new Error("Candidate version requires an immutable sequential parent");

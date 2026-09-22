@@ -80,7 +80,7 @@ export function buildEnvironmentModel(input: {
     epistemicStatus: "known" as const,
     evidenceIds: entity.evidenceIds,
   }));
-  return productEnvironmentModelSchema.parse({
+  return deepFreeze(productEnvironmentModelSchema.parse({
     contractVersion: "product-environment-model-v1",
     modelVersionId: input.modelVersionId,
     version: input.version,
@@ -93,7 +93,7 @@ export function buildEnvironmentModel(input: {
     sourceObservationIds: input.observations.map((item) => item.observationId).sort(),
     createdAt: input.createdAt,
     createdBy: "runtime",
-  });
+  }));
 }
 
 export function classifyObservations(input: {
