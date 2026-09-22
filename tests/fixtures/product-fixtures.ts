@@ -53,7 +53,7 @@ export const productFeatureFixtures = Object.freeze([
     ...versionFields, versionId: "onboarding-feature-v1", productKey: "operations-suite",
     featureKey: "onboarding", name: "Onboarding", description: "Bounded onboarding workflow metadata.",
     capabilityVersionIds: ["onboarding-record-read-capability-v1"],
-    workflowVersionIds: ["onboarding-workflow-v1"], contextReferenceVersionIds: ["onboarding-context-v1"],
+    workflowVersionIds: ["onboarding-workflow-v1"], contextReferenceVersionIds: ["onboarding-context-version-v1"],
   }),
   productFeatureSchema.parse({
     ...versionFields, versionId: "scorecards-feature-v1", productKey: "operations-suite",
@@ -69,14 +69,14 @@ export const productWorkflowFixtures = Object.freeze([
     featureKey: "onboarding", workflowKey: "onboarding.review",
     description: "Review an onboarding record without taking consequential action.",
     stageKeys: ["review"], capabilityKeys: ["onboarding.record.read"],
-    outcomeSignalKeys: ["onboarding.review.completed"],
+    outcomeSignalKeys: ["onboarding.decision.exists"],
   }),
 ]);
 
 export const productSignalFixtures = Object.freeze([
   outcomeSignalDefinitionSchema.parse({
     ...versionFields, versionId: "onboarding-completed-signal-v1", productKey: "operations-suite",
-    featureKey: "onboarding", signalKey: "onboarding.review.completed",
+    featureKey: "onboarding", signalKey: "onboarding.decision.exists",
     description: "Whether a bounded onboarding review completed.", valueType: "boolean", unit: "boolean",
   }),
 ]);
@@ -86,7 +86,7 @@ export const productEvaluatorFixtures = Object.freeze([
     ...versionFields, versionId: "onboarding-evaluator-v1", productKey: "operations-suite",
     evaluatorKey: "onboarding.evaluator.v1", description: "Deterministically checks workflow outputs.",
     inputSchema: "workflow-model-v1", outputSchema: "verification-result-v1",
-    supportedSignalKeys: ["onboarding.review.completed"],
+    supportedSignalKeys: ["onboarding.decision.exists"],
   }),
 ]);
 
