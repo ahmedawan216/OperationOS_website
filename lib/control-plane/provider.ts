@@ -20,10 +20,10 @@ export async function readControlPlaneSnapshot(input: {
   const parsed = controlPlaneSnapshotSchema.parse(await input.provider.readSnapshot({ founderId: input.founderId, productKey: input.productKey }));
   if (parsed.sourceMode !== input.provider.mode) throw new Error("Control Plane provider mode mismatch");
   if (input.productKey) {
-    const leaked = [parsed.products, parsed.executions, parsed.learnings, parsed.improvements].flat().some((item) => "productKey" in item && item.productKey !== input.productKey);
+    const leaked = [parsed.products, parsed.executions, parsed.learnings, parsed.improvements,parsed.evaluations,parsed.safety,parsed.approvals,parsed.versions,parsed.canaries].flat().some((item) => "productKey" in item && item.productKey !== input.productKey);
     if (leaked) throw new Error("Cross-product projection leakage detected");
   }
-  return parsed;
+  const freeze=(value:unknown):void=>{if(!value||typeof value!=="object"||Object.isFrozen(value))return;for(const child of Object.values(value))freeze(child);Object.freeze(value)};freeze(parsed);return parsed;
 }
 
 export function assertFixtureModeAllowed(environment: string | undefined): void {
