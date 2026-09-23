@@ -36,5 +36,14 @@ export async function getConfiguredControlPlaneProvider(): Promise<ControlPlaneD
     const { fixtureControlPlaneProvider } = await import("./testing/fixture-provider");
     return fixtureControlPlaneProvider;
   }
-  throw new ControlPlaneConfigurationError("An authoritative Control Plane provider must be configured");
+  if (process.env.CONTROL_PLANE_DATA_MODE === "authoritative") {
+    const tenantId = process.env.CONTROL_PLANE_TENANT_ID?.trim();
+    if (!tenantId) throw new ControlPlaneConfigurationError("CONTROL_PLANE_TENANT_ID is required for authoritative mode");
+    const [{ AuthoritativeControlPlaneProvider }, { createSupabaseControlPlaneRepository }] = await Promise.all([
+      import("./authoritative-provider"),
+      import("./supabase-repository"),
+    ]);
+    return new AuthoritativeControlPlaneProvider(createSupabaseControlPlaneRepository(), tenantId);
+  }
+  throw new ControlPlaneConfigurationError("CONTROL_PLANE_DATA_MODE must explicitly select an authoritative provider");
 }
