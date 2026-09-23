@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
 export const CONTROL_PLANE_COOKIE = "operationos_control_session";
+export const CONTROL_PLANE_SESSION_TTL_SECONDS = 8 * 60 * 60;
 
 const sessionSchema = z.object({
   sub: z.string().trim().min(1).max(200),
@@ -15,6 +16,10 @@ export type FounderSession = z.infer<typeof sessionSchema>;
 export interface FounderAuthConfig {
   founderId: string;
   sessionSecret: string;
+}
+
+export interface FounderIdentityVerifier {
+  verifyPassword(password: string): Promise<boolean>;
 }
 
 export class ControlPlaneAuthorizationError extends Error {
@@ -62,4 +67,55 @@ export function authorizeFounderSession(input: {
     throw new ControlPlaneAuthorizationError("Founder session is expired or mismatched");
   }
   return Object.freeze(structuredClone(session));
+}
+
+export async function authenticateFounderAndCreateSession(input: {
+  password: string;
+  verifier: FounderIdentityVerifier;
+  config: FounderAuthConfig;
+  now: Date;
+  nonce: string;
+}): Promise<{ token: string; expiresAt: Date }> {
+  if (input.password.length < 8 || input.password.length > 1_024) {
+    throw new ControlPlaneAuthorizationError("Founder credentials are invalid");
+  }
+  let verified = false;
+  try {
+    verified = await input.verifier.verifyPassword(input.password);
+  } catch {
+    throw new ControlPlaneAuthorizationError("Founder authentication is unavailable");
+  }
+  if (!verified) throw new ControlPlaneAuthorizationError("Founder credentials are invalid");
+  const expiresAt = new Date(input.now.getTime() + CONTROL_PLANE_SESSION_TTL_SECONDS * 1_000);
+  return {
+    token: createFounderSessionToken({
+      sub: input.config.founderId,
+      role: "founder",
+      exp: Math.floor(expiresAt.getTime() / 1_000),
+      nonce: input.nonce,
+    }, input.config),
+    expiresAt,
+  };
+}
+
+export function founderSessionCookieOptions(production: boolean) {
+  return Object.freeze({
+    httpOnly: true,
+    secure: production,
+    sameSite: "strict" as const,
+    path: "/",
+    maxAge: CONTROL_PLANE_SESSION_TTL_SECONDS,
+    priority: "high" as const,
+  });
+}
+
+export function assertTrustedControlPlaneOrigin(input: {
+  requestUrl: string;
+  origin: string | null;
+  configuredOrigin?: string;
+}): void {
+  const expected = input.configuredOrigin?.trim() || new URL(input.requestUrl).origin;
+  if (!input.origin || input.origin !== expected) {
+    throw new ControlPlaneAuthorizationError("Untrusted Control Plane request origin");
+  }
 }
