@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description:
       "Complete guide to AI resume screening for recruiters.",
     url: "/blog/ai-resume-screening",
-    siteName: "OperationOS.org",
+    siteName: "OperationOS",
     type: "article",
     images: [
       {

@@ -12,11 +12,11 @@ export const metadata: Metadata = {
     "Compare RecruitOS Free, Standard, and Pro plans for recruiting workflows, candidate review, resume analysis, and human-reviewed actions.",
   alternates: { canonical: "/pricing" },
   openGraph: {
-    title: "RecruitOS Pricing | OperationOS.org",
+    title: "RecruitOS Pricing | OperationOS",
     description:
       "Compare RecruitOS Free, Standard, and Pro plans. Start free, then choose more capacity as your recruiting workload grows.",
     url: "/pricing",
-    siteName: "OperationOS.org",
+    siteName: "OperationOS",
     type: "website",
     images: [
       {
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "RecruitOS Pricing | OperationOS.org",
+    title: "RecruitOS Pricing | OperationOS",
     description:
       "Compare RecruitOS Free, Standard, and Pro plans for different recruiting workloads.",
     images: ["/brand/operationos-avatar-light-1024.png"],
