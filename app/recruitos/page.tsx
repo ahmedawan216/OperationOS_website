@@ -6,9 +6,10 @@ import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { TrackedLink } from "@/components/analytics/tracked-link";
 import { recruitosConfig } from "@/lib/site-config";
+import { RecruitOSJsonLd } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = {
-  title: "RecruitOS by OperationOS",
+  title: { absolute: "RecruitOS by OperationOS" },
   description:
     "Meet RecruitOS, the flagship recruiting product from OperationOS. Learn how it reflects our human-control principles and explore the product.",
   alternates: { canonical: "/recruitos" },
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "Meet RecruitOS, the flagship recruiting product from OperationOS. Learn how it reflects our human-control principles and explore the product.",
     url: "/recruitos",
-    siteName: "OperationOS.org",
+    siteName: "OperationOS",
     type: "website",
     images: [{
       url: "/images/recruitos/RecruitOS_workspace_preview.png",
@@ -37,6 +38,7 @@ export const metadata: Metadata = {
 export default function RecruitOSPage() {
   return (
     <>
+      <RecruitOSJsonLd />
       <section className="border-b border-border pt-[72px]">
         <div className="container-wide grid min-h-[calc(100svh-72px)] items-center gap-12 py-16 sm:py-20 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16 lg:py-24">
           <div className="max-w-[650px]">

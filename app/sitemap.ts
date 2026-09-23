@@ -5,19 +5,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
     {
       path: "",
-      lastModified: "2026-09-05",
+      lastModified: "2026-09-23",
       changeFrequency: "weekly" as const,
       priority: 1,
     },
     {
       path: "/recruitos",
-      lastModified: "2026-09-05",
+      lastModified: "2026-09-23",
       changeFrequency: "monthly" as const,
       priority: 0.9,
     },
     {
       path: "/pricing",
-      lastModified: "2026-09-05",
+      lastModified: "2026-09-23",
       changeFrequency: "monthly" as const,
       priority: 0.8,
     },
@@ -35,7 +35,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       path: "/about",
-      lastModified: "2026-09-04",
+      lastModified: "2026-09-23",
       changeFrequency: "monthly" as const,
       priority: 0.7,
     },
@@ -107,7 +107,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       path: "/blog/ai-resume-screening",
-      lastModified: "2026-09-05",
+      lastModified: "2026-09-23",
       changeFrequency: "monthly" as const,
       priority: 0.9,
     },
@@ -115,5 +115,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return routes.map((route) => ({
     url: `${siteConfig.url}${route.path}`,
+    lastModified: route.lastModified,
+    changeFrequency: route.changeFrequency,
+    priority: route.priority,
   }));
 }

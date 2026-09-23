@@ -10,14 +10,14 @@
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://operationos.org").replace(/\/+$/, "");
 
 export const siteConfig = {
-  name: "OperationOS.org",
+  name: "OperationOS",
   organizationName: "OperationOS",
   url: siteUrl,
-  title: "OperationOS.org | Focused Software for Operational Work",
+  title: "OperationOS | Focused Software for Operational Work",
   /** Kept under ~160 characters so it doesn't get truncated on the SERP. */
   description:
-    "OperationOS builds focused software products for operational work. RecruitOS helps hiring teams review candidates and keep hiring workflows organized.",
-  ogImagePath: "/opengraph-image",
+    "OperationOS is an AI and software company building focused intelligent products for real workflows. RecruitOS is its first live product.",
+  logoPath: "/brand/operationos-avatar-light-1024.png",
 } as const;
 
 export const recruitosConfig = {
