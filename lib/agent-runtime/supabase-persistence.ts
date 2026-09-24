@@ -16,7 +16,7 @@ import { getServerSupabaseClient } from "../supabase/server-client";
 const prohibited = /^(?:authorization|cookie|password|secret|token|apikey|api_key|service_role_key|chain_of_thought|hidden_reasoning|hiddenreasoning|internalreasoning|raw_provider_error)$/i;
 
 /** Reject raw sensitive data at the write boundary; never silently strip evidence. */
-function safeJson(value: unknown, maxBytes = 8_000): void {
+export function assertSafeRuntimePayload(value: unknown, maxBytes = 8_000): void {
   const visit = (item: unknown): void => {
     if (!item || typeof item !== "object") return;
     for (const [key, child] of Object.entries(item)) {
@@ -95,8 +95,8 @@ export class SupabaseAgentRuntimePersistence implements AgentRuntimePersistence 
         goal.goalId !== snapshot.goalId || record.executionId !== snapshot.executionId || record.status !== "queued") {
       throw new Error("Execution identity and immutable snapshot disagree");
     }
-    safeJson(goal);
-    safeJson(snapshot);
+    assertSafeRuntimePayload(goal);
+    assertSafeRuntimePayload(snapshot);
     const { data, error } = await this.client.from("agent_runtime_executions").insert({
       execution_id: record.executionId, tenant_id: this.tenantId, product_key: this.productKey,
       goal_id: goal.goalId, actor_id: goal.actorId, idempotency_key: goal.idempotencyKey,
@@ -176,7 +176,7 @@ export class SupabaseAgentRuntimePersistence implements AgentRuntimePersistence 
       attempt: assignment.attempt, assignedAgentKey: agentKey,
       contextRefs: assignment.contextRefs, expectedOutputSchema: assignment.expectedOutputSchema,
     };
-    safeJson(safeAssignment);
+    assertSafeRuntimePayload(safeAssignment);
     const { data, error } = await this.client.from("agent_runtime_execution_steps")
       .update({ assignment: safeAssignment }).eq("tenant_id", this.tenantId)
       .eq("execution_id", assignment.executionId).eq("step_attempt_id", stepAttemptId)
@@ -191,8 +191,8 @@ export class SupabaseAgentRuntimePersistence implements AgentRuntimePersistence 
     if (event.payload.bounded === true) {
       throw new Error("Unpersisted trace artifacts cannot be referenced by authoritative traces");
     }
-    safeJson(event.payload);
-    if (event.error) safeJson(event.error);
+    assertSafeRuntimePayload(event.payload);
+    if (event.error) assertSafeRuntimePayload(event.error);
     await this.assertExecutionScope(event.executionId);
     const { error } = await this.client.from("agent_runtime_trace_events").insert({
       event_id: event.eventId, tenant_id: this.tenantId, execution_id: event.executionId,
@@ -216,7 +216,7 @@ export class SupabaseAgentRuntimePersistence implements AgentRuntimePersistence 
 
   async createApproval(input: import("./contracts").ApprovalRequest): Promise<void> {
     const request = approvalRequestSchema.parse(input);
-    safeJson(request.summary, 4_000);
+    assertSafeRuntimePayload(request.summary, 4_000);
     // Candidate-only requests need a durable candidate registry before product
     // ownership can be proven. Do not infer scope from a user-supplied ID.
     if (!request.executionId) throw new Error("Candidate approval requires an authoritative candidate binding");
