@@ -9,6 +9,14 @@ function privateHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
+function requestFacingUrl(request: NextRequest, requestHost: string): URL {
+  const target = request.nextUrl.clone();
+  target.host = requestHost;
+  if (!requestHost.includes(":")) target.port = "";
+  target.protocol = request.headers.get("x-forwarded-proto") ?? target.protocol;
+  return target;
+}
+
 export function middleware(request: NextRequest) {
   const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
   const requestHost = forwardedHost || request.headers.get("host")?.trim() || request.nextUrl.hostname;
@@ -24,6 +32,11 @@ export function middleware(request: NextRequest) {
     const target = request.nextUrl.clone();
     target.pathname = resolution.pathname;
     return privateHeaders(NextResponse.rewrite(target));
+  }
+  if (resolution.disposition === "redirect") {
+    const target = requestFacingUrl(request, requestHost);
+    target.pathname = resolution.pathname;
+    return privateHeaders(NextResponse.redirect(target, 308));
   }
   const response = NextResponse.next();
   return resolution.privateSurface ? privateHeaders(response) : response;

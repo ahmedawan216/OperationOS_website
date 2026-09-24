@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const pricing = readFileSync(new URL("../app/pricing/page.tsx", import.meta.url), "utf8");
+const pricing = readFileSync(new URL("../app/(public)/pricing/page.tsx", import.meta.url), "utf8");
 const config = readFileSync(new URL("../lib/site-config.ts", import.meta.url), "utf8");
 const analytics = readFileSync(new URL("../lib/analytics.ts", import.meta.url), "utf8");
 

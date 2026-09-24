@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { resolveControlPlaneHost } from "../lib/control-plane/host-routing";
+import { controlPlanePath, controlPlaneRequestUrl, resolveControlPlaneHost } from "../lib/control-plane/host-routing";
 import { askMetaAgent } from "../lib/control-plane/meta-agent";
 import { GroundedMetaAgentProvider } from "../lib/control-plane/grounded-meta-agent-provider";
 import { fixtureSnapshot } from "../lib/control-plane/testing/fixture-provider";
@@ -10,15 +10,25 @@ import { fixtureSnapshot } from "../lib/control-plane/testing/fixture-provider";
 test("dedicated Control Plane host rewrites only recognized private routes", () => {
   const configuredHost = "control.operationos.org";
   assert.deepEqual(resolveControlPlaneHost({ hostname: configuredHost, pathname: "/", configuredHost }), { disposition: "rewrite", pathname: "/control", privateSurface: true });
-  assert.deepEqual(resolveControlPlaneHost({ hostname: configuredHost, pathname: "/approvals", configuredHost }), { disposition: "rewrite", pathname: "/control/approvals", privateSurface: true });
+  for (const section of ["products", "agents", "executions", "learnings", "improvements", "evaluations", "safety", "approvals", "versions", "health", "meta-agent", "login"]) {
+    assert.deepEqual(resolveControlPlaneHost({ hostname: configuredHost, pathname: `/${section}`, configuredHost }), { disposition: "rewrite", pathname: `/control/${section}`, privateSurface: true });
+    assert.deepEqual(resolveControlPlaneHost({ hostname: configuredHost, pathname: `/control/${section}`, configuredHost }), { disposition: "redirect", pathname: `/${section}`, privateSurface: true });
+  }
+  assert.deepEqual(resolveControlPlaneHost({ hostname: configuredHost, pathname: "/control", configuredHost }), { disposition: "redirect", pathname: "/", privateSurface: true });
   assert.deepEqual(resolveControlPlaneHost({ hostname: configuredHost, pathname: "/api/control-plane/auth/login", configuredHost }), { disposition: "next", privateSurface: true });
+  assert.deepEqual(resolveControlPlaneHost({ hostname: configuredHost, pathname: "/brand/operationos-h1-horizontal-white.svg", configuredHost }), { disposition: "next", privateSurface: true });
   assert.deepEqual(resolveControlPlaneHost({ hostname: configuredHost, pathname: "/unrelated", configuredHost }), { disposition: "deny", privateSurface: true });
+  assert.equal(controlPlanePath("/control", configuredHost, configuredHost), "/");
+  assert.equal(controlPlanePath("/control/login", configuredHost, configuredHost), "/login");
+  assert.equal(controlPlanePath("/control/login", "localhost", configuredHost), "/control/login");
+  assert.equal(controlPlaneRequestUrl({ internalPathname: "/control/products", requestUrl: "http://localhost:3000/api/control-plane/governance", forwardedHost: "control.operationos.org", forwardedProto: "https", configuredHost }).toString(), "https://control.operationos.org/products");
 });
 
 test("primary site is unchanged while Control Plane paths fail closed off-host", () => {
   const configuredHost = "control.operationos.org";
   assert.deepEqual(resolveControlPlaneHost({ hostname: "operationos.org", pathname: "/pricing", configuredHost }), { disposition: "next", privateSurface: false });
   assert.deepEqual(resolveControlPlaneHost({ hostname: "operationos.org", pathname: "/control", configuredHost }), { disposition: "deny", privateSurface: true });
+  assert.deepEqual(resolveControlPlaneHost({ hostname: "operationos.org", pathname: "/brand/operationos-h1-horizontal-white.svg", configuredHost }), { disposition: "next", privateSurface: false });
   assert.deepEqual(resolveControlPlaneHost({ hostname: "operationos.org", pathname: "/api/control-plane/governance", configuredHost }), { disposition: "deny", privateSurface: true });
 });
 

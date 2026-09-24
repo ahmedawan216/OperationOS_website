@@ -5,9 +5,19 @@ import { assertTrustedControlPlaneOrigin } from "@/lib/control-plane/auth-core";
 import { executeGovernanceAction, founderGovernanceRequestSchema } from "@/lib/control-plane/governance";
 import { getConfiguredControlPlaneProvider, readControlPlaneSnapshot } from "@/lib/control-plane/provider";
 import { getConfiguredGovernanceAdapter } from "@/lib/control-plane/supabase-governance";
+import { controlPlaneRequestUrl } from "@/lib/control-plane/host-routing";
 
 function redirect(request: Request, path: string, result: "success" | "failed") {
-  return NextResponse.redirect(new URL(`${path}?result=${result}`, request.url), 303);
+  const target = controlPlaneRequestUrl({
+    internalPathname: path,
+    requestUrl: request.url,
+    forwardedHost: request.headers.get("x-forwarded-host"),
+    host: request.headers.get("host"),
+    forwardedProto: request.headers.get("x-forwarded-proto"),
+    configuredHost: process.env.CONTROL_PLANE_HOST,
+  });
+  target.searchParams.set("result", result);
+  return NextResponse.redirect(target, 303);
 }
 
 export async function POST(request: Request) {

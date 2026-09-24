@@ -1,0 +1,25 @@
+.cp-empty-state {
+  margin-top: 18px;
+  border: 1px dashed #33404d;
+  border-radius: 10px;
+  background: #0b1117;
+  padding: 22px;
+}
+
+.cp-panel > .cp-empty-state {
+  margin-top: 0;
+}
+
+.cp-empty-state strong {
+  display: block;
+  color: #d7dee4;
+  font-size: 13px;
+}
+
+.cp-empty-state p {
+  margin-top: 7px;
+  max-width: 620px;
+  color: #82909d;
+  font-size: 12px;
+  line-height: 1.6;
+}
