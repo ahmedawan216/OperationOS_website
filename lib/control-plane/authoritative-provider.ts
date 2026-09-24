@@ -64,7 +64,7 @@ function parseProjectionRecords(rows: readonly unknown[]) {
   const improvements: z.infer<typeof improvementSummarySchema>[] = [];
   const evaluations: z.infer<typeof evaluationSummarySchema>[] = [];
   const safety: z.infer<typeof safetySummarySchema>[] = [];
-  const canaries: z.infer<typeof canarySummarySchema>[] = [];
+  const canaryRecords = new Map<string, { value: z.infer<typeof canarySummarySchema>; occurredAt: string }>();
   const recentEvents: z.infer<typeof eventSummarySchema>[] = [];
   for (const raw of rows) {
     const row = recordRowSchema.parse(raw);
@@ -81,10 +81,22 @@ function parseProjectionRecords(rows: readonly unknown[]) {
     else if (row.record_kind === "improvement") improvements.push(parsed as z.infer<typeof improvementSummarySchema>);
     else if (row.record_kind === "evaluation") evaluations.push(parsed as z.infer<typeof evaluationSummarySchema>);
     else if (row.record_kind === "safety") safety.push(parsed as z.infer<typeof safetySummarySchema>);
-    else if (row.record_kind === "canary") canaries.push(parsed as z.infer<typeof canarySummarySchema>);
+    else if (row.record_kind === "canary") {
+      const value = parsed as z.infer<typeof canarySummarySchema>;
+      const key = `${value.productKey}:${value.canaryId}`;
+      const previous = canaryRecords.get(key);
+      if (previous && (previous.value.candidateVersionId !== value.candidateVersionId ||
+        previous.value.knownGoodVersionId !== value.knownGoodVersionId ||
+        previous.value.rollbackVersionId !== value.rollbackVersionId ||
+        previous.value.conditionsDigest !== value.conditionsDigest)) {
+        throw new Error("Canary projections contradict the immutable configuration");
+      }
+      if (!previous || row.occurred_at > previous.occurredAt) canaryRecords.set(key, { value, occurredAt: row.occurred_at });
+    }
     else recentEvents.push(parsed as z.infer<typeof eventSummarySchema>);
   }
-  return { products, learnings, improvements, evaluations, safety, canaries, recentEvents };
+  return { products, learnings, improvements, evaluations, safety,
+    canaries: [...canaryRecords.values()].map((entry) => entry.value), recentEvents };
 }
 
 export class AuthoritativeControlPlaneProvider implements ControlPlaneDataProvider {
@@ -155,7 +167,9 @@ export class AuthoritativeControlPlaneProvider implements ControlPlaneDataProvid
       versionId: deployment.deployment_id,
       status: deployment.status === "active" ? "known_good" : "candidate",
       digest: digest(deployment.manifest),
-      pointer: deployment.status === "active" ? "known_good" : deployment.status === "canary" ? "canary" : "none",
+      pointer: deployment.status === "active" ? "known_good" : deployment.status === "canary" &&
+        !projections.canaries.some((canary) => canary.productKey === deployment.product_key &&
+          canary.candidateVersionId === deployment.deployment_id && canary.state !== "canary") ? "canary" : "none",
       createdAt: deployment.created_at,
     }));
 

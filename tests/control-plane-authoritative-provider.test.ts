@@ -4,6 +4,8 @@ import { test } from "node:test";
 import { AuthoritativeControlPlaneProvider, type AuthoritativeControlPlaneRepository, type AuthoritativeControlPlaneRows } from "../lib/control-plane/authoritative-provider";
 import { dayOneAgentFixtures } from "../lib/agent-runtime/fixtures";
 import { readControlPlaneSnapshot } from "../lib/control-plane/provider";
+import { GroundedMetaAgentProvider } from "../lib/control-plane/grounded-meta-agent-provider";
+import { askMetaAgent } from "../lib/control-plane/meta-agent";
 
 const at = "2026-09-23T10:00:00.000Z";
 const product = {
@@ -49,6 +51,42 @@ test("authoritative records fail closed on malformed or cross-product projection
   const records = [{ record_id: "bad", product_key: "operations-suite", record_kind: "product", schema_version: "control-plane-snapshot-v1", source_record_id: "snapshot-v1", source_digest: `sha256:${"c".repeat(64)}`, payload: crossProduct, occurred_at: at }];
   const provider = new AuthoritativeControlPlaneProvider(source({ records }), "tenant-1", () => new Date(at));
   await assert.rejects(() => readControlPlaneSnapshot({ provider, founderId: "founder", productKey: "operations-suite" }), /crosses product context/);
+});
+
+test("latest source-derived canary outcome clears the stale canary pointer and preserves known-good", async () => {
+  const config = { productKey: "operations-suite", canaryId: "canary-1", state: "canary",
+    candidateVersionId: "candidate-1", knownGoodVersionId: "known-good-1",
+    rollbackVersionId: "known-good-1", conditionsDigest: `sha256:${"c".repeat(64)}`,
+    target: "test", allocationPercent: 5, productionActivationAllowed: false,
+    eventSummaries: ["Authorized bounded test canary"] };
+  const record = (id: string, payload: unknown, atTime: string) => ({ record_id: id,
+    product_key: "operations-suite", record_kind: "canary", schema_version: "control-plane-snapshot-v1",
+    source_record_id: id, source_digest: `sha256:${"a".repeat(64)}`, payload, occurred_at: atTime });
+  const deployments = [
+    { deployment_id: "known-good-1", product_key: "operations-suite", environment: "test",
+      manifest: { digest: `sha256:${"b".repeat(64)}` }, status: "active", created_at: at },
+    { deployment_id: "candidate-1", product_key: "operations-suite", environment: "test",
+      manifest: { digest: `sha256:${"a".repeat(64)}` }, status: "canary", created_at: at },
+  ];
+  const later = "2026-09-23T10:01:00.000Z";
+  const records = [record("terminal", { ...config, state: "rolled_back", eventSummaries: ["Frozen safety threshold breached"] }, later),
+    record("start", config, at)];
+  const provider = new AuthoritativeControlPlaneProvider(source({ deployments, records }), "tenant-1", () => new Date(later));
+  const snapshot = await readControlPlaneSnapshot({ provider, founderId: "founder", productKey: "operations-suite" });
+  assert.equal(snapshot.canaries.length, 1);
+  assert.equal(snapshot.canaries[0]?.state, "rolled_back");
+  assert.equal(snapshot.versions.find((entry) => entry.versionId === "candidate-1")?.pointer, "none");
+  assert.equal(snapshot.versions.find((entry) => entry.versionId === "known-good-1")?.pointer, "known_good");
+  const answer = await askMetaAgent({ provider: new GroundedMetaAgentProvider(), snapshot,
+    founderId: "founder", queryId: "canary-proof", question: "What happened during this canary?" });
+  assert.equal(answer.readOnly, true);
+  assert.equal(answer.claims[0]?.recordReferences[0]?.id, "canary-1");
+  assert.match(answer.claims[0]?.statement ?? "", /rolled_back/);
+  assert.equal(answer.deploymentAuthorized, false);
+  const bad = { ...config, rollbackVersionId: "fabricated" };
+  await assert.rejects(() => readControlPlaneSnapshot({ provider: new AuthoritativeControlPlaneProvider(
+    source({ deployments, records: [record("start", config, at), record("bad", bad, later)] }), "tenant-1"),
+    founderId: "founder" }), /contradict/);
 });
 
 test("production migration keeps Control Plane records immutable and server-only", () => {

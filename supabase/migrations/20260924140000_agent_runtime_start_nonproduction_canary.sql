@@ -19,10 +19,12 @@ begin
      or (p_config ->> 'maxDurationMs')::integer not between 1 and 86400000
      or p_config ->> 'knownGoodVersionId' is distinct from p_config ->> 'rollbackVersionId'
      or p_projection ->> 'state' <> 'canary'
+     or p_projection ->> 'productKey' is distinct from p_product_key
      or p_projection ->> 'productionActivationAllowed' <> 'false'
      or p_projection ->> 'canaryId' is distinct from p_config ->> 'canaryId'
      or p_projection ->> 'candidateVersionId' is distinct from p_config ->> 'candidateVersionId'
      or p_projection ->> 'rollbackVersionId' is distinct from p_config ->> 'rollbackVersionId'
+     or p_projection ->> 'knownGoodVersionId' is distinct from p_config ->> 'knownGoodVersionId'
      or p_projection ->> 'conditionsDigest' is distinct from p_config ->> 'conditionsDigest'
      or p_projection ->> 'target' is distinct from p_config ->> 'target'
      or (p_projection ->> 'allocationPercent')::integer is distinct from (p_config ->> 'allocationPercent')::integer
