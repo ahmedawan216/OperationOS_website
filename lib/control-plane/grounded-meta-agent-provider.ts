@@ -21,6 +21,7 @@ export class GroundedMetaAgentProvider implements MetaAgentProvider {
     if (question.includes("learn")) {
       const hypothesis = snapshot.learnings.find((item) => item.epistemicStatus === "hypothesized");
       const fact = snapshot.learnings.find((item) => item.epistemicStatus === "known");
+      if (!fact && !hypothesis) return this.unknown(base, "No known or hypothesized learning records are available.");
       return { ...base, summary: "Recorded learning evidence is separated by epistemic status.", claims: [
         ...(fact ? [{ classification: "fact" as const, statement: fact.summary, recordReferences: [{ kind: "observation" as const, id: fact.recordId }] }] : []),
         ...(hypothesis ? [{ classification: "hypothesis" as const, statement: hypothesis.summary, recordReferences: [{ kind: "observation" as const, id: hypothesis.recordId }] }] : []),
