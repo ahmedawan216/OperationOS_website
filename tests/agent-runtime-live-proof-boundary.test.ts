@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ProductionModelProvider } from "../lib/agent-runtime/production-model-provider";
+import { CONTROLLED_GROQ_MODEL, CONTROLLED_GROQ_MODEL_KEY, ProductionModelProvider } from "../lib/agent-runtime/production-model-provider";
 import { controlledProduct, controlledRuntimeDefinitions, registerControlledProof } from "../lib/agent-runtime/controlled-proof-registration";
 import { requestValidatedWorkflowModel } from "../lib/agent-runtime/specialist-provider";
 import { workflowInput, workflowModel } from "./fixtures/specialist-fixtures";
@@ -29,15 +29,21 @@ test("controlled manifest registers only draft capability, no tools or grants, a
   assert.equal(controlledProduct.product.productKey, "operationos");
   assert.deepEqual(controlledProduct.capabilities.map((item) => item.actionClass), ["draft"]);
   assert.deepEqual(controlledProduct.tools, []);
-  assert.throws(() => controlledRuntimeDefinitions("deterministic-fake"), /real, pinned/);
-  assert.throws(() => controlledRuntimeDefinitions("gpt-controlled"), /real, pinned/);
-  const versions = controlledRuntimeDefinitions("gpt-controlled-2026-09-24");
+  assert.throws(() => controlledRuntimeDefinitions("deterministic-fake"), /approved controlled proof model/);
+  assert.throws(() => controlledRuntimeDefinitions("gpt-controlled"), /approved controlled proof model/);
+  const versions = controlledRuntimeDefinitions(CONTROLLED_GROQ_MODEL_KEY);
   assert.deepEqual(versions.agents.map((item) => item.agentKey),
     ["manager", "workflow_discovery_specialist", "agent_architecture_specialist"]);
   assert.ok(versions.agents.every((item) => item.status === "active" && item.capabilityGrants.length === 0));
   assert.equal(versions.policy.defaultDecision, "deny");
-  assert.notEqual(versions.agents[0]!.versionId, controlledRuntimeDefinitions("gpt-controlled-2026-09-25").agents[0]!.versionId);
-  assert.throws(() => new ProductionModelProvider({ key: "", model: "gpt-controlled-2026-09-24" }), /not configured/);
+  assert.deepEqual(versions.agents[0]!.modelPolicy.allowedModelKeys, [CONTROLLED_GROQ_MODEL_KEY]);
+  assert.throws(() => controlledRuntimeDefinitions(CONTROLLED_GROQ_MODEL), /approved controlled proof model/);
+  assert.throws(() => controlledRuntimeDefinitions("openai/gpt-oss-120b"), /approved controlled proof model/);
+  assert.throws(() => new ProductionModelProvider({ key: "", model: CONTROLLED_GROQ_MODEL, provider: "groq" }), /not configured/);
+  assert.throws(() => new ProductionModelProvider({ key: "mock-secret", model: CONTROLLED_GROQ_MODEL,
+    provider: "unknown" }), /not configured/);
+  assert.throws(() => new ProductionModelProvider({ key: "mock-secret", model: "openai/gpt-oss-120b",
+    provider: "groq" }), /not configured/);
 });
 
 test("founder proof endpoint remains private to the configured control host", () => {
@@ -66,22 +72,37 @@ test("controlled verification requires runtime step evidence, matching criterion
   assert.equal((unrelated as { satisfied: boolean }).satisfied, false);
 });
 
-test("real provider sends only bounded structured request and validates its untrusted response", async () => {
+test("Groq provider sends bounded schema-guided requests without reasoning and validates untrusted output", async () => {
   const originalFetch = globalThis.fetch;
   let body: Record<string, unknown> | undefined;
+  let endpoint: unknown;
   try {
-    globalThis.fetch = async (_url, options) => {
+    globalThis.fetch = async (url, options) => {
+      endpoint = url;
       body = JSON.parse(String(options?.body)) as Record<string, unknown>;
-      return new Response(JSON.stringify({ output: [{ content: [{ type: "output_text", text: JSON.stringify(workflowModel()) }] }],
-        usage: { input_tokens: 40, output_tokens: 120 } }),
+      return new Response(JSON.stringify({ choices: [{ finish_reason: "stop", message: {
+        content: JSON.stringify(workflowModel()), reasoning: "must never persist" } }],
+        usage: { prompt_tokens: 40, completion_tokens: 120 } }),
         { status: 200 });
     };
-    const provider = new ProductionModelProvider({ key: "mock-secret", model: "gpt-controlled-2026-09-24" });
+    const provider = new ProductionModelProvider({ key: "mock-secret", model: CONTROLLED_GROQ_MODEL, provider: "groq" });
+    assert.equal(provider.model, CONTROLLED_GROQ_MODEL_KEY);
     const response = await requestValidatedWorkflowModel(provider, workflowInput());
     assert.equal(response.model.status, "draft");
     assert.deepEqual(response.usage, { inputTokens: 40, outputTokens: 120 });
-    assert.equal(body?.store, false);
+    assert.equal(endpoint, "https://api.groq.com/openai/v1/chat/completions");
+    assert.equal(body?.model, CONTROLLED_GROQ_MODEL);
+    assert.equal(body?.include_reasoning, false);
+    assert.equal(body?.tools, undefined);
+    assert.equal((body?.response_format as { json_schema: { strict: boolean; schema: unknown } }).json_schema.strict, false);
+    assert.ok((body?.response_format as { json_schema: { schema: unknown } }).json_schema.schema);
     assert.equal(JSON.stringify(body).includes("mock-secret"), false);
+    globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ finish_reason: "length",
+      message: { content: JSON.stringify(workflowModel()) } }] }), { status: 200 });
+    await assert.rejects(() => provider.discoverWorkflow(workflowInput()), /unavailable or invalid/);
+    globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ finish_reason: "stop",
+      message: { content: JSON.stringify({ ...workflowModel(), forbidden: "grant access" }) } }] }), { status: 200 });
+    await assert.rejects(() => requestValidatedWorkflowModel(provider, workflowInput()));
     globalThis.fetch = async () => new Response("provider credentials: mock-secret", { status: 500 });
     await assert.rejects(() => provider.discoverWorkflow(workflowInput()), (error: unknown) =>
       error instanceof Error && /unavailable or invalid/.test(error.message) && !error.message.includes("mock-secret"));
@@ -98,7 +119,7 @@ test("registration refuses a cross-tenant write before issuing any database requ
   let called = false;
   const client = { from() { called = true; throw new Error("Should not query cross-tenant database"); } } as unknown as SupabaseClient;
   try {
-    await assert.rejects(() => registerControlledProof({ tenantId: "another-tenant", model: "gpt-controlled-2026-09-24",
+    await assert.rejects(() => registerControlledProof({ tenantId: "another-tenant", model: CONTROLLED_GROQ_MODEL_KEY,
       client, occurredAt: "2026-09-24T00:00:00.000Z" }), /tenant/);
     assert.equal(called, false);
   } finally {
@@ -136,7 +157,7 @@ test("authoritative registration writes only immutable source-derived definition
     return query;
   } } as unknown as SupabaseClient;
   try {
-    const run = () => registerControlledProof({ tenantId: "operationos", model: "gpt-controlled-2026-09-24",
+    const run = () => registerControlledProof({ tenantId: "operationos", model: CONTROLLED_GROQ_MODEL_KEY,
       client, occurredAt: "2026-09-24T12:00:00.000Z" });
     const first = await run();
     assert.equal(first.agents.length, 3);
@@ -147,8 +168,8 @@ test("authoritative registration writes only immutable source-derived definition
     const committed = writes;
     await run();
     assert.equal(writes, committed);
-    await assert.rejects(() => registerControlledProof({ tenantId: "operationos", model: "gpt-different-2026-09-24",
-      client, occurredAt: "2026-09-24T12:00:00.000Z" }), /differs/);
+    await assert.rejects(() => registerControlledProof({ tenantId: "operationos", model: "openai/gpt-oss-120b",
+      client, occurredAt: "2026-09-24T12:00:00.000Z" }), /approved controlled proof model/);
     assert.equal(writes, committed);
   } finally {
     if (beforeMode === undefined) delete process.env.CONTROL_PLANE_DATA_MODE;

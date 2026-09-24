@@ -10,6 +10,7 @@ import { productDefinitionSchema, productCapabilitySchema, productWorkflowMetada
   outcomeSignalDefinitionSchema, productEvaluatorDefinitionSchema } from "./product-contracts";
 import { AuthoritativeLifecycleWriter } from "./authoritative-lifecycle";
 import { SupabaseAgentRuntimePersistence } from "./supabase-persistence";
+import { CONTROLLED_GROQ_MODEL_KEY } from "./production-model-provider";
 
 const createdAt = "2026-09-24T00:00:00.000Z";
 const fields = { version: 1, status: "active" as const, createdBy: "operationos", createdAt };
@@ -46,8 +47,8 @@ export const controlledProduct = resolveProductSnapshot({ productSnapshotId: "op
 
 /** Versions are immutable; an altered live model receives a new version ID. */
 export function controlledRuntimeDefinitions(model: string) {
-  if (!/^[a-z][a-z0-9._-]{0,89}-20\d\d-\d\d-\d\d$/.test(model) || model === "deterministic-fake") {
-    throw new Error("A real, pinned production model is required");
+  if (model !== CONTROLLED_GROQ_MODEL_KEY) {
+    throw new Error("The configured Groq model must match the approved controlled proof model");
   }
   const modelVersion = createHash("sha256").update(model).digest("hex").slice(0, 12);
   const modelPolicy = { allowedModelKeys: [model], temperatureMin: 0, temperatureMax: 0,
