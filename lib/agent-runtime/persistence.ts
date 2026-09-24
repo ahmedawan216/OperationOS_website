@@ -10,17 +10,18 @@ import type {
 } from "./contracts";
 import type { ExecutionRecord } from "./execution-repository";
 import type { StepAttemptRecord } from "./state";
+import type { ExecutionStatus } from "./contracts";
 
 /**
- * Persistence boundary for the production adapter. Day 1 supplies the secured
- * relational migration and verified in-memory adapters. A live Supabase adapter
- * is intentionally deferred until a database can be migrated and tested.
+ * Server-side persistence boundary. Domain validation precedes every write;
+ * database transition guards remain a second, independent authority.
  */
 export interface AgentRuntimePersistence {
   loadAgentDefinitions(tenantId: string): Promise<readonly AgentDefinition[]>;
   loadToolDefinitions(tenantId: string): Promise<readonly ToolDefinition[]>;
   loadPolicyVersions(tenantId: string): Promise<readonly PolicyBundleVersion[]>;
   createOrGetExecution(record: ExecutionRecord): Promise<{ record: ExecutionRecord; created: boolean }>;
+  transitionExecution(executionId: string, from: ExecutionStatus, to: ExecutionStatus, at: string): Promise<void>;
   persistStepAttempt(record: StepAttemptRecord): Promise<void>;
   appendTrace(event: TraceEvent): Promise<void>;
   appendOutcome(signal: OutcomeSignal): Promise<void>;
