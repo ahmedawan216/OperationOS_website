@@ -15,6 +15,13 @@ import { agentDefinitionSchema, policyBundleVersionSchema } from "../lib/agent-r
 import { productRegistries, productToolFixtures } from "./fixtures/product-fixtures";
 import { executionEvidence, failureObservation, observedAt } from "./fixtures/observation-fixtures";
 
+function jsonbOrder(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(jsonbOrder);
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value)
+    .sort(([a], [b]) => b.localeCompare(a)).map(([key, child]) => [key, jsonbOrder(child)]));
+  return value;
+}
+
 function productContext(version: 1 | 2 = 2) {
   const expanded = version === 2;
   const manifest: ProductVersionManifest = {
@@ -120,6 +127,36 @@ test("shadow context is rehydrated only from durable, same-snapshot evidence and
     counterEvidenceIds: [] }), /crosses the selected product/);
   await assert.rejects(() => loadAuthoritativeObservationContext({ writer, productKey: "operations-suite",
     productSnapshotId: "snapshot-v2", observationIds: [], counterEvidenceIds: [] }), /missing/);
+});
+
+test("shadow context accepts equivalent PostgreSQL jsonb records without losing provenance", async () => {
+  const { store, observations } = evidenceSet();
+  const writer = { async requireSource(id: string) {
+    const observation = observations.find((item) => item.observationId === id);
+    return { payload: jsonbOrder(observation ?? store.requireEvidence(id)) };
+  } } as unknown as AuthoritativeLifecycleWriter;
+  const context = await loadAuthoritativeObservationContext({ writer, productKey: "operations-suite",
+    productSnapshotId: "snapshot-v2", observationIds: observations.map((item) => item.observationId),
+    counterEvidenceIds: ["counter-1"] });
+  assert.equal(context.observations.length, 3);
+  assert.equal(context.store.requireEvidence("counter-1").sourceId, "successful-outcome");
+});
+
+test("authoritative shadow loop accepts database-ordered product and evidence while retaining immutable identities", async () => {
+  const request = loopInput();
+  const writer = {
+    async requireSource(id: string) {
+      if (id === request.productContext.product.versionId) return { payload: jsonbOrder(request.productContext) };
+      const observation = request.observations.find((item) => item.observationId === id);
+      if (observation) return { payload: jsonbOrder(observation), source_execution_id: observation.executionId };
+      return { payload: jsonbOrder(request.store.requireEvidence(id)) };
+    },
+    shadowRecordSink() { return async () => {}; },
+  } as unknown as AuthoritativeLifecycleWriter;
+  const result = await runAuthoritativeShadowLoop({ request, writer,
+    executionId: request.observations[0]!.executionId! });
+  assert.equal(result.status, "shadow");
+  assert.equal(result.executable, false);
 });
 
 test("new registered capability is observable without core changes but grants no permission", () => {

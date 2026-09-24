@@ -13,6 +13,13 @@ import { productRegistries, productToolFixtures } from "./fixtures/product-fixtu
 import { architectureProposal, workflowInput, workflowModel } from "./fixtures/specialist-fixtures";
 
 const at = "2026-09-24T12:00:00.000Z";
+function databaseJsonb(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(databaseJsonb);
+  if (value && typeof value === "object") return Object.fromEntries(
+    Object.entries(value).sort(([a], [b]) => b.localeCompare(a))
+      .map(([key, child]) => [key, databaseJsonb(child)]));
+  return value;
+}
 function setup() {
   const committed: string[] = [];
   let sequence = 0;
@@ -85,6 +92,29 @@ test("real registered specialists delegate through the durable Manager and verif
   assert.ok(input.committed.indexOf("trace:workflow.verified") < input.committed.indexOf("assignment:architecture-step"));
   assert.ok(input.committed.includes("state:succeeded"));
   assert.ok(input.committed.includes("outcome:goal_success"));
+});
+
+test("authoritative Manager accepts equivalent product JSON returned with database key ordering", async () => {
+  const input = setup();
+  const writer = { async requireSource() { return { payload: databaseJsonb(input.productContext) }; } } as unknown as AuthoritativeLifecycleWriter;
+  const service = await createAuthoritativeManager({ tenantId: "operationos", persistence: input.persist,
+    managerProvider: input.managerProvider, specialistProvider: input.provider,
+    productContext: input.productContext, workflowEvidence: workflowInput().evidence, writer,
+    verifier: { versionId: "verified-architecture-v1", async verify({ criterion }) {
+      return { criterionId: criterion.id, satisfied: true,
+        evidenceRefs: [{ kind: "step_output", id: "architecture-step" }], summary: "Validated output." };
+    } }, maxReplans: 0, now: () => new Date(at), createId: input.ids });
+  const result = await service.run({ goal: { goalId: "goal-1", tenantId: "operationos", actorId: "founder",
+    objective: "Model a bounded internal review.", inputs: { brief: "An operator reviews a supplied request." },
+    acceptanceCriteria: [{ id: "criterion-decision", description: "Validated proposal exists",
+      evaluator: "deterministic", required: true }], constraints: ["Draft only"],
+    requestedAt: at, idempotencyKey: "jsonb-ordered-proof" },
+    manifest: { managerVersionId: dayThreeAgentFixtures[0]!.versionId,
+      specialistVersionIds: [dayThreeAgentFixtures[1]!.versionId, dayThreeAgentFixtures[2]!.versionId],
+      policyBundleVersionId: dayOnePolicyFixture.versionId, toolVersionIds: [productToolFixtures[0]!.versionId],
+      modelBindings: { manager: "deterministic-fake" } },
+    budget: { maxSteps: 2, maxRetriesPerStep: 0, maxWallTimeMs: 60_000, maxCostUsd: 1 } });
+  assert.equal(result.status, "completed");
 });
 
 test("unregistered product snapshot and undeclared workflow evidence fail before specialist provider work", async () => {

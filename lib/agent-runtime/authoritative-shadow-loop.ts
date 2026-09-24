@@ -1,5 +1,6 @@
 import "server-only";
 
+import { canonicalRecord } from "./canonical-record";
 import { observationEvidenceSchema, observationSchema } from "./observation-contracts";
 import { ObservationStore } from "./observation-store";
 import type { AuthoritativeLifecycleWriter } from "./authoritative-lifecycle";
@@ -60,10 +61,10 @@ export async function runAuthoritativeShadowLoop(input: {
   const { request, writer } = input;
   const productSource = await writer.requireSource(request.productContext.product.versionId, "product");
   const registered = productSource.payload as Record<string, unknown>;
-  if (JSON.stringify(registered.product) !== JSON.stringify(request.productContext.product) ||
-    JSON.stringify(registered.snapshot) !== JSON.stringify(request.productContext.snapshot) ||
+  if (canonicalRecord(registered.product) !== canonicalRecord(request.productContext.product) ||
+    canonicalRecord(registered.snapshot) !== canonicalRecord(request.productContext.snapshot) ||
     (["features", "capabilities", "workflows", "signals", "evaluators", "tools", "contexts"] as const)
-      .some((key) => JSON.stringify(registered[key]) !== JSON.stringify(request.productContext[key]))) {
+      .some((key) => canonicalRecord(registered[key]) !== canonicalRecord(request.productContext[key]))) {
     throw new Error("Shadow loop product snapshot is not registered authoritatively");
   }
   for (const observation of request.observations) {
@@ -72,10 +73,10 @@ export async function runAuthoritativeShadowLoop(input: {
     const source = observationSchema.parse(sourceRow.payload);
     if (source.executionId !== sourceRow.source_execution_id || source.productKey !== request.productContext.product.productKey ||
       source.productSnapshotId !== request.productContext.snapshot.productSnapshotId ||
-      JSON.stringify(source) !== JSON.stringify(validated)) {
+      canonicalRecord(source) !== canonicalRecord(validated)) {
       throw new Error("Shadow loop observation does not match authoritative execution evidence");
     }
-    if (JSON.stringify(request.store.requireObservation(validated.observationId)) !== JSON.stringify(source)) {
+    if (canonicalRecord(request.store.requireObservation(validated.observationId)) !== canonicalRecord(source)) {
       throw new Error("Shadow loop observation store differs from authoritative source");
     }
   }
@@ -83,7 +84,7 @@ export async function runAuthoritativeShadowLoop(input: {
   for (const evidenceId of ids) {
     const source = observationEvidenceSchema.parse((await writer.requireSource(evidenceId, "evidence")).payload);
     if (source.productSnapshotId !== request.productContext.snapshot.productSnapshotId ||
-      JSON.stringify(request.store.requireEvidence(evidenceId)) !== JSON.stringify(source)) {
+      canonicalRecord(request.store.requireEvidence(evidenceId)) !== canonicalRecord(source)) {
       throw new Error("Shadow loop evidence store differs from authoritative source");
     }
   }

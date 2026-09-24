@@ -1,6 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
+import { canonicalRecord } from "./canonical-record";
 import type { AgentRuntimePersistence } from "./persistence";
 import type { ManagerProvider } from "./manager-provider";
 import type { SpecialistExecutor } from "./manager-execution";
@@ -66,10 +67,10 @@ export async function createAuthoritativeManager(input: {
   if (usingRealSpecialists) {
     const context = input.productContext!;
     const source = (await input.writer!.requireSource(context.product.versionId, "product")).payload as Record<string, unknown>;
-    if (JSON.stringify(source.product) !== JSON.stringify(context.product) ||
-      JSON.stringify(source.snapshot) !== JSON.stringify(context.snapshot) ||
+    if (canonicalRecord(source.product) !== canonicalRecord(context.product) ||
+      canonicalRecord(source.snapshot) !== canonicalRecord(context.snapshot) ||
       (["features", "capabilities", "workflows", "signals", "evaluators", "tools", "contexts"] as const)
-        .some((key) => JSON.stringify(source[key]) !== JSON.stringify(context[key]))) {
+        .some((key) => canonicalRecord(source[key]) !== canonicalRecord(context[key]))) {
       throw new Error("Manager specialist product context must match the authoritative registered snapshot");
     }
   }

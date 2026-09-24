@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createHash } from "node:crypto";
+import { canonicalRecord } from "./canonical-record";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { getServerSupabaseClient } from "../supabase/server-client";
@@ -308,7 +309,7 @@ export class AuthoritativeLifecycleWriter {
           capabilities: context.capabilities, workflows: context.workflows, signals: context.signals,
           evaluators: context.evaluators, contexts: context.contexts, tools: createToolRegistry(context.tools) }),
       });
-      if (JSON.stringify(resolved.snapshot) !== JSON.stringify(context.snapshot)) {
+      if (canonicalRecord(resolved.snapshot) !== canonicalRecord(context.snapshot)) {
         throw new Error("Authoritative product snapshot differs from registered versions");
       }
     }
