@@ -17,8 +17,10 @@ test("every Control Panel section renders authoritative records and truthful emp
     import assert from "node:assert/strict";
     import React from "react";
     import { renderToStaticMarkup } from "react-dom/server";
-    import { ControlPlaneView } from "./components/control-plane/control-plane-view.tsx";
+    import * as controlPlaneViewModule from "./components/control-plane/control-plane-view.tsx";
     globalThis.React = React;
+    const ControlPlaneView = controlPlaneViewModule.ControlPlaneView ?? controlPlaneViewModule.default?.ControlPlaneView;
+    assert.equal(typeof ControlPlaneView, "function", "ControlPlaneView must remain an exported component");
     const snapshot = JSON.parse(process.env.CONTROL_PANEL_TEST_SNAPSHOT);
     const sections = JSON.parse(process.env.CONTROL_PANEL_TEST_SECTIONS);
     for (const [section, heading] of sections) {
