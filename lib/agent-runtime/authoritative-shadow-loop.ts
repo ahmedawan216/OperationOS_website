@@ -1,6 +1,6 @@
 import "server-only";
 
-import { observationSchema } from "./observation-contracts";
+import { observationEvidenceSchema, observationSchema } from "./observation-contracts";
 import type { AuthoritativeLifecycleWriter } from "./authoritative-lifecycle";
 import { runShadowImprovementLoop } from "./shadow-loop";
 
@@ -15,8 +15,11 @@ export async function runAuthoritativeShadowLoop(input: {
 }) {
   const { request, writer } = input;
   const productSource = await writer.requireSource(request.productContext.product.versionId, "product");
-  const registered = productSource.payload as { snapshot?: { productSnapshotId?: string } };
-  if (registered.snapshot?.productSnapshotId !== request.productContext.snapshot.productSnapshotId) {
+  const registered = productSource.payload as Record<string, unknown>;
+  if (JSON.stringify(registered.product) !== JSON.stringify(request.productContext.product) ||
+    JSON.stringify(registered.snapshot) !== JSON.stringify(request.productContext.snapshot) ||
+    (["features", "capabilities", "workflows", "signals", "evaluators", "tools", "contexts"] as const)
+      .some((key) => JSON.stringify(registered[key]) !== JSON.stringify(request.productContext[key]))) {
     throw new Error("Shadow loop product snapshot is not registered authoritatively");
   }
   for (const observation of request.observations) {
@@ -27,6 +30,17 @@ export async function runAuthoritativeShadowLoop(input: {
       source.productSnapshotId !== request.productContext.snapshot.productSnapshotId ||
       JSON.stringify(source) !== JSON.stringify(validated)) {
       throw new Error("Shadow loop observation does not match authoritative execution evidence");
+    }
+    if (JSON.stringify(request.store.requireObservation(validated.observationId)) !== JSON.stringify(source)) {
+      throw new Error("Shadow loop observation store differs from authoritative source");
+    }
+  }
+  const ids = new Set([...request.observations.flatMap((item) => item.evidenceIds), ...request.counterEvidenceIds]);
+  for (const evidenceId of ids) {
+    const source = observationEvidenceSchema.parse((await writer.requireSource(evidenceId, "evidence")).payload);
+    if (source.productSnapshotId !== request.productContext.snapshot.productSnapshotId ||
+      JSON.stringify(request.store.requireEvidence(evidenceId)) !== JSON.stringify(source)) {
+      throw new Error("Shadow loop evidence store differs from authoritative source");
     }
   }
   const firstObservationId = request.observations[0]?.observationId;

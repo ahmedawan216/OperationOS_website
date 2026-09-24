@@ -83,12 +83,24 @@ test("authoritative shadow wrapper rejects an observation without durable source
   const request = loopInput();
   const writer = {
     async requireSource(id: string) {
-      if (id === request.productContext.product.versionId) return { payload: { snapshot: request.productContext.snapshot } };
+      if (id === request.productContext.product.versionId) return { payload: request.productContext };
       throw new Error("Authoritative observation is absent");
     },
   } as unknown as AuthoritativeLifecycleWriter;
   await assert.rejects(() => runAuthoritativeShadowLoop({ request, writer,
     executionId: request.observations[0]!.executionId! }), /Authoritative observation is absent/);
+});
+
+test("authoritative shadow wrapper rejects an in-memory evidence graph absent from durable sources", async () => {
+  const request = loopInput();
+  const writer = { async requireSource(id: string) {
+    if (id === request.productContext.product.versionId) return { payload: request.productContext };
+    const observation = request.observations.find((item) => item.observationId === id);
+    if (observation) return { payload: observation, source_execution_id: observation.executionId };
+    throw new Error("Durable evidence is absent");
+  } } as unknown as AuthoritativeLifecycleWriter;
+  await assert.rejects(() => runAuthoritativeShadowLoop({ request, writer,
+    executionId: request.observations[0]!.executionId! }), /Durable evidence is absent/);
 });
 
 test("new registered capability is observable without core changes but grants no permission", () => {
