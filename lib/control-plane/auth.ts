@@ -24,13 +24,19 @@ function authConfig(): FounderAuthConfig {
   return { founderId, sessionSecret };
 }
 
-export async function requireFounderSession(): Promise<FounderSession> {
+export async function readFounderSession(): Promise<FounderSession | null> {
   const token = (await cookies()).get(CONTROL_PLANE_COOKIE)?.value;
   try {
     return authorizeFounderSession({ token, config: authConfig(), now: new Date() });
   } catch {
-    notFound();
+    return null;
   }
+}
+
+export async function requireFounderSession(): Promise<FounderSession> {
+  const session = await readFounderSession();
+  if (!session) notFound();
+  return session;
 }
 
 export async function issueFounderSession(input: {
