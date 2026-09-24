@@ -6,6 +6,8 @@ import { controlPlanePath, controlPlaneRequestUrl, founderLoginForUnauthenticate
 import { askMetaAgent } from "../lib/control-plane/meta-agent";
 import { GroundedMetaAgentProvider } from "../lib/control-plane/grounded-meta-agent-provider";
 import { fixtureSnapshot } from "../lib/control-plane/testing/fixture-provider";
+import { AuthoritativeControlPlaneProvider } from "../lib/control-plane/authoritative-provider";
+import { readControlPlaneSnapshot } from "../lib/control-plane/provider";
 
 test("dedicated Control Plane host rewrites only recognized private routes", () => {
   const configuredHost = "control.operationos.org";
@@ -70,4 +72,23 @@ test("grounded Meta-Agent works on authoritative projections without fixture fal
   assert.equal(answer.claims[0]?.recordReferences[0]?.kind, "approval");
   const page = readFileSync(new URL("../app/control/(private)/[section]/page.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(page, /sourceMode\s*===\s*["']fixture/);
+});
+
+test("all twelve founder sections accept a zero-record authoritative snapshot", async () => {
+  const emptyRows = { agents: [], deployments: [], executions: [], steps: [], traces: [], outcomes: [], approvals: [], records: [] };
+  const provider = new AuthoritativeControlPlaneProvider({ async load() { return emptyRows; } }, "tenant-1", () => new Date("2026-09-24T10:00:00.000Z"));
+  const snapshot = await readControlPlaneSnapshot({ provider, founderId: "founder" });
+  assert.equal(snapshot.sourceMode, "authoritative");
+  for (const section of ["/", "/products", "/agents", "/executions", "/learnings", "/improvements", "/evaluations", "/safety", "/approvals", "/versions", "/health", "/meta-agent"]) {
+    assert.equal(resolveControlPlaneHost({ hostname: "control.operationos.org", pathname: section, configuredHost: "control.operationos.org" }).disposition, "rewrite");
+  }
+  for (const question of ["What has OperationOS learned recently?", "What needs my approval?", "What is the known-good version?", "What can I roll back to?"]) {
+    const answer = await askMetaAgent({ provider: new GroundedMetaAgentProvider(), snapshot, founderId: "founder", queryId: "empty-production", question });
+    assert.equal(answer.claims[0]?.classification, "unknown");
+    assert.deepEqual(answer.claims[0]?.recordReferences, []);
+    assert.equal(answer.readOnly, true);
+    assert.equal(answer.approvalGranted, false);
+    assert.equal(answer.deploymentAuthorized, false);
+    assert.equal(answer.proposedAction, undefined);
+  }
 });

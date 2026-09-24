@@ -18,7 +18,10 @@ test("every Control Panel section renders authoritative records and truthful emp
     import React from "react";
     import { renderToStaticMarkup } from "react-dom/server";
     import { ControlPlaneView } from "./components/control-plane/control-plane-view.tsx";
+    import * as metaAgentViewModule from "./components/control-plane/meta-agent-view.tsx";
     globalThis.React = React;
+    const MetaAgentView = metaAgentViewModule.MetaAgentView ?? metaAgentViewModule.default?.MetaAgentView;
+    assert.equal(typeof MetaAgentView, "function");
     const snapshot = JSON.parse(process.env.CONTROL_PANEL_TEST_SNAPSHOT);
     const sections = JSON.parse(process.env.CONTROL_PANEL_TEST_SECTIONS);
     for (const [section, heading] of sections) {
@@ -38,6 +41,11 @@ test("every Control Panel section renders authoritative records and truthful emp
       for (const phrase of copy) assert.match(rendered, new RegExp(phrase));
       assert.doesNotMatch(rendered, /0% verified success/);
     }
+    const metaAnswer = { contractVersion: "meta-agent-answer-v1", queryId: "empty-production", answerId: "answer-empty-production", summary: "Evidence is insufficient.", claims: [{ classification: "unknown", statement: "No known or hypothesized learning records are available.", recordReferences: [] }], readOnly: true, approvalGranted: false, deploymentAuthorized: false, permissionGranted: false, policyMutationAllowed: false, evidenceMutationAllowed: false };
+    const metaRendered = renderToStaticMarkup(MetaAgentView({ snapshot: empty, answer: metaAnswer, question: "What has OperationOS learned recently?" }));
+    assert.match(metaRendered, /Meta-Agent/);
+    assert.match(metaRendered, /No known or hypothesized learning records are available/);
+    assert.match(metaRendered, /READ ONLY/);
     process.stdout.write("render-audit-ok");
   `;
   const result = execFileSync(process.execPath, ["--import", "tsx", "--eval", source], {
