@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   agentDefinitionSchema, approvalRequestSchema, outcomeSignalSchema,
+  agentAssignmentSchema,
   policyBundleVersionSchema, toolDefinitionSchema, traceEventSchema,
   userGoalSchema, executionSnapshotSchema,
   type ExecutionStatus,
@@ -164,8 +165,32 @@ export class SupabaseAgentRuntimePersistence implements AgentRuntimePersistence 
     }
   }
 
+  async persistAssignment(input: import("./contracts").AgentAssignment, stepAttemptId: string, agentKey: string): Promise<void> {
+    const assignment = agentAssignmentSchema.parse(input);
+    if (!/^[a-z][a-z0-9._-]*$/.test(agentKey)) throw new Error("Invalid specialist key");
+    await this.assertExecutionScope(assignment.executionId);
+    // The assignment is a bounded reference projection. The original objective
+    // and any goal input remain on the immutable execution, not in this row.
+    const safeAssignment = {
+      executionId: assignment.executionId, stepId: assignment.stepId,
+      attempt: assignment.attempt, assignedAgentKey: agentKey,
+      contextRefs: assignment.contextRefs, expectedOutputSchema: assignment.expectedOutputSchema,
+    };
+    safeJson(safeAssignment);
+    const { data, error } = await this.client.from("agent_runtime_execution_steps")
+      .update({ assignment: safeAssignment }).eq("tenant_id", this.tenantId)
+      .eq("execution_id", assignment.executionId).eq("step_attempt_id", stepAttemptId)
+      .eq("step_id", assignment.stepId).eq("attempt", assignment.attempt)
+      .eq("status", "running").select("step_attempt_id").single();
+    checked(error, "assignment record");
+    if (data?.step_attempt_id !== stepAttemptId) throw new Error("Assignment attempt identity mismatch");
+  }
+
   async appendTrace(input: import("./contracts").TraceEvent): Promise<void> {
     const event = traceEventSchema.parse(input);
+    if (event.payload.bounded === true) {
+      throw new Error("Unpersisted trace artifacts cannot be referenced by authoritative traces");
+    }
     safeJson(event.payload);
     if (event.error) safeJson(event.error);
     await this.assertExecutionScope(event.executionId);

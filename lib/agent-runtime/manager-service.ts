@@ -23,6 +23,7 @@ export class ManagerOrchestrationService {
     execution: ManagerExecutionLoop;
     finalizer: ManagerFinalizer;
     nowMs: () => number;
+    checkpoint?: () => Promise<void>;
   }) {}
 
   async run(input: {
@@ -31,12 +32,21 @@ export class ManagerOrchestrationService {
     budget: ExecutionBudget;
   }): Promise<ManagerOrchestrationResult> {
     const startedAtMs = this.dependencies.nowMs();
+    try {
+      return await this.runBounded(input, startedAtMs);
+    } finally {
+      await this.dependencies.checkpoint?.();
+    }
+  }
+
+  private async runBounded(input: { goal: UserGoal; manifest: ActiveVersionManifest; budget: ExecutionBudget }, startedAtMs: number): Promise<ManagerOrchestrationResult> {
     const created = this.dependencies.runtime.createGoalExecution(input);
     if (!created.created) {
       return { status: "failed", error: this.error("INTERNAL_ERROR", "Execution already exists for this idempotency key") };
     }
     const executionId = created.record.executionId;
     this.dependencies.runtime.transitionExecution(executionId, "planning");
+    await this.dependencies.checkpoint?.();
 
     let planning = await this.dependencies.planning.createInitial({
       goal: input.goal,

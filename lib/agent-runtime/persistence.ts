@@ -2,6 +2,7 @@ import "server-only";
 
 import type {
   AgentDefinition,
+  AgentAssignment,
   ApprovalRequest,
   OutcomeSignal,
   PolicyBundleVersion,
@@ -23,6 +24,7 @@ export interface AgentRuntimePersistence {
   createOrGetExecution(record: ExecutionRecord): Promise<{ record: ExecutionRecord; created: boolean }>;
   transitionExecution(executionId: string, from: ExecutionStatus, to: ExecutionStatus, at: string): Promise<void>;
   persistStepAttempt(record: StepAttemptRecord): Promise<void>;
+  persistAssignment(assignment: AgentAssignment, stepAttemptId: string, agentKey: string): Promise<void>;
   appendTrace(event: TraceEvent): Promise<void>;
   appendOutcome(signal: OutcomeSignal): Promise<void>;
   createApproval(request: ApprovalRequest): Promise<void>;

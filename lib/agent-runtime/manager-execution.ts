@@ -54,6 +54,8 @@ export interface ManagerExecutionDependencies {
   readonly now: () => string;
   readonly nowMs: () => number;
   readonly isCancelled: () => boolean;
+  readonly checkpoint?: () => Promise<void>;
+  readonly persistAssignment?: (assignment: AgentAssignment, stepAttemptId: string, agentKey: string) => Promise<void>;
 }
 
 function runtimeError(input: RuntimeError): RuntimeError {
@@ -154,6 +156,8 @@ export class ManagerExecutionLoop {
           attempt: attemptNumber,
           assignedAgentKey: validatedStep.specialist.agentKey,
         });
+        await this.dependencies.checkpoint?.();
+        await this.dependencies.persistAssignment?.(assignment, stepAttemptId, validatedStep.specialist.agentKey);
 
         let result: AgentResult;
         let responseUsage: ManagerProviderUsage | undefined;

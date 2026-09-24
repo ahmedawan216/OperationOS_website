@@ -63,6 +63,7 @@ export class ManagerPlanningCoordinator {
     createPlanId: () => string;
     now: () => string;
     maxReplans: number;
+    checkpoint?: () => Promise<void>;
   }) {
     if (!Number.isInteger(dependencies.maxReplans) || dependencies.maxReplans < 0) {
       throw new Error("maxReplans must be a non-negative integer");
@@ -127,6 +128,7 @@ export class ManagerPlanningCoordinator {
       planId,
       previousPlanCount: history.length,
     });
+    await this.dependencies.checkpoint?.();
     try {
       const response = await requestValidatedManagerPlan(this.dependencies.provider, request);
       let validated: ValidatedManagerPlan;

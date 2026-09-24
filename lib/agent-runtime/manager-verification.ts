@@ -84,6 +84,7 @@ export class ManagerFinalizer {
     events: RuntimeEventSink;
     createSignalId: () => string;
     now: () => string;
+    checkpoint?: () => Promise<void>;
   }) {}
 
   async finalize(input: {
@@ -96,6 +97,7 @@ export class ManagerFinalizer {
     if (this.dependencies.states.get(executionId)?.status !== "verifying") {
       throw new Error("Manager finalization may run only in the verifying state");
     }
+    await this.dependencies.checkpoint?.();
     const evidence = allowedEvidence(input.progress.outputs, input.plan.plan.verificationStepIds);
     const criteria: CriterionVerification[] = [];
     for (const criterion of input.goal.acceptanceCriteria) {
