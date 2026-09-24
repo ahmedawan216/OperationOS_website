@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireFounderSession } from "@/lib/control-plane/auth";
+import { readFounderSession } from "@/lib/control-plane/auth";
 import { assertTrustedControlPlaneOrigin } from "@/lib/control-plane/auth-core";
 import { runControlledProof } from "@/lib/agent-runtime/controlled-proof-runner";
 import { getServerSupabaseClient } from "@/lib/supabase/server-client";
@@ -7,7 +7,11 @@ import { getServerSupabaseClient } from "@/lib/supabase/server-client";
 export const maxDuration = 120;
 
 export async function POST(request: Request) {
-  const session = await requireFounderSession();
+  const session = await readFounderSession();
+  if (!session) {
+    return NextResponse.json({ error: "Founder session required" },
+      { status: 401, headers: { "Cache-Control": "private, no-store" } });
+  }
   try {
     assertTrustedControlPlaneOrigin({ requestUrl: request.url, origin: request.headers.get("origin"),
       configuredOrigin: process.env.CONTROL_PLANE_ORIGIN });
