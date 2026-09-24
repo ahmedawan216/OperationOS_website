@@ -1,10 +1,7 @@
 import { siteConfig } from "@/lib/site-config";
 
 /**
- * Organization + WebSite structured data (schema.org via JSON-LD). Purely
- * additive for search engines — improves SERP presentation eligibility
- * (sitelinks search box, knowledge panel signals) and costs nothing at
- * runtime since it's server-rendered as static JSON.
+ * Stable company and website identities shared across public pages.
  *
  * Safe to use `dangerouslySetInnerHTML` here: the payload is built entirely
  * from our own static `siteConfig` constants, never from user input.
@@ -17,10 +14,10 @@ export function JsonLd() {
         "@type": "Organization",
         "@id": `${siteConfig.url}/#organization`,
         name: siteConfig.organizationName,
-        alternateName: siteConfig.name,
         url: siteConfig.url,
-        logo: `${siteConfig.url}/brand/operationos-avatar-light-1024.png`,
+        logo: `${siteConfig.url}${siteConfig.logoPath}`,
         description: siteConfig.description,
+        sameAs: ["https://www.linkedin.com/company/operationos/"],
       },
       {
         "@type": "WebSite",
@@ -28,6 +25,7 @@ export function JsonLd() {
         url: siteConfig.url,
         name: siteConfig.name,
         publisher: { "@id": `${siteConfig.url}/#organization` },
+        about: { "@id": `${siteConfig.url}/#organization` },
       },
     ],
   };
@@ -38,4 +36,23 @@ export function JsonLd() {
       dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
     />
   );
+}
+
+/** The company bridge describes the real application without claiming a rating or offer. */
+export function RecruitOSJsonLd() {
+  const json = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "@id": "https://recruitos.operationos.org/#softwareapplication",
+    name: "RecruitOS",
+    description:
+      "An AI-powered recruiting workspace for analyzing resumes against roles, comparing candidates, and organizing recruiting work while people make hiring decisions.",
+    url: "https://recruitos.operationos.org/",
+    mainEntityOfPage: `${siteConfig.url}/recruitos`,
+    publisher: { "@id": `${siteConfig.url}/#organization` },
+    creator: { "@id": `${siteConfig.url}/#organization` },
+    applicationCategory: "BusinessApplication",
+  };
+
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />;
 }

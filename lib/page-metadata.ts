@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteConfig } from "@/lib/site-config";
 
 export function createPageMetadata(
   title: string,
@@ -10,14 +11,14 @@ export function createPageMetadata(
     description,
     alternates: { canonical: path },
     openGraph: {
-      title: `${title} | OperationOS.org`,
+      title: `${title} | OperationOS`,
       description,
       url: path,
-      siteName: "OperationOS.org",
+      siteName: siteConfig.name,
       type: "website",
       images: [
         {
-          url: "/brand/operationos-avatar-light-1024.png",
+          url: siteConfig.logoPath,
           width: 1024,
           height: 1024,
           alt: "OperationOS H1 mark",
@@ -26,9 +27,9 @@ export function createPageMetadata(
     },
     twitter: {
       card: "summary",
-      title: `${title} | OperationOS.org`,
+      title: `${title} | OperationOS`,
       description,
-      images: ["/brand/operationos-avatar-light-1024.png"],
+      images: [siteConfig.logoPath],
     },
   };
 }

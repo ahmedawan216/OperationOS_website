@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
   title: {
     default: siteConfig.title,
-    template: "%s | OperationOS.org",
+    template: "%s | OperationOS",
   },
 
   description: siteConfig.description,
@@ -41,13 +41,12 @@ export const metadata: Metadata = {
 
   openGraph: {
     title: siteConfig.title,
-    description:
-      "OperationOS builds focused software products for operational work. RecruitOS helps hiring teams review candidates and keep hiring workflows organized.",
+    description: siteConfig.description,
     url: "/",
     siteName: siteConfig.name,
     images: [
       {
-        url: "/brand/operationos-avatar-light-1024.png",
+        url: siteConfig.logoPath,
         width: 1024,
         height: 1024,
         alt: "OperationOS H1 mark",
@@ -59,13 +58,14 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
     title: siteConfig.title,
-    description:
-      "OperationOS builds focused software products for clear, efficient operational work.",
-    images: ["/brand/operationos-avatar-light-1024.png"],
+    description: siteConfig.description,
+    images: [siteConfig.logoPath],
   },
 
   icons: {
     icon: [
+      { url: siteConfig.logoPath, type: "image/png", sizes: "1024x1024" },
+      { url: "/brand/favicon-48.png", type: "image/png", sizes: "48x48" },
       {
         url: "/brand/operationos-h1-mark-black.svg",
         type: "image/svg+xml",
@@ -77,6 +77,7 @@ export const metadata: Metadata = {
         media: "(prefers-color-scheme: dark)",
       },
     ],
+    shortcut: "/favicon.ico",
     apple: "/apple-icon.png",
   },
 };

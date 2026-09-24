@@ -22,7 +22,7 @@ export default function AboutPage() {
             </h1>
           </div>
           <p className="type-body-lg max-w-xl text-ink-dim">
-            OperationOS is a software company building focused products for operational workflows where repetition, fragmented context, and unclear next actions get in the way.
+            OperationOS is an AI and software company building focused intelligent products for real workflows. RecruitOS is its first live product.
           </p>
         </div>
       </section>
@@ -66,7 +66,7 @@ export default function AboutPage() {
             <div className="mt-10 border-l-2 border-accent bg-accent-soft px-6 py-6 sm:px-8">
               <p className="type-meta font-mono font-medium uppercase text-accent">Current product</p>
               <h3 className="mt-4 font-display text-2xl font-semibold text-ink">RecruitOS</h3>
-              <p className="mt-3 text-sm leading-6 text-ink-dim">RecruitOS is the currently announced OperationOS product. It helps hiring teams keep role requirements, candidate context, recommendation reasoning, and review progress connected.</p>
+              <p className="mt-3 text-sm leading-6 text-ink-dim">RecruitOS is the first live OperationOS product. It helps hiring teams analyze resumes against roles, compare candidates, and organize recruiting work while keeping hiring decisions with people.</p>
               <Button asChild className="mt-6"><Link href="/recruitos">Explore RecruitOS</Link></Button>
             </div>
           </div>
