@@ -1,5 +1,9 @@
 -- Consumption is separate from founder resolution and is atomic, scoped and
 -- single-use. The existing immutable identity/transition trigger still applies.
+create unique index if not exists agent_runtime_one_canary_approval_per_action
+  on public.agent_runtime_approval_requests (tenant_id, product_key, candidate_id, action_digest)
+  where action_type = 'start_canary' and candidate_id is not null;
+
 create or replace function public.agent_runtime_consume_approval(
   p_tenant_id text, p_product_key text, p_execution_id text,
   p_candidate_id text, p_approval_id text, p_actor_id text,
@@ -23,6 +27,8 @@ begin
      and approval.action_digest = p_action_digest
      and approval.status = 'approved'
      and approval.expires_at > p_consumed_at
+     and approval.expires_at > now()
+     and p_consumed_at between now() - interval '5 minutes' and now() + interval '5 minutes'
      and approval.resolved_at <= p_consumed_at
   returning approval.approval_id, approval.status;
   if not found then
