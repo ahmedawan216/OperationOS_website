@@ -56,6 +56,11 @@ begin
     select 1 from public.agent_runtime_lifecycle_records
     where tenant_id = p_tenant_id and product_key = p_product_key
       and parent_record_id = p_canary_id and record_kind = 'canary_monitor'
+  ) or exists (
+    select 1 from public.agent_runtime_deployments terminal
+     where terminal.tenant_id = p_tenant_id and terminal.product_key = p_product_key
+       and terminal.supersedes_deployment_id = deployment.deployment_id
+       and terminal.status in ('rolled_back', 'candidate')
   ) then raise exception 'canary is unavailable or already terminal' using errcode = 'P0001'; end if;
   if not exists (select 1 from public.agent_runtime_executions e
     where e.tenant_id = p_tenant_id and e.product_key = p_product_key

@@ -17,7 +17,7 @@ export class SupabaseControlPlaneRepository implements AuthoritativeControlPlane
 
   async load(input: { tenantId: string; productKey?: string }): Promise<AuthoritativeControlPlaneRows> {
     let executionsQuery = this.client.from("agent_runtime_executions").select("execution_id,product_key,goal_id,status,created_at,updated_at").eq("tenant_id", input.tenantId).order("created_at", { ascending: false }).limit(500);
-    let deploymentsQuery = this.client.from("agent_runtime_deployments").select("deployment_id,product_key,environment,manifest,status,created_at").eq("tenant_id", input.tenantId).order("created_at", { ascending: false }).limit(500);
+    let deploymentsQuery = this.client.from("agent_runtime_deployments").select("deployment_id,product_key,environment,manifest,status,supersedes_deployment_id,created_at").eq("tenant_id", input.tenantId).order("created_at", { ascending: false }).limit(500);
     let approvalsQuery = this.client.from("agent_runtime_approval_requests").select("approval_id,product_key,execution_id,candidate_id,actor_id,action_type,risk_level,action_digest,expires_at,status").eq("tenant_id", input.tenantId).order("created_at", { ascending: false }).limit(500);
     let recordsQuery = this.client.from("agent_runtime_control_plane_records").select("record_id,product_key,record_kind,schema_version,source_record_id,source_digest,payload,occurred_at").eq("tenant_id", input.tenantId).order("occurred_at", { ascending: false }).limit(2_000);
     if (input.productKey) {

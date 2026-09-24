@@ -7,6 +7,7 @@ import { resolveProductSnapshot, type ProductVersionManifest } from "../lib/agen
 import { DeterministicSafetyGuardianProvider } from "../lib/agent-runtime/safety-guardian";
 import { runShadowImprovementLoop } from "../lib/agent-runtime/shadow-loop";
 import { runAuthoritativeShadowLoop } from "../lib/agent-runtime/authoritative-shadow-loop";
+import { loadAuthoritativeObservationContext } from "../lib/agent-runtime/authoritative-shadow-loop";
 import type { AuthoritativeLifecycleWriter } from "../lib/agent-runtime/authoritative-lifecycle";
 import { DeterministicShadowOptimizerProvider } from "../lib/agent-runtime/shadow-optimizer";
 import { decideAuthorization } from "../lib/agent-runtime/policy";
@@ -101,6 +102,24 @@ test("authoritative shadow wrapper rejects an in-memory evidence graph absent fr
   } } as unknown as AuthoritativeLifecycleWriter;
   await assert.rejects(() => runAuthoritativeShadowLoop({ request, writer,
     executionId: request.observations[0]!.executionId! }), /Durable evidence is absent/);
+});
+
+test("shadow context is rehydrated only from durable, same-snapshot evidence and observations", async () => {
+  const { store, observations } = evidenceSet();
+  const writer = { async requireSource(id: string) {
+    if (id.startsWith("observation-")) return { payload: observations.find((item) => item.observationId === id) };
+    return { payload: store.requireEvidence(id) };
+  } } as unknown as AuthoritativeLifecycleWriter;
+  const context = await loadAuthoritativeObservationContext({ writer, productKey: "operations-suite",
+    productSnapshotId: "snapshot-v2", observationIds: observations.map((item) => item.observationId),
+    counterEvidenceIds: ["counter-1"] });
+  assert.deepEqual(context.observations.map((item) => item.observationId), observations.map((item) => item.observationId));
+  assert.equal(context.store.requireEvidence("counter-1").sourceType, "execution_outcome");
+  await assert.rejects(() => loadAuthoritativeObservationContext({ writer, productKey: "other-product",
+    productSnapshotId: "snapshot-v2", observationIds: [observations[0]!.observationId],
+    counterEvidenceIds: [] }), /crosses the selected product/);
+  await assert.rejects(() => loadAuthoritativeObservationContext({ writer, productKey: "operations-suite",
+    productSnapshotId: "snapshot-v2", observationIds: [], counterEvidenceIds: [] }), /missing/);
 });
 
 test("new registered capability is observable without core changes but grants no permission", () => {

@@ -1,8 +1,52 @@
 import "server-only";
 
 import { observationEvidenceSchema, observationSchema } from "./observation-contracts";
+import { ObservationStore } from "./observation-store";
 import type { AuthoritativeLifecycleWriter } from "./authoritative-lifecycle";
 import { runShadowImprovementLoop } from "./shadow-loop";
+
+/** Rehydrate the provider's bounded context from committed immutable sources,
+ * preserving primary evidence and counter-evidence without caller fabrication. */
+export async function loadAuthoritativeObservationContext(input: {
+  writer: AuthoritativeLifecycleWriter;
+  observationIds: readonly string[]; counterEvidenceIds: readonly string[];
+  productKey: string; productSnapshotId: string;
+}) {
+  if (!input.observationIds.length || input.observationIds.length > 500 ||
+    input.counterEvidenceIds.length > 500 ||
+    new Set(input.observationIds).size !== input.observationIds.length) {
+    throw new Error("Authoritative observation context is missing, duplicate, or unbounded");
+  }
+  const store = new ObservationStore();
+  const registered = new Set<string>();
+  const visiting = new Set<string>();
+  const registerEvidence = async (id: string): Promise<void> => {
+    if (registered.has(id)) return;
+    if (visiting.has(id) || registered.size + visiting.size >= 2_000) {
+      throw new Error("Circular or unbounded authoritative evidence graph");
+    }
+    visiting.add(id);
+    const evidence = observationEvidenceSchema.parse((await input.writer.requireSource(id, "evidence")).payload);
+    if (evidence.productKey !== input.productKey || evidence.productSnapshotId !== input.productSnapshotId) {
+      throw new Error("Authoritative evidence crosses the selected product snapshot");
+    }
+    for (const parentId of evidence.parentEvidenceIds) await registerEvidence(parentId);
+    store.registerEvidence(evidence);
+    visiting.delete(id);
+    registered.add(id);
+  };
+  const observations = [];
+  for (const id of input.observationIds) {
+    const observation = observationSchema.parse((await input.writer.requireSource(id, "observation")).payload);
+    if (observation.productKey !== input.productKey || observation.productSnapshotId !== input.productSnapshotId) {
+      throw new Error("Authoritative observation crosses the selected product snapshot");
+    }
+    for (const evidenceId of observation.evidenceIds) await registerEvidence(evidenceId);
+    observations.push(store.recordObservation(observation));
+  }
+  for (const id of input.counterEvidenceIds) await registerEvidence(id);
+  return Object.freeze({ store, observations });
+}
 
 /**
  * Requires previously persisted product and observation sources. Generated

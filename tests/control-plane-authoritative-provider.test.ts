@@ -83,6 +83,15 @@ test("latest source-derived canary outcome clears the stale canary pointer and p
   assert.equal(answer.claims[0]?.recordReferences[0]?.id, "canary-1");
   assert.match(answer.claims[0]?.statement ?? "", /rolled_back/);
   assert.equal(answer.deploymentAuthorized, false);
+  const founderRollback = new AuthoritativeControlPlaneProvider(source({
+    deployments: [...deployments, { deployment_id: "rollback-event", product_key: "operations-suite",
+      environment: "test", manifest: { digest: `sha256:${"b".repeat(64)}` }, status: "rolled_back",
+      supersedes_deployment_id: "candidate-1", created_at: later }],
+    records: [record("start", config, at)],
+  }), "tenant-1");
+  const rolledBack = await readControlPlaneSnapshot({ provider: founderRollback, founderId: "founder" });
+  assert.equal(rolledBack.canaries[0]?.state, "rolled_back");
+  assert.equal(rolledBack.versions.find((entry) => entry.versionId === "candidate-1")?.pointer, "none");
   const bad = { ...config, rollbackVersionId: "fabricated" };
   await assert.rejects(() => readControlPlaneSnapshot({ provider: new AuthoritativeControlPlaneProvider(
     source({ deployments, records: [record("start", config, at), record("bad", bad, later)] }), "tenant-1"),

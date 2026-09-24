@@ -24,7 +24,7 @@ const id = z.string().trim().min(1).max(200);
 const time = z.string().datetime({ offset: true });
 
 const agentRowSchema = z.object({ definition: z.unknown() });
-const deploymentRowSchema = z.object({ deployment_id: id, product_key: id, environment: z.enum(["test", "preview", "production"]), manifest: z.unknown(), status: z.enum(["candidate", "canary", "active", "rolled_back", "retired"]), created_at: time });
+const deploymentRowSchema = z.object({ deployment_id: id, product_key: id, environment: z.enum(["test", "preview", "production"]), manifest: z.unknown(), status: z.enum(["candidate", "canary", "active", "rolled_back", "retired"]), supersedes_deployment_id: id.nullable().optional(), created_at: time });
 const executionRowSchema = z.object({ execution_id: id, product_key: id, goal_id: id, status: id, created_at: time, updated_at: time });
 const stepRowSchema = z.object({ execution_id: id, attempt: z.number().int().positive(), assignment: z.unknown().nullable(), status: id });
 const traceRowSchema = z.object({ execution_id: id, event_type: id });
@@ -117,6 +117,14 @@ export class AuthoritativeControlPlaneProvider implements ControlPlaneDataProvid
     const outcomeRows = raw.outcomes.map((row) => outcomeRowSchema.parse(row));
     const approvalRows = raw.approvals.map((row) => approvalRowSchema.parse(row));
     const projections = parseProjectionRecords(raw.records);
+    const canaries = projections.canaries.map((canary) => {
+      const rollback = deploymentRows.find((deployment) => deployment.status === "rolled_back" &&
+        deployment.product_key === canary.productKey && deployment.environment === canary.target &&
+        deployment.supersedes_deployment_id === canary.candidateVersionId);
+      return rollback && canary.state === "canary"
+        ? canarySummarySchema.parse({ ...canary, state: "rolled_back",
+          eventSummaries: [...canary.eventSummaries, "Authoritative founder rollback recorded."] }) : canary;
+    });
 
     const agents = agentRows.map(({ definition }) => {
       const agent = agentDefinitionSchema.parse(definition);
@@ -168,7 +176,7 @@ export class AuthoritativeControlPlaneProvider implements ControlPlaneDataProvid
       status: deployment.status === "active" ? "known_good" : "candidate",
       digest: digest(deployment.manifest),
       pointer: deployment.status === "active" ? "known_good" : deployment.status === "canary" &&
-        !projections.canaries.some((canary) => canary.productKey === deployment.product_key &&
+        !canaries.some((canary) => canary.productKey === deployment.product_key &&
           canary.candidateVersionId === deployment.deployment_id && canary.state !== "canary") ? "canary" : "none",
       createdAt: deployment.created_at,
     }));
@@ -188,7 +196,7 @@ export class AuthoritativeControlPlaneProvider implements ControlPlaneDataProvid
       safety: projections.safety,
       approvals,
       versions,
-      canaries: projections.canaries,
+      canaries,
       health: {
         state: projections.safety.some((assessment) => assessment.severity === "high") ? "critical" : approvals.some((approval) => approval.status === "pending") ? "attention" : "healthy",
         successRate: terminal.length ? succeeded / terminal.length : null,

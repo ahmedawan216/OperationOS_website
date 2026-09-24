@@ -59,6 +59,15 @@ test("terminal canary outcome must match persisted same-product signals and froz
   assert.match(sql, /revoke all on function public\.agent_runtime_finish_nonproduction_canary.*from public, anon, authenticated/);
 });
 
+test("founder rollback and runtime monitor cannot each create a second terminal event", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20260924160000_agent_runtime_terminal_deployment_guard.sql", import.meta.url), "utf8");
+  assert.match(sql, /before insert on public\.agent_runtime_deployments/);
+  assert.match(sql, /where deployment_id = new\.supersedes_deployment_id for update/);
+  assert.match(sql, /terminal\.supersedes_deployment_id = parent\.deployment_id/);
+  assert.match(sql, /terminal\.status in \('rolled_back', 'candidate'\)/);
+  assert.match(sql, /new\.environment = 'production'/);
+});
+
 test("persisted rerun measurements determine rollback or keep eligibility; missing signal blocks checkpoint", async () => {
   const oldMode = process.env.CONTROL_PLANE_DATA_MODE;
   const oldTenant = process.env.CONTROL_PLANE_TENANT_ID;
