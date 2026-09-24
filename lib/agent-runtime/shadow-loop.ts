@@ -5,6 +5,10 @@ import { z } from "zod";
 import { buildEnvironmentModel, classifyObservations } from "./environment-model";
 import { aggregateEvidence, requestValidatedHypothesis, type HypothesisProvider } from "./hypothesis-service";
 import type { Observation } from "./observation-contracts";
+import type { ProductEnvironmentModel } from "./environment-contracts";
+import type { EvidencePattern, Hypothesis } from "./hypothesis-contracts";
+import type { ShadowCandidate } from "./optimizer-contracts";
+import type { SafetyAssessment } from "./safety-contracts";
 import { ObservationStore } from "./observation-store";
 import type { OptimizerRequest } from "./optimizer-contracts";
 import type { ResolvedProductContext } from "./product-registry";
@@ -45,6 +49,13 @@ export const shadowLoopResultSchema = z.object({
 
 export type ShadowLoopResult = z.infer<typeof shadowLoopResultSchema>;
 
+export type ShadowRecord =
+  | { kind: "environment"; value: ProductEnvironmentModel }
+  | { kind: "pattern"; value: EvidencePattern }
+  | { kind: "hypothesis"; value: Hypothesis }
+  | { kind: "candidate"; value: ShadowCandidate }
+  | { kind: "safety"; value: SafetyAssessment };
+
 export async function runShadowImprovementLoop(input: {
   productContext: ResolvedProductContext;
   store: ObservationStore;
@@ -65,11 +76,14 @@ export async function runShadowImprovementLoop(input: {
   optimizerProvider: ShadowOptimizerProvider;
   guardianProvider: SafetyGuardianProvider;
   occurredAt: string;
+  persistValidatedRecord?: (record: ShadowRecord) => Promise<void>;
 }): Promise<ShadowLoopResult> {
   if (input.observations.length < 2) throw new Error("Shadow improvement loop requires repeated evidence");
   const model = buildEnvironmentModel({ modelVersionId: input.ids.environmentModelVersionId, version: 1, productContext: input.productContext, observations: input.observations, createdAt: input.occurredAt });
+  await input.persistValidatedRecord?.({ kind: "environment", value: model });
   const detection = classifyObservations({ detectionId: input.ids.detectionId, model, observations: input.observations });
   const pattern = aggregateEvidence({ patternId: input.ids.patternId, detection, counterEvidenceIds: input.counterEvidenceIds, store: input.store });
+  await input.persistValidatedRecord?.({ kind: "pattern", value: pattern });
   const hypothesis = await requestValidatedHypothesis({
     provider: input.hypothesisProvider,
     request: {
@@ -80,6 +94,7 @@ export async function runShadowImprovementLoop(input: {
     },
     store: input.store, productContext: input.productContext,
   });
+  await input.persistValidatedRecord?.({ kind: "hypothesis", value: hypothesis });
   const candidate = await requestValidatedShadowCandidate({
     provider: input.optimizerProvider,
     request: {
@@ -89,9 +104,11 @@ export async function runShadowImprovementLoop(input: {
       evaluationRequirements: input.evaluationRequirements, requiredRiskLevel: input.requiredRiskLevel, createdAt: input.occurredAt,
     },
   });
+  await input.persistValidatedRecord?.({ kind: "candidate", value: candidate });
   const availableEvidenceIds = [...new Set([...candidate.evidenceIds, ...candidate.counterEvidenceIds])];
   const reviewRequest = createSafetyReviewRequest({ assessmentId: input.ids.assessmentId, candidate, availableEvidenceIds, assessedAt: input.occurredAt });
   const review = await reviewCandidateSafety({ provider: input.guardianProvider, request: reviewRequest });
+  if (review.assessment) await input.persistValidatedRecord?.({ kind: "safety", value: review.assessment });
   const productKey = input.productContext.product.productKey;
   const snapshotId = input.productContext.snapshot.productSnapshotId;
   const audit = [

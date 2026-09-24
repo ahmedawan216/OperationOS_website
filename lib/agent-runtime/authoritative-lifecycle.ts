@@ -27,6 +27,7 @@ import { riskGateDecisionSchema } from "./risk-gate";
 import { applyRiskGate } from "./risk-gate";
 import { canaryConfigSchema } from "./deployment-controller";
 import { assertSafeRuntimePayload } from "./supabase-persistence";
+import type { ShadowRecord } from "./shadow-loop";
 
 type Kind = "product" | "evidence" | "observation" | "environment" | "pattern" | "hypothesis" |
   "candidate" | "dataset" | "evaluator" | "evaluation_plan" | "evaluation_run" | "comparison" | "safety" | "risk_decision" | "canary";
@@ -137,6 +138,31 @@ export class AuthoritativeLifecycleWriter {
     await this.appendValidated({ kind: "comparison", recordId: result.comparisonId,
       parentRecordId: run.runId, executionId: input.executionId, payload: result, occurredAt: input.occurredAt });
     return result;
+  }
+
+  shadowRecordSink(input: { executionId: string; firstObservationId: string; occurredAt: string }) {
+    let environmentId: string | undefined;
+    let patternId: string | undefined;
+    let hypothesisId: string | undefined;
+    let candidateId: string | undefined;
+    return async (record: ShadowRecord): Promise<void> => {
+      const id = record.kind === "environment" ? record.value.modelVersionId
+        : record.kind === "pattern" ? record.value.patternId
+          : record.kind === "hypothesis" ? record.value.hypothesisId
+            : record.kind === "candidate" ? record.value.candidateId : record.value.assessmentId;
+      const parentRecordId = record.kind === "environment" ? input.firstObservationId
+        : record.kind === "pattern" ? environmentId
+          : record.kind === "hypothesis" ? patternId
+            : record.kind === "candidate" ? hypothesisId : candidateId;
+      if (!parentRecordId) throw new Error("Shadow lifecycle source history is incomplete");
+      await this.append({ kind: record.kind, recordId: id, payload: record.value,
+        parentRecordId, executionId: input.executionId, occurredAt: input.occurredAt });
+      if (record.kind === "environment") environmentId = id;
+      if (record.kind === "pattern") patternId = id;
+      if (record.kind === "hypothesis") hypothesisId = id;
+      if (record.kind === "candidate") candidateId = id;
+      await this.project({ sourceId: id, sourceKind: record.kind, occurredAt: input.occurredAt });
+    };
   }
 
   async decideRisk(input: {

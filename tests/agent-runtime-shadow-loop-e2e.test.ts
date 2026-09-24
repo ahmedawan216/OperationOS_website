@@ -61,6 +61,22 @@ test("end-to-end evidence loop produces safety-reviewed evaluation eligibility o
   assert.equal(JSON.stringify(result).match(/chain.?of.?thought|hiddenReasoning|reasoningTokens/i), null);
 });
 
+test("validated shadow records checkpoint in order; a failed durable checkpoint stops optimization", async () => {
+  const stages: string[] = [];
+  const input = loopInput();
+  input.persistValidatedRecord = async ({ kind }) => { stages.push(kind); };
+  await runShadowImprovementLoop(input);
+  assert.deepEqual(stages, ["environment", "pattern", "hypothesis", "candidate", "safety"]);
+  const blocked = loopInput();
+  const reached: string[] = [];
+  blocked.persistValidatedRecord = async ({ kind }) => {
+    reached.push(kind);
+    if (kind === "pattern") throw new Error("Authoritative store unavailable");
+  };
+  await assert.rejects(() => runShadowImprovementLoop(blocked), /Authoritative store unavailable/);
+  assert.deepEqual(reached, ["environment", "pattern"]);
+});
+
 test("new registered capability is observable without core changes but grants no permission", () => {
   const before = productContext(1);
   const after = productContext(2);
