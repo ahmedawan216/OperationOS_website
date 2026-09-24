@@ -121,6 +121,29 @@ test("migration enforces immutable source, tenant/product foreign keys and servi
   assert.match(sql, /grant select, insert on table public\.agent_runtime_lifecycle_records to service_role/);
 });
 
+test("human approval consumption is scoped, exact-bound, single-use and service-only", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20260924130000_agent_runtime_consume_approval.sql", import.meta.url), "utf8");
+  for (const binding of ["tenant_id", "product_key", "execution_id", "candidate_id", "approval_id",
+    "actor_id", "action_digest"]) assert.match(sql, new RegExp(`approval\\.${binding} = p_${binding}`));
+  assert.match(sql, /approval\.status = 'approved'/);
+  assert.match(sql, /approval\.expires_at > p_consumed_at/);
+  assert.match(sql, /approval\.action_type = 'start_canary'/);
+  assert.match(sql, /approval\.resolved_by = p_actor_id/);
+  assert.match(sql, /revoke all on function public\.agent_runtime_consume_approval.*from public, anon, authenticated/);
+  assert.match(sql, /grant execute on function public\.agent_runtime_consume_approval.*to service_role/);
+});
+
+test("caller cannot append an approval-backed risk result or forged deployment record", async () => {
+  const writer = new AuthoritativeLifecycleWriter("operationos", "operations-suite", database().client);
+  await assert.rejects(writer.append({ kind: "risk_decision", recordId: "risk:candidate-1:comparison-1:approval-1",
+    executionId: "execution-1", parentRecordId: "comparison-1", occurredAt: at,
+    payload: { contractVersion: "risk-gate-decision-v1", candidateId: "candidate-1", decision: "canary_eligible",
+      approvalConsumedId: "approval-1", reason: "forged", active: false } }), /authoritative engines/);
+  await assert.rejects(writer.requestRiskApproval({ executionId: "execution-1", candidateId: "candidate-1",
+    comparisonId: "comparison-1", approvalId: "approval-1", actorId: "founder", requestedBy: "runtime",
+    expiresAt: "2026-09-25T00:00:00.000Z", occurredAt: at }), /source lookup/);
+});
+
 test.after(() => {
   if (originalMode === undefined) delete process.env.CONTROL_PLANE_DATA_MODE;
   else process.env.CONTROL_PLANE_DATA_MODE = originalMode;

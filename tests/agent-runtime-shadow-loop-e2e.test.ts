@@ -6,6 +6,8 @@ import { ObservationStore } from "../lib/agent-runtime/observation-store";
 import { resolveProductSnapshot, type ProductVersionManifest } from "../lib/agent-runtime/product-registry";
 import { DeterministicSafetyGuardianProvider } from "../lib/agent-runtime/safety-guardian";
 import { runShadowImprovementLoop } from "../lib/agent-runtime/shadow-loop";
+import { runAuthoritativeShadowLoop } from "../lib/agent-runtime/authoritative-shadow-loop";
+import type { AuthoritativeLifecycleWriter } from "../lib/agent-runtime/authoritative-lifecycle";
 import { DeterministicShadowOptimizerProvider } from "../lib/agent-runtime/shadow-optimizer";
 import { decideAuthorization } from "../lib/agent-runtime/policy";
 import { agentDefinitionSchema, policyBundleVersionSchema } from "../lib/agent-runtime/contracts";
@@ -75,6 +77,18 @@ test("validated shadow records checkpoint in order; a failed durable checkpoint 
   };
   await assert.rejects(() => runShadowImprovementLoop(blocked), /Authoritative store unavailable/);
   assert.deepEqual(reached, ["environment", "pattern"]);
+});
+
+test("authoritative shadow wrapper rejects an observation without durable source provenance", async () => {
+  const request = loopInput();
+  const writer = {
+    async requireSource(id: string) {
+      if (id === request.productContext.product.versionId) return { payload: { snapshot: request.productContext.snapshot } };
+      throw new Error("Authoritative observation is absent");
+    },
+  } as unknown as AuthoritativeLifecycleWriter;
+  await assert.rejects(() => runAuthoritativeShadowLoop({ request, writer,
+    executionId: request.observations[0]!.executionId! }), /Authoritative observation is absent/);
 });
 
 test("new registered capability is observable without core changes but grants no permission", () => {

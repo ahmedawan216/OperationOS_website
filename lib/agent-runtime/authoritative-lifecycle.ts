@@ -24,9 +24,12 @@ import { evaluationRunSchema } from "./evaluation-engine";
 import { comparisonSchema, compareEvaluation } from "./comparison-engine";
 import { safetyAssessmentSchema } from "./safety-contracts";
 import { riskGateDecisionSchema } from "./risk-gate";
-import { applyRiskGate } from "./risk-gate";
+import { applyRiskGate, canaryActionDigest } from "./risk-gate";
+import { InMemoryApprovalLedger } from "./approvals";
+import { approvalRequestSchema } from "./contracts";
 import { canaryConfigSchema } from "./deployment-controller";
 import { assertSafeRuntimePayload } from "./supabase-persistence";
+import { SupabaseAgentRuntimePersistence } from "./supabase-persistence";
 import type { ShadowRecord } from "./shadow-loop";
 
 type Kind = "product" | "evidence" | "observation" | "environment" | "pattern" | "hypothesis" |
@@ -108,9 +111,9 @@ export class AuthoritativeLifecycleWriter {
     }
   }
 
-  async requireSource(id: string, kind?: Kind): Promise<{ record_kind: string; source_digest: string; payload: unknown; parent_record_id: string | null }> {
+  async requireSource(id: string, kind?: Kind): Promise<{ record_kind: string; source_digest: string; payload: unknown; parent_record_id: string | null; source_execution_id: string | null }> {
     const { data, error } = await this.client.from("agent_runtime_lifecycle_records")
-      .select("record_kind,source_digest,payload,parent_record_id").eq("tenant_id", this.tenantId)
+      .select("record_kind,source_digest,payload,parent_record_id,source_execution_id").eq("tenant_id", this.tenantId)
       .eq("product_key", this.productKey).eq("record_id", id).single();
     checked(error, "source lookup");
     if (!data || (kind && data.record_kind !== kind)) throw new Error("Lifecycle source is missing or has the wrong kind");
@@ -172,6 +175,7 @@ export class AuthoritativeLifecycleWriter {
     assessmentId: string;
     deploymentTarget: "test" | "preview";
     occurredAt: string;
+    approval?: { approvalId: string; actorId: string };
   }) {
     const candidate = shadowCandidateSchema.parse((await this.requireSource(input.candidateId, "candidate")).payload);
     const comparison = comparisonSchema.parse((await this.requireSource(input.comparisonId, "comparison")).payload);
@@ -186,12 +190,86 @@ export class AuthoritativeLifecycleWriter {
       comparison.planId !== plan.planId || assessment.candidateId !== candidate.candidateId) {
       throw new Error("Risk Gate input identities or immutable baseline disagree");
     }
-    const decision = applyRiskGate({ candidate, plan, comparison,
+    const pending = applyRiskGate({ candidate, plan, comparison,
       guardianAssessment: assessment, deploymentTarget: input.deploymentTarget });
-    const recordId = `risk:${candidate.candidateId}:${comparison.comparisonId}`;
+    let decision = pending;
+    if (input.approval) {
+      if (pending.decision !== "require_human_approval") throw new Error("Approval is not required for this risk decision");
+      const digest = canaryActionDigest({ candidate, plan, comparison, deploymentTarget: input.deploymentTarget });
+      const { data, error } = await this.client.from("agent_runtime_approval_requests")
+        .select("approval_id,execution_id,candidate_id,requested_by,actor_id,action_type,risk_level,approval_type,action_digest,summary,expires_at,status,resolved_by,resolved_at")
+        .eq("tenant_id", this.tenantId).eq("product_key", this.productKey)
+        .eq("approval_id", input.approval.approvalId).single();
+      checked(error, "approval lookup");
+      if (!data || data.execution_id !== input.executionId || data.candidate_id !== candidate.candidateId ||
+        data.actor_id !== input.approval.actorId || data.resolved_by !== input.approval.actorId ||
+        data.action_type !== "start_canary" || data.action_digest !== digest || data.status !== "approved") {
+        throw new Error("Human approval does not bind this exact risk decision");
+      }
+      const ledger = new InMemoryApprovalLedger();
+      ledger.add(approvalRequestSchema.parse({ approvalId: data.approval_id, executionId: data.execution_id,
+        candidateId: data.candidate_id, requestedBy: data.requested_by, actorId: data.actor_id,
+        actionType: data.action_type, riskLevel: data.risk_level, approvalType: data.approval_type,
+        actionDigest: data.action_digest, summary: data.summary, expiresAt: data.expires_at,
+        status: data.status, resolvedBy: data.resolved_by, resolvedAt: data.resolved_at }));
+      // Atomic database transition happens before the in-memory domain computation.
+      // On any failure the candidate remains non-executable, including if a later
+      // source append fails after the approval has been consumed.
+      const consumed = await this.client.rpc("agent_runtime_consume_approval", {
+        p_tenant_id: this.tenantId, p_product_key: this.productKey, p_execution_id: input.executionId,
+        p_candidate_id: candidate.candidateId, p_approval_id: input.approval.approvalId,
+        p_actor_id: input.approval.actorId, p_action_digest: digest, p_consumed_at: input.occurredAt,
+      });
+      checked(consumed.error, "approval consumption");
+      if (!Array.isArray(consumed.data) || consumed.data.length !== 1 ||
+        consumed.data[0].status !== "consumed" || consumed.data[0].approval_id !== input.approval.approvalId) {
+        throw new Error("Approval consumption did not return the exact bound approval");
+      }
+      decision = applyRiskGate({ candidate, plan, comparison, guardianAssessment: assessment,
+        deploymentTarget: input.deploymentTarget,
+        approval: { ledger, approvalId: input.approval.approvalId,
+          actorId: input.approval.actorId, now: input.occurredAt } });
+      if (decision.decision !== "canary_eligible" || decision.approvalConsumedId !== input.approval.approvalId) {
+        throw new Error("Consumed approval was not accepted by the deterministic Risk Gate");
+      }
+    }
+    const recordId = `risk:${candidate.candidateId}:${comparison.comparisonId}${input.approval ? `:${input.approval.approvalId}` : ""}`;
     await this.appendValidated({ kind: "risk_decision", recordId, payload: decision,
       executionId: input.executionId, parentRecordId: comparison.comparisonId, occurredAt: input.occurredAt });
     return decision;
+  }
+
+  /** Human decision is issued through the existing approval table and founder
+   * resolution RPC; candidate creation and Risk Gate output do not approve it. */
+  async requestRiskApproval(input: {
+    executionId: string; candidateId: string; comparisonId: string;
+    approvalId: string; actorId: string; requestedBy: string;
+    expiresAt: string; occurredAt: string;
+  }) {
+    const source = await this.requireSource(`risk:${input.candidateId}:${input.comparisonId}`, "risk_decision");
+    if (source.source_execution_id !== input.executionId || source.parent_record_id !== input.comparisonId) {
+      throw new Error("Approval risk decision is outside the execution");
+    }
+    const decision = riskGateDecisionSchema.parse(source.payload);
+    if (decision.decision !== "require_human_approval" || !decision.authorizedActionDigest ||
+      decision.candidateId !== input.candidateId ||
+      Date.parse(input.expiresAt) <= Date.parse(input.occurredAt)) {
+      throw new Error("Only a pending exact risk decision may request approval");
+    }
+    const candidate = shadowCandidateSchema.parse((await this.requireSource(input.candidateId, "candidate")).payload);
+    if (input.actorId !== process.env.CONTROL_PLANE_FOUNDER_ID?.trim()) {
+      throw new Error("Approval must target the configured founder identity");
+    }
+    const request = approvalRequestSchema.parse({ approvalId: input.approvalId,
+      executionId: input.executionId, candidateId: input.candidateId,
+      requestedBy: input.requestedBy, actorId: input.actorId, actionType: "start_canary",
+      riskLevel: candidate.riskClassification,
+      approvalType: candidate.riskClassification === "high" ? "explicit_human" : "human",
+      actionDigest: decision.authorizedActionDigest,
+      summary: "Authorize this exact bounded non-production canary transition.",
+      expiresAt: input.expiresAt, status: "pending" });
+    await new SupabaseAgentRuntimePersistence(this.tenantId, this.productKey, this.client).createApproval(request);
+    return request;
   }
 
   private async appendValidated(input: {
@@ -234,7 +312,8 @@ export class AuthoritativeLifecycleWriter {
     if (input.kind !== "risk_decision" && input.recordId !== expectedId) {
       throw new Error("Lifecycle record identity disagrees with the validated domain output");
     }
-    if (input.kind === "risk_decision" && input.recordId !== `risk:${payload.candidateId}:${input.parentRecordId}`) {
+    if (input.kind === "risk_decision" && input.recordId !==
+      `risk:${payload.candidateId}:${input.parentRecordId}${payload.approvalConsumedId ? `:${payload.approvalConsumedId}` : ""}`) {
       throw new Error("Risk decision identity must bind its candidate and comparison");
     }
     if (input.kind === "product" && (input.executionId || input.parentRecordId)) {
@@ -305,6 +384,14 @@ export class AuthoritativeLifecycleWriter {
             item.conditionsDigest !== plan.conditionsDigest ||
             item.versionId !== (item.variant === "baseline" ? plan.baselineVersionId : plan.candidateId))) {
           throw new Error("Evaluation run omitted or replaced a frozen dataset case");
+        }
+        for (const caseRun of run.caseRuns) for (const attempt of caseRun.attempts) {
+          for (const evidenceId of attempt.evidenceIds) {
+            const evidence = observationEvidenceSchema.parse((await this.requireSource(evidenceId, "evidence")).payload);
+            if (evidence.productSnapshotId !== plan.productSnapshotId) {
+              throw new Error("Evaluation attempt cites evidence from another product snapshot");
+            }
+          }
         }
       }
       if (input.kind === "safety") {
