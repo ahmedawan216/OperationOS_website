@@ -195,6 +195,12 @@ export class AuthoritativeLifecycleWriter {
     let decision = pending;
     if (input.approval) {
       if (pending.decision !== "require_human_approval") throw new Error("Approval is not required for this risk decision");
+      const pendingSource = await this.requireSource(`risk:${candidate.candidateId}:${comparison.comparisonId}`, "risk_decision");
+      if (pendingSource.source_execution_id !== input.executionId ||
+        pendingSource.parent_record_id !== comparison.comparisonId ||
+        JSON.stringify(riskGateDecisionSchema.parse(pendingSource.payload)) !== JSON.stringify(pending)) {
+        throw new Error("Human approval requires the previously recorded deterministic Risk Gate request");
+      }
       const digest = canaryActionDigest({ candidate, plan, comparison, deploymentTarget: input.deploymentTarget });
       const { data, error } = await this.client.from("agent_runtime_approval_requests")
         .select("approval_id,execution_id,candidate_id,requested_by,actor_id,action_type,risk_level,approval_type,action_digest,summary,expires_at,status,resolved_by,resolved_at")

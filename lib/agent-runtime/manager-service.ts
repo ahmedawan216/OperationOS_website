@@ -24,6 +24,7 @@ export class ManagerOrchestrationService {
     finalizer: ManagerFinalizer;
     nowMs: () => number;
     checkpoint?: () => Promise<void>;
+    afterExecutionCreated?: (input: { executionId: string; goal: UserGoal }) => Promise<void> | void;
   }) {}
 
   async run(input: {
@@ -47,6 +48,7 @@ export class ManagerOrchestrationService {
     const executionId = created.record.executionId;
     this.dependencies.runtime.transitionExecution(executionId, "planning");
     await this.dependencies.checkpoint?.();
+    await this.dependencies.afterExecutionCreated?.({ executionId, goal: input.goal });
 
     let planning = await this.dependencies.planning.createInitial({
       goal: input.goal,
