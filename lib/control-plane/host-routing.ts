@@ -22,6 +22,10 @@ export function isConfiguredControlPlaneHost(hostname: string, configuredHost?: 
   return Boolean(normalizedHost(configuredHost) && normalizedHost(hostname) === normalizedHost(configuredHost));
 }
 
+export function founderLoginForUnauthenticatedPage(hostname: string, configuredHost?: string): "/login" | null {
+  return isConfiguredControlPlaneHost(hostname, configuredHost) ? "/login" : null;
+}
+
 export function controlPlanePath(pathname: string, hostname: string, configuredHost?: string): string {
   if (pathname !== "/control" && !pathname.startsWith("/control/")) throw new Error("Control Panel path must use the internal route namespace");
   if (isConfiguredControlPlaneHost(hostname, configuredHost)) return pathname === "/control" ? "/" : pathname.replace(/^\/control(?=\/)/, "");

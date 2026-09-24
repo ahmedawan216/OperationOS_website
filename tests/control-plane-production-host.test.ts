@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { controlPlanePath, controlPlaneRequestUrl, resolveControlPlaneHost } from "../lib/control-plane/host-routing";
+import { controlPlanePath, controlPlaneRequestUrl, founderLoginForUnauthenticatedPage, resolveControlPlaneHost } from "../lib/control-plane/host-routing";
 import { askMetaAgent } from "../lib/control-plane/meta-agent";
 import { GroundedMetaAgentProvider } from "../lib/control-plane/grounded-meta-agent-provider";
 import { fixtureSnapshot } from "../lib/control-plane/testing/fixture-provider";
@@ -30,6 +30,27 @@ test("primary site is unchanged while Control Plane paths fail closed off-host",
   assert.deepEqual(resolveControlPlaneHost({ hostname: "operationos.org", pathname: "/control", configuredHost }), { disposition: "deny", privateSurface: true });
   assert.deepEqual(resolveControlPlaneHost({ hostname: "operationos.org", pathname: "/brand/operationos-h1-horizontal-white.svg", configuredHost }), { disposition: "next", privateSurface: false });
   assert.deepEqual(resolveControlPlaneHost({ hostname: "operationos.org", pathname: "/api/control-plane/governance", configuredHost }), { disposition: "deny", privateSurface: true });
+});
+
+test("production host rewrite reaches a private page whose missing session redirects to focused login", () => {
+  const configuredHost = "control.operationos.org";
+  for (const [publicPath, internalPath] of [["/", "/control"], ["/products", "/control/products"], ["/agents", "/control/agents"]] as const) {
+    assert.deepEqual(resolveControlPlaneHost({ hostname: configuredHost, pathname: publicPath, configuredHost, requireConfiguredHost: true }), {
+      disposition: "rewrite", pathname: internalPath, privateSurface: true,
+    });
+    assert.equal(founderLoginForUnauthenticatedPage(configuredHost, configuredHost), "/login");
+  }
+  assert.deepEqual(resolveControlPlaneHost({ hostname: configuredHost, pathname: "/login", configuredHost, requireConfiguredHost: true }), {
+    disposition: "rewrite", pathname: "/control/login", privateSurface: true,
+  });
+  assert.equal(founderLoginForUnauthenticatedPage("operationos.org", configuredHost), null);
+  assert.equal(founderLoginForUnauthenticatedPage("control.operationos.org.evil.example", configuredHost), null);
+  assert.equal(founderLoginForUnauthenticatedPage(configuredHost), null);
+  const layout = readFileSync(new URL("../app/control/(private)/layout.tsx", import.meta.url), "utf8");
+  assert.match(layout, /readFounderSession\(\)/);
+  assert.match(layout, /founderLoginForUnauthenticatedPage\(host, process\.env\.CONTROL_PLANE_HOST\)/);
+  assert.match(layout, /if \(login\) redirect\(login\)/);
+  assert.match(layout, /notFound\(\)/);
 });
 
 test("local development remains explicit and protected by server authorization", () => {
