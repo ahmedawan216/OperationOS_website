@@ -52,8 +52,8 @@ test("controlled manifest registers only draft capability, no tools or grants, a
 
 test("live Manager planning is guided by the exact bounded two-step contract and still rejects invalid model output", async () => {
   assert.notEqual(controlledProofRun.idempotencyKey, "operationos-controlled-proof-initial-v1");
-  assert.equal(controlledProofRun.idempotencyKey, "operationos-controlled-proof-initial-v4");
-  assert.equal(controlledProofRun.goalId, "operationos-controlled-goal-initial-v4");
+  assert.equal(controlledProofRun.idempotencyKey, "operationos-controlled-proof-initial-v5");
+  assert.equal(controlledProofRun.goalId, "operationos-controlled-goal-initial-v5");
   const originalFetch = globalThis.fetch;
   const request = { planId: "plan-live", snapshot: { executionId: "execution-live" },
     goal: { acceptanceCriteria: [{ id: "verified-proposal", required: true }] } } as ManagerPlanningRequest;
