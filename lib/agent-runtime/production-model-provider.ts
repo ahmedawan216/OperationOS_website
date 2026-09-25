@@ -26,6 +26,44 @@ function normalizeManagerPlanOutput(output: unknown): unknown {
   return { plan, decisionSummary };
 }
 
+function groqStrictSchema(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(groqStrictSchema);
+  if (!value || typeof value !== "object") return value;
+  const schema = { ...(value as Record<string, unknown>) };
+  if (schema.type === "object" && schema.properties && typeof schema.properties === "object") {
+    const required = new Set(Array.isArray(schema.required) ? schema.required as string[] : []);
+    const properties = Object.fromEntries(Object.entries(schema.properties as Record<string, unknown>)
+      .map(([key, property]) => {
+        const converted = groqStrictSchema(property);
+        return [key, required.has(key) ? converted : { anyOf: [converted, { type: "null" }] }];
+      }));
+    schema.properties = properties;
+    schema.required = Object.keys(properties);
+  }
+  if (schema.items) schema.items = groqStrictSchema(schema.items);
+  for (const keyword of ["anyOf", "oneOf", "allOf"] as const) {
+    if (Array.isArray(schema[keyword])) schema[keyword] = schema[keyword].map(groqStrictSchema);
+  }
+  return schema;
+}
+
+function removeNullProperties(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(removeNullProperties);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+    .filter(([, child]) => child !== null)
+    .map(([key, child]) => [key, removeNullProperties(child)]));
+}
+
+function workflowProviderSchema(input: WorkflowDiscoveryInput): unknown {
+  const schema = groqStrictSchema(z.toJSONSchema(workflowModelSchema)) as { properties?: Record<string, unknown> };
+  if (!schema.properties) throw new Error("Workflow provider schema is unavailable");
+  schema.properties.executionId = { const: input.assignment.executionId };
+  schema.properties.stepId = { const: input.assignment.stepId };
+  schema.properties.evidenceReferences = { const: input.evidence };
+  return schema;
+}
+
 export class ProductionModelProvider implements ManagerProvider, SpecialistProvider {
   private readonly key: string;
   readonly model = CONTROLLED_GROQ_MODEL_KEY;
@@ -38,7 +76,11 @@ export class ProductionModelProvider implements ManagerProvider, SpecialistProvi
     }
   }
 
-  private async request(role: string, input: unknown, schema: z.ZodType): Promise<{ output: unknown }> {
+  private async request(role: string, input: unknown, schema: z.ZodType, options: {
+    providerSchema?: unknown;
+    strict?: boolean;
+    normalizeNullableOptionals?: boolean;
+  } = {}): Promise<{ output: unknown }> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 30_000);
     try {
@@ -51,7 +93,8 @@ export class ProductionModelProvider implements ManagerProvider, SpecialistProvi
             { role: "system", content: `You are the OperationOS ${role}. Return one JSON object matching the supplied schema. Use only supplied IDs, evidence, and registered capabilities. No external actions. Only concise decision summaries; never hidden reasoning.` },
             { role: "user", content: JSON.stringify({ request: input }) },
           ], response_format: { type: "json_schema", json_schema: {
-            name: "operationos_structured_proposal", strict: false, schema: z.toJSONSchema(schema),
+            name: "operationos_structured_proposal", strict: options.strict ?? false,
+            schema: options.providerSchema ?? z.toJSONSchema(schema),
           } } }),
       });
       if (!response.ok) throw new Error("provider unavailable");
@@ -72,7 +115,9 @@ export class ProductionModelProvider implements ManagerProvider, SpecialistProvi
       const usage = Number.isSafeInteger(inputTokens) && Number.isSafeInteger(outputTokens) &&
         (inputTokens as number) >= 0 && (outputTokens as number) >= 0
         ? { inputTokens: inputTokens as number, outputTokens: outputTokens as number } : undefined;
-      return { output: JSON.parse(choices[0]!.message.content) as unknown, ...(usage ? { usage } : {}) };
+      const output = JSON.parse(choices[0]!.message.content) as unknown;
+      return { output: options.normalizeNullableOptionals ? removeNullProperties(output) : output,
+        ...(usage ? { usage } : {}) };
     } catch {
       // Raw provider errors, response bodies, secrets and hidden reasoning never reach runtime traces.
       throw new Error("Production model provider unavailable or invalid");
@@ -98,7 +143,17 @@ Use concise decision and rationale summaries. No hidden reasoning or additional 
   }
 
   discoverWorkflow(input: WorkflowDiscoveryInput): Promise<SpecialistProviderResponse> {
-    return this.request("workflow discovery specialist. Produce a draft model with facts supported by declared evidence, explicit assumptions, and unknowns", input, workflowModelSchema);
+    return this.request(`workflow discovery specialist. Produce a draft model with facts supported by declared evidence, explicit assumptions, and unknowns.
+Return every required workflow-model-v1 field. Copy contractVersion, executionId, and stepId exactly; status must be draft.
+Copy evidenceReferences exactly from request.evidence with no added, removed, or modified field; never invent a digest.
+Use only supplied evidenceId values in evidenceRefs, and give every stage at least one supplied evidence ID.
+Use unique IDs. metricKey, detectableSignal, and capability keys must match ^[a-z][a-z0-9._-]*$.
+Stage actorIds must reference actors; inputIds must reference only top-level inputs, never outputs; outputIds must reference top-level outputs.
+Each stages array item must be the stage object itself, never an object keyed by stageId. Use [] when a later stage has no top-level input.
+Stage dependencies, decisions, checkpoints, decision nextStageId values, failure stage IDs, and recovery actors must reference existing IDs.
+Every decision needs at least two outcomes; omit nextStageId for a terminal outcome. Keep stage dependencies acyclic.
+requiredCapabilityKeys may contain only request.declaredCapabilityKeys. Do not add fields or external actions.`, input,
+    workflowModelSchema, { providerSchema: workflowProviderSchema(input), strict: true, normalizeNullableOptionals: true });
   }
 
   proposeArchitecture(input: AgentArchitectureInput): Promise<SpecialistProviderResponse> {

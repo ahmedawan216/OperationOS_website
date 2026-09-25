@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { CONTROLLED_GROQ_MODEL, CONTROLLED_GROQ_MODEL_KEY, ProductionModelProvider } from "../lib/agent-runtime/production-model-provider";
 import { controlledProduct, controlledRuntimeDefinitions, registerControlledProof } from "../lib/agent-runtime/controlled-proof-registration";
 import { requestValidatedWorkflowModel } from "../lib/agent-runtime/specialist-provider";
+import { workflowModelSchema } from "../lib/agent-runtime/specialist-contracts";
 import { workflowInput, workflowModel } from "./fixtures/specialist-fixtures";
 import { architectureProposal } from "./fixtures/specialist-fixtures";
 import { resolveControlPlaneHost } from "../lib/control-plane/host-routing";
@@ -189,8 +190,12 @@ test("Groq provider sends bounded schema-guided requests without reasoning and v
     assert.equal(body?.model, CONTROLLED_GROQ_MODEL);
     assert.equal(body?.include_reasoning, false);
     assert.equal(body?.tools, undefined);
-    assert.equal((body?.response_format as { json_schema: { strict: boolean; schema: unknown } }).json_schema.strict, false);
-    assert.ok((body?.response_format as { json_schema: { schema: unknown } }).json_schema.schema);
+    const jsonSchema = (body?.response_format as { json_schema: { strict: boolean; schema: {
+      properties: Record<string, unknown> } } }).json_schema;
+    assert.equal(jsonSchema.strict, true);
+    assert.deepEqual(jsonSchema.schema.properties.executionId, { const: workflowInput().assignment.executionId });
+    assert.deepEqual(jsonSchema.schema.properties.stepId, { const: workflowInput().assignment.stepId });
+    assert.deepEqual(jsonSchema.schema.properties.evidenceReferences, { const: workflowInput().evidence });
     assert.equal(JSON.stringify(body).includes("mock-secret"), false);
     globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ finish_reason: "length",
       message: { content: JSON.stringify(workflowModel()) } }] }), { status: 200 });
@@ -201,6 +206,42 @@ test("Groq provider sends bounded schema-guided requests without reasoning and v
     globalThis.fetch = async () => new Response("provider credentials: mock-secret", { status: 500 });
     await assert.rejects(() => provider.discoverWorkflow(workflowInput()), (error: unknown) =>
       error instanceof Error && /unavailable or invalid/.test(error.message) && !error.message.includes("mock-secret"));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("V4 workflow violations remain rejected while Groq strict optionals normalize before authoritative validation", async () => {
+  const malformed = structuredClone(workflowModel());
+  malformed.stages[0]!.evidenceRefs = [];
+  malformed.successCriteria[0]!.metricKey = "reviewCompletion";
+  malformed.outputs.push({ outputId: "draftWorkflow", name: "Draft workflow", evidenceRefs: [] });
+  malformed.stages.push({ ...malformed.stages[0]!, stageId: "stage-next", inputIds: ["draftWorkflow"],
+    dependsOnStageIds: [malformed.stages[0]!.stageId], decisionIds: ["decision-next"], humanCheckpointIds: [] });
+  malformed.decisions.push({ decisionId: "decision-next", stageId: "stage-next", condition: "Review complete",
+    outcomes: [{ value: "Continue", nextStageId: "stage3" }, { value: "Stop" }], humanRequired: true,
+    evidenceRefs: ["evidence-brief"] });
+  const rejected = workflowModelSchema.safeParse(malformed);
+  assert.equal(rejected.success, false);
+  if (!rejected.success) {
+    assert.ok(rejected.error.issues.some((issue) => issue.path.join(".") === "stages.0.evidenceRefs"));
+    assert.ok(rejected.error.issues.some((issue) => issue.path.join(".") === "successCriteria.0.metricKey"));
+    assert.ok(rejected.error.issues.some((issue) => issue.message === "Stage references unknown input: draftWorkflow"));
+    assert.ok(rejected.error.issues.some((issue) => issue.message === "Decision outcome references unknown stage: stage3"));
+  }
+
+  const originalFetch = globalThis.fetch;
+  const raw = structuredClone(workflowModel()) as unknown as Record<string, unknown>;
+  const failure = (raw.failureConditions as Array<Record<string, unknown>>)[0]!;
+  failure.stageId = null;
+  failure.recoveryOwnerActorId = null;
+  try {
+    globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ finish_reason: "stop", message: {
+      content: JSON.stringify(raw) } }] }), { status: 200 });
+    const provider = new ProductionModelProvider({ key: "test-only-key", model: CONTROLLED_GROQ_MODEL, provider: "groq" });
+    const response = await requestValidatedWorkflowModel(provider, workflowInput());
+    assert.equal("stageId" in response.model.failureConditions[0]!, false);
+    assert.equal("recoveryOwnerActorId" in response.model.failureConditions[0]!, false);
   } finally {
     globalThis.fetch = originalFetch;
   }
