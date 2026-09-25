@@ -97,6 +97,48 @@ test("live Manager planning is guided by the exact bounded two-step contract and
   } finally { globalThis.fetch = originalFetch; }
 });
 
+test("Groq's flattened Manager envelope is normalized before strict contract validation", async () => {
+  const originalFetch = globalThis.fetch;
+  const request = {
+    goal: { goalId: "goal-live", tenantId: "operationos", actorId: "founder",
+      objective: "Draft workflow architecture", inputs: { brief: "Internal draft" },
+      acceptanceCriteria: [{ id: "verified-proposal", description: "Verified", evaluator: "deterministic", required: true }],
+      constraints: [], requestedAt: "2026-09-24T00:00:00.000Z", idempotencyKey: controlledProofRun.idempotencyKey },
+    snapshot: { executionId: "execution-live", goalId: "goal-live", managerVersionId: "manager-v1",
+      specialistVersionIds: ["workflow-v1", "architecture-v1"], policyBundleVersionId: "policy-v1",
+      toolVersionIds: [], modelBindings: { manager: CONTROLLED_GROQ_MODEL_KEY }, maxSteps: 2,
+      maxRetriesPerStep: 0, maxWallTimeMs: 115_000, maxCostUsd: 1, createdAt: "2026-09-24T00:00:00.000Z" },
+    planId: "plan-live", previousPlanIds: [],
+  } satisfies ManagerPlanningRequest;
+  const flattened = { planId: "plan-live", executionId: "execution-live",
+    rationaleSummary: "Discover before proposing a draft architecture.", steps: [
+      { stepId: "workflow", sequence: 0, objective: "Discover workflow", assignedAgentKey: "workflow_discovery_specialist",
+        inputRefs: [{ kind: "goal_input", id: "brief" }], expectedOutputSchema: "workflow-model-v1",
+        acceptanceCriterionIds: [], requiredCapabilities: [], riskLevel: "low", dependsOn: [] },
+      { stepId: "architecture", sequence: 1, objective: "Propose a draft architecture", assignedAgentKey: "agent_architecture_specialist",
+        inputRefs: [{ kind: "step_output", id: "workflow" }], expectedOutputSchema: "agent-system-proposal-v1",
+        acceptanceCriterionIds: ["verified-proposal"], requiredCapabilities: [], riskLevel: "low", dependsOn: ["workflow"] },
+    ], verificationStepIds: ["architecture"], decisionSummary: "Use only declared evidence." };
+  let output: unknown = flattened;
+  try {
+    globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ finish_reason: "stop", message: {
+      content: JSON.stringify(output) } }] }), { status: 200 });
+    const provider = new ProductionModelProvider({ key: "test-only-key", model: CONTROLLED_GROQ_MODEL, provider: "groq" });
+    const normalized = await requestValidatedManagerPlan(provider, request);
+    assert.deepEqual(normalized.proposal, {
+      plan: { planId: flattened.planId, executionId: flattened.executionId,
+        rationaleSummary: flattened.rationaleSummary, steps: flattened.steps,
+        verificationStepIds: flattened.verificationStepIds },
+      decisionSummary: flattened.decisionSummary,
+    });
+
+    output = { ...flattened, unexpectedAuthority: "grant" };
+    await assert.rejects(() => requestValidatedManagerPlan(provider, request), /validation|contract/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("founder proof endpoint remains private to the configured control host", () => {
   const path = "/api/control-plane/proof";
   assert.deepEqual(resolveControlPlaneHost({ hostname: "control.operationos.org", pathname: path,

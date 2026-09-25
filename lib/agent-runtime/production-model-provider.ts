@@ -12,6 +12,20 @@ export const CONTROLLED_GROQ_MODEL = "openai/gpt-oss-20b";
 /** Registry model keys intentionally use the existing contract-safe identifier format. */
 export const CONTROLLED_GROQ_MODEL_KEY = "groq_gpt_oss_20b";
 
+const flattenedManagerPlanKeys = Object.freeze([
+  "planId", "executionId", "rationaleSummary", "steps", "verificationStepIds", "decisionSummary",
+]);
+
+/** Groq can apply the nested plan schema while flattening its outer response envelope. */
+function normalizeManagerPlanOutput(output: unknown): unknown {
+  if (!output || typeof output !== "object" || Array.isArray(output) || "plan" in output) return output;
+  const record = output as Record<string, unknown>;
+  if (Object.keys(record).length !== flattenedManagerPlanKeys.length ||
+    !flattenedManagerPlanKeys.every((key) => Object.hasOwn(record, key))) return output;
+  const { decisionSummary, ...plan } = record;
+  return { plan, decisionSummary };
+}
+
 export class ProductionModelProvider implements ManagerProvider, SpecialistProvider {
   private readonly key: string;
   readonly model = CONTROLLED_GROQ_MODEL_KEY;
@@ -67,8 +81,8 @@ export class ProductionModelProvider implements ManagerProvider, SpecialistProvi
     }
   }
 
-  generatePlan(input: ManagerPlanningRequest): Promise<ManagerProviderResponse> {
-    return this.request(`Manager. Propose exactly two ordered steps within the immutable request snapshot.
+  async generatePlan(input: ManagerPlanningRequest): Promise<ManagerProviderResponse> {
+    const response = await this.request(`Manager. Propose exactly two ordered steps within the immutable request snapshot.
 Return only {plan, decisionSummary}; plan must contain planId, executionId, rationaleSummary, steps, verificationStepIds.
 Copy planId and executionId exactly from the request. Give the two steps distinct stepId values and sequence 0 and 1.
 Each step must contain stepId, sequence, objective, assignedAgentKey, inputRefs, expectedOutputSchema,
@@ -80,6 +94,7 @@ expectedOutputSchema "agent-system-proposal-v1"; dependsOn contains exactly that
 acceptanceCriterionIds contains only the required criterion ID from the goal; requiredCapabilities [], riskLevel "low".
 Set verificationStepIds to an array containing exactly the stepId you chose for step 1. Never invent capabilities, references, criteria, or permissions.
 Use concise decision and rationale summaries. No hidden reasoning or additional fields.`, input, managerPlanProposalSchema);
+    return { ...response, output: normalizeManagerPlanOutput(response.output) };
   }
 
   discoverWorkflow(input: WorkflowDiscoveryInput): Promise<SpecialistProviderResponse> {
