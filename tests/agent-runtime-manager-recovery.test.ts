@@ -11,7 +11,7 @@ import {
 } from "../lib/agent-runtime/contracts";
 import { InMemoryExecutionRepository } from "../lib/agent-runtime/execution-repository";
 import { type ManagerPlanProposal } from "../lib/agent-runtime/manager-contracts";
-import { InMemoryPlanHistoryStore, ManagerApprovalGate, ManagerPlanningCoordinator } from "../lib/agent-runtime/manager-recovery";
+import { classifyManagerPlanRejection, InMemoryPlanHistoryStore, ManagerApprovalGate, ManagerPlanningCoordinator } from "../lib/agent-runtime/manager-recovery";
 import { createAgentRegistry, createPolicyRegistry, createToolRegistry } from "../lib/agent-runtime/registry";
 import { AgentRuntimeService } from "../lib/agent-runtime/runtime";
 import { InMemoryExecutionStateStore } from "../lib/agent-runtime/state";
@@ -99,13 +99,33 @@ test("invalid replanning output follows a typed failure path and is not stored",
     kind: "response", response: { output: { plan: { planId: "plan-invalid" } } },
   }]);
   const history = new InMemoryPlanHistoryStore();
+  const events = traceWriter();
   const coordinator = new ManagerPlanningCoordinator({
-    provider, agents, history, events: traceWriter(), createPlanId: () => "plan-invalid", now: () => now, maxReplans: 1,
+    provider, agents, history, events, createPlanId: () => "plan-invalid", now: () => now, maxReplans: 1,
   });
   const result = await coordinator.createInitial({ goal, snapshot });
   assert.equal(result.status, "failed");
   if (result.status === "failed") assert.equal(result.error.code, "VALIDATION_ERROR");
   assert.equal(history.list(snapshot.executionId).length, 0);
+  const response = events.list(snapshot.executionId).find((item) => item.type === "model.responded");
+  assert.equal(response?.payload.validationBoundary, "provider_plan_contract");
+  assert.equal(JSON.stringify(response?.payload).includes("hiddenReasoning"), false);
+});
+
+test("semantic Manager plan rejection records only a fixed, privacy-safe reason code", async () => {
+  const invalid = proposal("plan-mismatch", "step-1");
+  const provider = new DeterministicFakeManagerProvider([{ kind: "response", response: { output: invalid } }]);
+  const events = traceWriter();
+  const coordinator = new ManagerPlanningCoordinator({ provider, agents, history: new InMemoryPlanHistoryStore(),
+    events, createPlanId: () => "plan-expected", now: () => now, maxReplans: 0 });
+  const result = await coordinator.createInitial({ goal, snapshot });
+  assert.equal(result.status, "failed");
+  const response = events.list(snapshot.executionId).find((item) => item.type === "model.responded");
+  assert.equal(response?.payload.validationBoundary, "runtime_plan");
+  assert.equal(response?.payload.validationReason, "PLAN_ID_MISMATCH");
+  assert.equal(JSON.stringify(response?.payload).includes("plan-mismatch"), false);
+  assert.equal(classifyManagerPlanRejection(new Error("Manager cannot grant unauthorized capability: secret")), "CAPABILITY_NOT_GRANTED");
+  assert.equal(classifyManagerPlanRejection(new Error("secret from provider")), "OTHER_RUNTIME_PLAN_REJECTION");
 });
 
 test("Manager provider errors are normalized without leaking provider details", async () => {
