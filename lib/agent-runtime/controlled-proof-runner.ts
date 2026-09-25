@@ -9,11 +9,11 @@ import { agentSystemProposalSchema } from "./specialist-contracts";
 import { observeAuthoritativeGoal } from "./authoritative-observation";
 import type { AcceptanceCriterionVerifier } from "./manager-verification";
 
-// The first live attempt remains an immutable failed execution. A changed planning
-// instruction must use a new idempotency key rather than reopening that history.
+// Earlier live attempts remain immutable. The next diagnostic run gets its own
+// idempotency boundary; rejected provider output is never retained or retried.
 export const controlledProofRun = Object.freeze({
-  goalId: "operationos-controlled-goal-initial-v2",
-  idempotencyKey: "operationos-controlled-proof-initial-v2",
+  goalId: "operationos-controlled-goal-initial-v3",
+  idempotencyKey: "operationos-controlled-proof-initial-v3",
 });
 
 const attemptSchema = z.array(z.object({

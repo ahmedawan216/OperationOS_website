@@ -7,6 +7,7 @@ import type { ManagerProvider } from "./manager-provider";
 import { requestValidatedManagerPlan } from "./manager-provider";
 import type { ManagerProviderUsage } from "./manager-contracts";
 import { validateManagerPlan, type ValidatedManagerPlan } from "./manager-planning";
+import { ContractValidationError } from "./validation";
 import type { ImmutableVersionRegistry } from "./registry";
 import type { RuntimeEventSink } from "./runtime";
 import { AgentRuntimeService } from "./runtime";
@@ -53,6 +54,24 @@ export class InMemoryPlanHistoryStore {
 export type ManagerPlanningOutcome =
   | { readonly status: "planned"; readonly plan: ValidatedManagerPlan; readonly usage?: ManagerProviderUsage }
   | { readonly status: "failed"; readonly error: RuntimeError };
+
+/** Fixed labels only: never copy provider output, arbitrary IDs or validator messages into traces. */
+export function classifyManagerPlanRejection(error: unknown): string {
+  const message = error instanceof Error ? error.message : "";
+  if (message.startsWith("Manager plan ID does not match")) return "PLAN_ID_MISMATCH";
+  if (message.startsWith("Manager plan execution ID does not match")) return "EXECUTION_ID_MISMATCH";
+  if (message.startsWith("Manager plan exceeds")) return "STEP_BUDGET";
+  if (message.startsWith("Unknown acceptance criterion")) return "UNKNOWN_CRITERION";
+  if (message.startsWith("Unknown verification step")) return "UNKNOWN_VERIFICATION_STEP";
+  if (message.startsWith("Required acceptance criterion")) return "REQUIRED_CRITERION_UNASSIGNED";
+  if (message.startsWith("Plan step IDs must be unique")) return "DUPLICATE_STEP_ID";
+  if (message.startsWith("Plan step sequences must be unique")) return "DUPLICATE_SEQUENCE";
+  if (/^(Plan dependencies must|Unknown step dependency|A step cannot depend)/.test(message)) return "INVALID_DEPENDENCY";
+  if (/^(Assignment references|Manager cannot introduce)/.test(message)) return "UNDECLARED_CONTEXT";
+  if (/^(Manager proposed an unknown specialist|Specialist is not active)/.test(message)) return "UNAVAILABLE_SPECIALIST";
+  if (message.startsWith("Manager cannot grant unauthorized capability")) return "CAPABILITY_NOT_GRANTED";
+  return "OTHER_RUNTIME_PLAN_REJECTION";
+}
 
 export class ManagerPlanningCoordinator {
   constructor(private readonly dependencies: {
@@ -137,6 +156,7 @@ export class ManagerPlanningCoordinator {
       } catch (error) {
         this.record("model.responded", input.snapshot.executionId, {
           operation: "manager.plan", planId, valid: false, errorCode: "VALIDATION_ERROR",
+          validationBoundary: "runtime_plan", validationReason: classifyManagerPlanRejection(error),
         });
         return {
           status: "failed",
@@ -152,6 +172,7 @@ export class ManagerPlanningCoordinator {
       if (input.kind === "replan" && validated.plan.steps.some((step) => priorStepIds.has(step.stepId))) {
         this.record("model.responded", input.snapshot.executionId, {
           operation: "manager.plan", planId, valid: false, errorCode: "VALIDATION_ERROR",
+          validationBoundary: "runtime_plan", validationReason: "REUSED_HISTORICAL_STEP_ID",
         });
         return {
           status: "failed",
@@ -183,6 +204,10 @@ export class ManagerPlanningCoordinator {
         planId,
         valid: false,
         errorCode: normalized.code,
+        ...(error instanceof ContractValidationError ? {
+          validationBoundary: error.runtimeError.message === "Invalid payload at manager.plan.response"
+            ? "provider_plan_contract" : "provider_usage_contract",
+        } : {}),
       });
       return { status: "failed", error: normalized };
     }
