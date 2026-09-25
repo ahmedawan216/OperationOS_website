@@ -8,6 +8,9 @@ import { workflowInput, workflowModel } from "./fixtures/specialist-fixtures";
 import { architectureProposal } from "./fixtures/specialist-fixtures";
 import { resolveControlPlaneHost } from "../lib/control-plane/host-routing";
 import { assertControlledAttempts, controlledArchitectureVerifier } from "../lib/agent-runtime/controlled-proof-runner";
+import { controlledProofRun } from "../lib/agent-runtime/controlled-proof-runner";
+import { requestValidatedManagerPlan } from "../lib/agent-runtime/manager-provider";
+import type { ManagerPlanningRequest } from "../lib/agent-runtime/manager-contracts";
 
 test("controlled proof requires exactly the two persisted specialists with bounded prerequisite context", () => {
   const attempts = [
@@ -44,6 +47,54 @@ test("controlled manifest registers only draft capability, no tools or grants, a
     provider: "unknown" }), /not configured/);
   assert.throws(() => new ProductionModelProvider({ key: "mock-secret", model: "openai/gpt-oss-120b",
     provider: "groq" }), /not configured/);
+});
+
+test("live Manager planning is guided by the exact bounded two-step contract and still rejects invalid model output", async () => {
+  assert.notEqual(controlledProofRun.idempotencyKey, "operationos-controlled-proof-initial-v1");
+  const originalFetch = globalThis.fetch;
+  const request = { planId: "plan-live", snapshot: { executionId: "execution-live" },
+    goal: { acceptanceCriteria: [{ id: "verified-proposal", required: true }] } } as ManagerPlanningRequest;
+  let system = "";
+  const valid = { plan: { planId: "plan-live", executionId: "execution-live",
+    rationaleSummary: "Discover before proposing a draft architecture.", steps: [
+      { stepId: "workflow", sequence: 0, objective: "Discover workflow", assignedAgentKey: "workflow_discovery_specialist",
+        inputRefs: [{ kind: "goal_input", id: "brief" }], expectedOutputSchema: "workflow-model-v1",
+        acceptanceCriterionIds: [], requiredCapabilities: [], riskLevel: "low", dependsOn: [] },
+      { stepId: "architecture", sequence: 1, objective: "Propose a draft architecture", assignedAgentKey: "agent_architecture_specialist",
+        inputRefs: [{ kind: "step_output", id: "workflow" }], expectedOutputSchema: "agent-system-proposal-v1",
+        acceptanceCriterionIds: ["verified-proposal"], requiredCapabilities: [], riskLevel: "low", dependsOn: ["workflow"] },
+    ], verificationStepIds: ["architecture"] }, decisionSummary: "Use only declared evidence." };
+  let output: unknown = valid;
+  try {
+    globalThis.fetch = async (_url, options) => {
+      const body = JSON.parse(String(options?.body)) as { messages: Array<{ role: string; content: string }> };
+      system = body.messages[0]!.content;
+      return new Response(JSON.stringify({ choices: [{ finish_reason: "stop", message: { content: JSON.stringify(output) } }] }),
+        { status: 200 });
+    };
+    const provider = new ProductionModelProvider({ key: "test-only-key", model: CONTROLLED_GROQ_MODEL, provider: "groq" });
+    // The request object is deliberately minimal: the provider must not invent fields; runtime validates real requests.
+    const response = await provider.generatePlan(request);
+    assert.deepEqual(response.output, valid);
+    for (const instruction of ["expectedOutputSchema", "acceptanceCriterionIds", "requiredCapabilities",
+      "verificationStepIds", "agent-system-proposal-v1", "goal_input", "step_output", "riskLevel"]) {
+      assert.ok(system.includes(instruction), `Missing bounded planning instruction: ${instruction}`);
+    }
+    // A provider cannot introduce extra authority even when guided by a valid plan example.
+    const malformed = { ...valid, plan: { ...valid.plan, steps: [{ ...valid.plan.steps[0], forbiddenGrant: true }] } };
+    output = malformed;
+    await assert.rejects(() => requestValidatedManagerPlan(provider, {
+      ...request, goal: { ...request.goal, goalId: "goal-live", tenantId: "operationos", actorId: "founder",
+        objective: "Draft workflow architecture", inputs: { brief: "Internal draft" },
+        acceptanceCriteria: [{ id: "verified-proposal", description: "Verified", evaluator: "deterministic", required: true }],
+        constraints: [], requestedAt: "2026-09-24T00:00:00.000Z", idempotencyKey: controlledProofRun.idempotencyKey },
+      snapshot: { ...request.snapshot, goalId: "goal-live", managerVersionId: "manager-v1",
+        specialistVersionIds: ["workflow-v1", "architecture-v1"], policyBundleVersionId: "policy-v1",
+        toolVersionIds: [], modelBindings: { manager: CONTROLLED_GROQ_MODEL_KEY }, maxSteps: 2,
+        maxRetriesPerStep: 0, maxWallTimeMs: 115_000, maxCostUsd: 1, createdAt: "2026-09-24T00:00:00.000Z" },
+      previousPlanIds: [],
+    }), /validation|contract/i);
+  } finally { globalThis.fetch = originalFetch; }
 });
 
 test("founder proof endpoint remains private to the configured control host", () => {

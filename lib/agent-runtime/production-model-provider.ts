@@ -68,7 +68,18 @@ export class ProductionModelProvider implements ManagerProvider, SpecialistProvi
   }
 
   generatePlan(input: ManagerPlanningRequest): Promise<ManagerProviderResponse> {
-    return this.request("Manager. Plan exactly two steps: workflow_discovery_specialist reading goal_input brief, followed by agent_architecture_specialist reading only that verified step_output. Assign the required acceptance criterion to the second step. Use the exact supplied planId and executionId", input, managerPlanProposalSchema);
+    return this.request(`Manager. Propose exactly two ordered steps within the immutable request snapshot.
+Return only {plan, decisionSummary}; plan must contain planId, executionId, rationaleSummary, steps, verificationStepIds.
+Copy planId and executionId exactly from the request. Give the two steps distinct stepId values and sequence 0 and 1.
+Each step must contain stepId, sequence, objective, assignedAgentKey, inputRefs, expectedOutputSchema,
+acceptanceCriterionIds, requiredCapabilities, riskLevel, dependsOn. Include every required field, even empty arrays.
+Step 0: workflow_discovery_specialist; inputRefs exactly [{kind:"goal_input",id:"brief"}];
+expectedOutputSchema "workflow-model-v1"; dependsOn [], acceptanceCriterionIds [], requiredCapabilities [], riskLevel "low".
+Step 1: agent_architecture_specialist; inputRefs contains exactly one step_output whose id is the exact stepId you chose for step 0;
+expectedOutputSchema "agent-system-proposal-v1"; dependsOn contains exactly that same step 0 stepId;
+acceptanceCriterionIds contains only the required criterion ID from the goal; requiredCapabilities [], riskLevel "low".
+Set verificationStepIds to an array containing exactly the stepId you chose for step 1. Never invent capabilities, references, criteria, or permissions.
+Use concise decision and rationale summaries. No hidden reasoning or additional fields.`, input, managerPlanProposalSchema);
   }
 
   discoverWorkflow(input: WorkflowDiscoveryInput): Promise<SpecialistProviderResponse> {

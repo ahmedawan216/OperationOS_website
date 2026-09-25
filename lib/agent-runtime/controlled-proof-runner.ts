@@ -9,6 +9,13 @@ import { agentSystemProposalSchema } from "./specialist-contracts";
 import { observeAuthoritativeGoal } from "./authoritative-observation";
 import type { AcceptanceCriterionVerifier } from "./manager-verification";
 
+// The first live attempt remains an immutable failed execution. A changed planning
+// instruction must use a new idempotency key rather than reopening that history.
+export const controlledProofRun = Object.freeze({
+  goalId: "operationos-controlled-goal-initial-v2",
+  idempotencyKey: "operationos-controlled-proof-initial-v2",
+});
+
 const attemptSchema = z.array(z.object({
   step_id: z.string().min(1), status: z.literal("succeeded"),
   assignment: z.object({ assignedAgentKey: z.enum(["workflow_discovery_specialist", "agent_architecture_specialist"]),
@@ -54,7 +61,7 @@ export async function runControlledProof(input: { tenantId: string; actorId: str
   const provider = new ProductionModelProvider(); // Refuse registration if the live provider is unavailable.
   const existing = await input.client.from("agent_runtime_executions").select("execution_id,status")
     .eq("tenant_id", input.tenantId).eq("product_key", "operationos")
-    .eq("idempotency_key", "operationos-controlled-proof-initial-v1").maybeSingle();
+    .eq("idempotency_key", controlledProofRun.idempotencyKey).maybeSingle();
   if (existing.error) throw new Error("Controlled proof execution preflight failed");
   if (existing.data) return { executionId: existing.data.execution_id as string, status: existing.data.status as string };
   const occurredAt = new Date().toISOString();
@@ -69,14 +76,14 @@ export async function runControlledProof(input: { tenantId: string; actorId: str
     verifier: controlledArchitectureVerifier, maxReplans: 0 });
   const agents = registration.agents;
   const result = await manager.run({ goal: {
-    goalId: "operationos-controlled-goal-initial-v1", tenantId: input.tenantId,
+    goalId: controlledProofRun.goalId, tenantId: input.tenantId,
     actorId: input.actorId,
     objective: "Discover a safe internal workflow for reviewing proposed agent responsibilities, then draft its agent architecture.",
     inputs: { brief: "An OperationOS operator receives an internal workflow proposal, checks its supporting evidence and human checkpoints, and drafts an architecture for review. No external action, deployment, configuration change, or permission grant is permitted. Intake volume and downstream tooling are unknown." },
     acceptanceCriteria: [{ id: "verified-proposal", description: "A runtime-verified, draft-only architecture proposal exists with explicit evidence and human checkpoints.",
       evaluator: "deterministic", required: true }],
     constraints: ["Draft only", "No external side effects", "No permission changes", "Founder retains final authority"],
-    requestedAt: occurredAt, idempotencyKey: "operationos-controlled-proof-initial-v1",
+    requestedAt: occurredAt, idempotencyKey: controlledProofRun.idempotencyKey,
   }, manifest: { managerVersionId: agents.find((agent) => agent.agentKey === "manager")!.versionId,
     specialistVersionIds: [agents.find((agent) => agent.agentKey === "workflow_discovery_specialist")!.versionId,
       agents.find((agent) => agent.agentKey === "agent_architecture_specialist")!.versionId],
@@ -85,7 +92,7 @@ export async function runControlledProof(input: { tenantId: string; actorId: str
   budget: { maxSteps: 2, maxRetriesPerStep: 0, maxWallTimeMs: 115_000, maxCostUsd: 1 } });
   const persisted = await input.client.from("agent_runtime_executions").select("execution_id")
     .eq("tenant_id", input.tenantId).eq("product_key", "operationos")
-    .eq("idempotency_key", "operationos-controlled-proof-initial-v1").single();
+    .eq("idempotency_key", controlledProofRun.idempotencyKey).single();
   if (persisted.error || !persisted.data) throw new Error("Controlled proof execution is not durably readable");
   let observationId: string | undefined;
   if (result.status === "completed") {
