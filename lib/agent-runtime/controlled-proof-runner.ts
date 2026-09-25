@@ -12,8 +12,8 @@ import type { AcceptanceCriterionVerifier } from "./manager-verification";
 // Earlier live attempts remain immutable. The next diagnostic run gets its own
 // idempotency boundary; rejected provider output is never retained or retried.
 export const controlledProofRun = Object.freeze({
-  goalId: "operationos-controlled-goal-initial-v3",
-  idempotencyKey: "operationos-controlled-proof-initial-v3",
+  goalId: "operationos-controlled-goal-initial-v4",
+  idempotencyKey: "operationos-controlled-proof-initial-v4",
 });
 
 const attemptSchema = z.array(z.object({
